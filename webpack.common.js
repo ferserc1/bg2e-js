@@ -42,6 +42,13 @@ const plugins = [];
 module.exports = {
 	entry: './src/index.js',
 	devtool: "source-map",
+	output: {
+		path: path.join(__dirname, "dist"),
+		filename: 'bg2e.js',
+    	library: "bg2e",
+    	libraryTarget: "umd",
+		chunkFilename: "[id].[chunkhash].js"
+	},
 	module: {
 		rules: [
 			javascriptRules,

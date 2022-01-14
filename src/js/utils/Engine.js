@@ -9,6 +9,13 @@ export default class Engine {
     static Get() {
         return window.s_bg_utils_Engine;
     }
+
+    constructor() {
+        this._shaderLibrary = {
+            inputs: {},
+            functions: {}
+        }
+    }
     
     get id() { return this._engineId; }
     

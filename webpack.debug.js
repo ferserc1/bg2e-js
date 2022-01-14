@@ -5,11 +5,11 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 
 config.entry = './src/debug.js';
-config.output = {
-	path: path.join(__dirname, "debug"),
-	filename: 'bg2e.js',
-	sourceMapFilename: 'bg2e.js.map'
-}
+//config.output = {
+//	path: path.join(__dirname, "debug"),
+//	filename: 'bg2e.js',
+//	sourceMapFilename: 'bg2e.js.map'
+//}
 config.devtool = "source-map";
 config.devServer = {
 	port: 8000,

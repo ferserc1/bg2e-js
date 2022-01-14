@@ -21,6 +21,7 @@ import LifeCycle from "./LifeCycle";
 import md5, {
     generateUUID 
 } from "./md5";
+import Electron from "./Electron";
 
 const utils = {
     version,
@@ -46,7 +47,8 @@ const utils = {
     Engine,
     LifeCycle,
     md5,
-    generateUUID
+    generateUUID,
+    electron: new Electron()
 }
 
 export default utils;

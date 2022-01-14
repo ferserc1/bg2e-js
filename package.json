@@ -26,6 +26,7 @@
   "homepage": "https://www.bg2engine.org",
   "devDependencies": {
     "@babel/core": "^7.16.7",
+    "@babel/plugin-transform-runtime": "^7.16.8",
     "@babel/preset-env": "^7.16.8",
     "babel-loader": "^8.2.3",
     "copy-webpack-plugin": "^10.2.0",
@@ -40,6 +41,7 @@
     "webpack-dev-server": "^4.7.3"
   },
   "dependencies": {
+    "@babel/runtime": "^7.16.7",
     "core-js": "^3.20.2"
   }
 }
