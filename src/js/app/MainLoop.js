@@ -4,6 +4,7 @@ import Mouse from "./Mouse";
 import MouseEvent, { MouseButton } from "./MouseEvent";
 import KeyboardEvent from "./KeyboardEvent";
 import TouchEvent from "./TouchEvent";
+import { bindImageLoadEvent } from "../utils/Resource";
 
 window.s_bg_app_mainLoop = null;
 
@@ -278,10 +279,10 @@ export default class MainLoop {
         this._windowController = null;
         this._updateMode = FrameUpdate.AUTO;
         this._redisplayFrames = 1;
-        // TODO: Implement this
-//        bg.bindImageLoadEvent(() => {
-//            this.postRedisplay();
-//        });
+        
+        bindImageLoadEvent(() => {
+            this.postRedisplay();
+        });
     }
     
     get canvas() { return this._canvas; }

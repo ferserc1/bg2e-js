@@ -3,6 +3,17 @@ import HTTPResourceProvider from "./HTTPResourceProvider";
 
 let g_resourceProvider = new HTTPResourceProvider();
 
+export const IMG_LOAD_EVENT_NAME = "bg2e:image-load";
+
+export const emitImageLoadEvent = (img) => {
+    const event = new CustomEvent(IMG_LOAD_EVENT_NAME, { image: img });
+    document.dispatchEvent(event);
+}
+
+export const bindImageLoadEvent = (callback) => {
+    return document.addEventListener(IMG_LOAD_EVENT_NAME, callback);
+}
+
 export const requireGlobal = (src) => {
     const s = document.createElement('script');
     s.src = src;
@@ -145,7 +156,7 @@ export default class Resource {
                 url,
                 (target) => {
                     resolve(target);
-                    bg.emitImageLoadEvent(target);
+                    emitImageLoadEvent(target);
                 },
                 (err) => {
                     reject(err);
@@ -174,7 +185,7 @@ export default class Resource {
                 url,
                 (target) => {
                     resolve(target);
-                    bg.emitImageLoadEvent(target);
+                    emitImageLoadEvent(target);
                 },
                 (err) => {
                     reject(err);

@@ -10,7 +10,12 @@ import ResourceProvider, {
     endVideoLoad
 } from "./ResourceProvider";
 import HTTPResourceProvider from "./HTTPResourceProvider";
-import Resource, { requireGlobal } from "./Resource";
+import Resource, {
+    IMG_LOAD_EVENT_NAME,
+    emitImageLoadEvent,
+    bindImageLoadEvent,
+    requireGlobal
+ } from "./Resource";
 import Engine from "./Engine";
 import LifeCycle from "./LifeCycle";
 import md5, {
@@ -34,6 +39,9 @@ const utils = {
     endVideoLoad,
     HTTPResourceProvider,
     Resource,
+    IMG_LOAD_EVENT_NAME,
+    emitImageLoadEvent,
+    bindImageLoadEvent,
     requireGlobal,
     Engine,
     LifeCycle,
