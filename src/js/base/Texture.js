@@ -344,6 +344,19 @@ export default class Texture extends ContextObject {
         });
     }
 
+    static PrecomputedBRDFLookupData(context) {
+        return new Promise((resolve) => {
+            import(/* webpackChunkName: "brdfLUT" */ "./BRDFLutData")
+                .then(brdf => {
+                    resolve(brdf.default);
+                })
+                .catch(err => {
+                    console.error("Error loading BRDF lut data");
+                    console.error(err);
+                });
+        });
+    }
+
     /*
      *	Create a texture using an image.
      *		context: the rendering context
