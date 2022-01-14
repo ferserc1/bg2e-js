@@ -164,7 +164,7 @@ export default class Texture extends ContextObject {
             recreate = true;
         }
         texture.img = new Image();
-        g_window.s_bg_base_base64TexturePreventRemove.push(texture);
+        window.s_bg_base_base64TexturePreventRemove.push(texture);
         setTimeout(() => {
             texture.bind();
             if (Texture.IsPowerOfTwoImage(texture.img)) {
@@ -179,9 +179,9 @@ export default class Texture extends ContextObject {
             }
             texture.setImage(texture.img,true);
             texture.unbind();
-            let index = g_window.s_bg_base_base64TexturePreventRemove.indexOf(texture);
+            let index = window.s_bg_base_base64TexturePreventRemove.indexOf(texture);
             if (index!=-1) {
-                g_window.s_bg_base_base64TexturePreventRemove.splice(index,1);
+                window.s_bg_base_base64TexturePreventRemove.splice(index,1);
             }
             emitImageLoadEvent(texture.img);
         },10);
@@ -193,7 +193,7 @@ export default class Texture extends ContextObject {
     static FromBase64Image(context,imgData) {
         let tex = new Texture(context);
         tex.img = new Image();
-        g_window.s_bg_base_base64TexturePreventRemove.push(tex);
+        window.s_bg_base_base64TexturePreventRemove.push(tex);
         setTimeout(() => {
             tex.create();
             tex.bind();
@@ -209,9 +209,9 @@ export default class Texture extends ContextObject {
             }
             tex.setImage(tex.img,false);	// Check this: flip base64 image?
             tex.unbind();
-            let index = g_window.s_bg_base_base64TexturePreventRemove.indexOf(tex);
+            let index = window.s_bg_base_base64TexturePreventRemove.indexOf(tex);
             if (index!=-1) {
-                g_window.s_bg_base_base64TexturePreventRemove.splice(index,1);
+                window.s_bg_base_base64TexturePreventRemove.splice(index,1);
             }
             emitImageLoadEvent(tex.img);
         },10);
@@ -332,7 +332,7 @@ export default class Texture extends ContextObject {
         return new Promise((resolve) => {
             import(/* webpackChunkName: "brdfLUT" */ "./BRDFLutData")
                 .then(brdf => {
-                    return Texture.FromBase64Image(context, brdf);
+                    return Texture.FromBase64Image(context, brdf.default);
                 })
                 .then((tex) => {
                     resolve(tex);
