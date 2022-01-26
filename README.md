@@ -1,4 +1,5 @@
 # Business Grade Graphic Engine - JavaScript API
+
 ## About
 
 This library is the WebGL/JavaScript counterpart of the bg2 engine C++ API. This library provides an API to
@@ -8,21 +9,9 @@ This project is currently a draft, and the authors recommends not to use it beca
 
 More info at the main [bg2 engine website](http://www.bg2engine.com)
 
-## Build
+## Structure
 
-You can build bg2 engine using the npm scripts included in the repository:
-
-**Build the library:**
-
-```sh
-npm run build
-```
-
-**Run the examples (using your browser):**
-
-```sh
-npm run debug
-```
+The repository contains directories with bg2 engine base packages, which can be compiled independently to generate npm packages. But it is also possible to use this same repository as uncompiled source code, e.g. for Electron applications.
 
 ## License
 
