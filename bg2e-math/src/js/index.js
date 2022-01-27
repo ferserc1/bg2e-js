@@ -36,9 +36,9 @@ import {
     square
 } from "./functions";
 
-import vec from './Vector';
+import VectorUtils from './Vector';
 
-export const MathConst = {
+export const math = {
     Axis,
     PI,
     DEG_TO_RAD,
@@ -51,9 +51,7 @@ export const MathConst = {
     NumericArray,
     NumericArrayHighP,
     FLOAT_MAX,
-};
 
-export const MathFunc = {
     checkPowerOfTwo,
     checkZero,
     equals,
@@ -75,5 +73,5 @@ export const MathFunc = {
     square
 };
 
-export const Vector = vec.Vector;
-export const VectorFunc = vec.VectorFunc;
+export const Vector = VectorUtils.Vector;
+export const vec = VectorUtils.vec;

@@ -7,8 +7,8 @@ export default [
         input: './src/js/index.js',
 
         watch: {
-            include: './src/*',
-            cleanScreen: false
+            include: './src/**',
+            cleanScreen: true
         },
 
         output: {

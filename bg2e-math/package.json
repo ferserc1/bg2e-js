@@ -5,7 +5,7 @@
   "main": "test.js",
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -c --watch --environment NODE_ENV:development"
+    "dev": "rollup -c -w --environment NODE_ENV:development"
   },
   "author": "Fernando Serrano Carpena <ferserc1@gmail.com>",
   "license": "MIT",
