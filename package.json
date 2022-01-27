@@ -4,9 +4,11 @@
   "description": "a graphics engine for productivity applications",
   "main": "index.js",
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "express": "^4.17.2"
+  },
   "scripts": {
-    "tools": "npx http-server bg2e-tools"
+    "serve": "node ."
   },
   "repository": {
     "type": "git",
