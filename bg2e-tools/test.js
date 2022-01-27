@@ -1,6 +1,8 @@
-import { generateMD5, generateUUID } from "./src/js/crypto.js";
-import UserAgent from "./src/js/UserAgent.js";
-import Resource, { 
+import { 
+    generateMD5, 
+    generateUUID, 
+    UserAgent,
+    Resource,
     isFormat, 
     addImageFormats, 
     addVideoFormats,
@@ -8,7 +10,7 @@ import Resource, {
     getValidImageFormats,
     getValidVideoFormats,
     getValidBinaryFormats
-} from "./src/js/Resource.js";
+} from "./dist/bg2e-tools.js";
 
 console.log(generateMD5("Hello, World!"));
 console.log(generateUUID());
