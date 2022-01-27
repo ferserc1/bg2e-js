@@ -1,0 +1,27 @@
+{
+  "name": "bg2e",
+  "version": "1.0.0",
+  "description": "a graphics engine for productivity applications",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "tools": "npx http-server bg2e-tools"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ferserc1/bg2e-js.git"
+  },
+  "keywords": [
+    "webgl",
+    "business",
+    "graphic",
+    "engine"
+  ],
+  "author": "Fernando Serrano Carpena",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ferserc1/bg2e-js/issues"
+  },
+  "homepage": "https://github.com/ferserc1/bg2e-js#readme"
+}
