@@ -38,6 +38,8 @@ import {
 
 import VectorUtils from './Vector';
 
+import Matrix3Utils from "./Matrix3";
+
 export const math = {
     Axis,
     PI,
@@ -75,3 +77,5 @@ export const math = {
 
 export const Vector = VectorUtils.Vector;
 export const vec = VectorUtils.vec;
+export const Matrix3 = Matrix3Utils.Matrix3;
+export const mat3 = Matrix3Utils.mat3;

@@ -1,51 +1,126 @@
 import { NumericArray } from "./constants";
 
-function Vector() {
-    switch (arguments.length) {
-    case 2:
-        if (arguments[0] instanceof NumericArray && 
-            arguments[0].length === 2 &&
-            typeof(arguments[1]) === "number"
-        ) {
-            return new NumericArray([ arguments[0][0], arguments[0][1], arguments[1]]);
+const checkEqualLength = (v1,v2) => {
+    if (v1.length!=v2.length) throw new Error(`Invalid vector length in operation`);
+}
+
+class Vector extends NumericArray {
+    constructor() {
+        switch (arguments.length) {
+        case 2:
+            if (arguments[0] instanceof NumericArray && 
+                arguments[0].length === 2 &&
+                typeof(arguments[1]) === "number"
+            ) {
+                super([ arguments[0][0], arguments[0][1], arguments[1]]);
+            }
+            else if (arguments[0] instanceof NumericArray && 
+                arguments[0].length === 3 &&
+                typeof(arguments[1]) === "number"
+            ) {
+                super([ arguments[0][0], arguments[0][1], arguments[0][2], arguments[1]]);
+            }
+            else if (typeof(arguments[0]) === "number" &&
+                typeof(arguments[1]) === "number"
+            ) {
+                super([arguments[0],arguments[1]]);
+            }
+            break;
+        case 3:
+            if (arguments[0] instanceof NumericArray &&
+                arguments[0].length === 2 &&
+                typeof(arguments[1]) === "number" && typeof(arguments[2]) === "number"
+            ) {
+                super([ arguments[0][0], arguments[0][1], arguments[1], arguments[2]])
+            }
+            else if (typeof(arguments[0]) === "number" &&
+                typeof(arguments[1]) === "number" &&
+                typeof(arguments[2]) === "number"
+            ) {
+                super([arguments[0],arguments[1],arguments[2]]);
+            }
+            break;
+        case 4:
+            super([arguments[0],arguments[1],arguments[2],arguments[3]]);
+            break;
+        case 1:
+            if (arguments[0] instanceof NumericArray &&
+                arguments[0].length>1 && arguments[0].length<5)
+            {
+                super(...arguments[0]);
+            }
+            break;
+        default:
+            throw new Error(`Invalid parameters in Vector factory method`);
         }
-        if (arguments[0] instanceof NumericArray && 
-            arguments[0].length === 3 &&
-            typeof(arguments[1]) === "number"
-        ) {
-            return new NumericArray([ arguments[0][0], arguments[0][1], arguments[0][2], arguments[1]]);
-        }
-        else if (typeof(arguments[0]) === "number" &&
-            typeof(arguments[1]) === "number"
-        ) {
-            return new NumericArray([arguments[0],arguments[1]]);
-        }
-        break;
-    case 3:
-        if (arguments[0] instanceof NumericArray &&
-            arguments[0].length === 2 &&
-            typeof(arguments[1]) === "number" && typeof(arguments[2]) === "number"
-        ) {
-            return new NumericArray([ arguments[0][0], arguments[0][1], arguments[1], arguments[2]])
-        }
-        else if (typeof(arguments[0]) === "number" &&
-            typeof(arguments[1]) === "number" &&
-            typeof(arguments[2]) === "number"
-        ) {
-            return new NumericArray([arguments[0],arguments[1],arguments[2]]);
-        }
-        break;
-    case 4:
-        return new NumericArray([arguments[0],arguments[1],arguments[2],arguments[3]]);
-    case 1:
-        if (arguments[0] instanceof NumericArray &&
-            arguments[0].length>1 && arguments[0].length<5)
-        {
-            return Vector(...arguments[0]);
-        }
-        break;
     }
-    throw new Error(`Invalid parameters in Vector factory method`);
+
+    normalize(v) {
+        const m = this.magnitude();
+        switch (this.length) {
+        case 4:
+            this[3] = this[3] / m;
+        case 3:
+            this[2] = this[2] / m;
+        case 2:
+            this[1] = this[1] / m;            
+            this[0] = this[0] / m;
+            break;
+        default:
+            throw new Error(`Invalid vector size: ${ this.length }`);
+        }
+        return v;
+    }
+
+    magnitude() {
+        switch (this.length) {
+        case 2:
+            return Math.sqrt(this[0] * this[0] + this[1] * this[1]);
+        case 3:
+            return Math.sqrt(this[0] * this[0] + this[1] * this[1] + this[2] * this[2]);
+        case 4:
+            return Math.sqrt(this[0] * this[0] + this[1] * this[1] + this[2] * this[2] + this[3] * this[3]);
+        default:
+            throw new Error(`Invalid vector size: ${ this.length }`);
+        }
+    }
+
+    assign(src) {
+        checkEqualLength(this,src);
+        switch (this.length) {
+        case 4:
+            this[3] = src[3];
+        case 3:
+            this[2] = src[2];
+        case 2:
+            this[1] = src[1];
+            this[0] = src[0];
+            break;
+        default:
+            throw new Error(`Invalid vector size: ${ this.length }`);
+        }
+    }
+
+    set(x, y, z = null, w = null) {
+        if (this.length === 2) {
+            this[0] = x;
+            this[1] = y;
+        }
+        else if (this.length === 3 && z !== null) {
+            this[0] = x;
+            this[1] = y;
+            this[2] = z;
+        }
+        else if (this.length === 4 && w !== null) {
+            this[0] = x;
+            this[1] = y;
+            this[2] = z;
+            this[3] = w;
+        }
+        else {
+            throw new Error(`Invalid vector size: ${ this.length }. Trying to set x=${x}, y=${y}, z=${z}, w=${w}`);
+        }
+    }
 }
 
 export default {
@@ -53,7 +128,7 @@ export default {
 
     vec: {
         checkEqualLength(v1,v2) {
-            if (v1.length!=v2.length) throw new Error(`Invalid vector length in operation`);
+            checkEqualLength(v1,v2);
         },
 
         maxVector(v1,v2) {
@@ -208,23 +283,6 @@ export default {
             }
         },
 
-        normalize(v) {
-            const m = this.magnitude(v);
-            switch (v.length) {
-            case 4:
-                v[3] = v[3] / m;
-            case 3:
-                v[2] = v[2] / m;
-            case 2:
-                v[1] = v[1] / m;            
-                v[0] = v[0] / m;
-                break;
-            default:
-                throw new Error(`Invalid vector size: ${ v.length }`);
-            }
-            return v;
-        },
-
         getNormalized(v) {
             const m = this.magnitude(v);
             switch (v.length) {
@@ -336,10 +394,10 @@ export default {
         xy(v) {
             switch (v.length) {
             case 2:
-                return Vector(v);
+                return new Vector(v);
             case 3:
             case 4:
-                return Vector(v[0], v[1]);
+                return new Vector(v[0], v[1]);
             default:
                 throw new Error(`Invalid vector size: ${ v.length }`);
             }
@@ -349,7 +407,7 @@ export default {
             switch (v.length) {
             case 3:
             case 4:
-                return Vector(v[0], v[2]);
+                return new Vector(v[0], v[2]);
             case 2:
             default:
                 throw new Error(`Invalid vector size: ${ v.length }`);
@@ -360,7 +418,7 @@ export default {
             switch (v.length) {
             case 3:
             case 4:
-                return Vector(v[1], v[2]);
+                return new Vector(v[1], v[2]);
             case 2:
             default:
                 throw new Error(`Invalid vector size: ${ v.length }`);
@@ -371,7 +429,7 @@ export default {
             if (v.length !== 4) {
                 throw new Error(`Invalid vector size: ${ v.length }`);
             }
-            return Vector(v[0],v[1],v[2]);
+            return new Vector(v[0],v[1],v[2]);
         }
     }    
 }
