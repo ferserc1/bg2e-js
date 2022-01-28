@@ -73,3 +73,65 @@ console.log(m1.toString());
 
 const m2 = mat3.identity();
 console.log(m2.toString());
+console.log(m2.row(0));
+
+console.log(
+    m2.setRow(0, 10, 20, 30)
+      .setRow(1, new Vector(100,200,300))
+      .toString()
+);
+
+console.log(
+    m2.identity()
+      .setScale(10, 5, 2)
+      .toString()
+);
+
+console.log(mat3.getScale(m2));
+
+m2.setRow(0, 1, 2, 3);
+m2.setRow(1, 4, 5, 6);
+m2.setRow(2, 7, 8, 9);
+console.log(m2.toString());
+console.log(m2.traspose().toString());
+
+const m3 = mat3.identity();
+const m4 = mat3.identity();
+console.log("m3 === m4 : ", mat3.equals(m3, m4));
+console.log("m3 === m4.mult(10) : ", mat3.equals(m3, m4.mult(10)));
+console.log(m4.toString());
+
+const vs1 = new Vector(1,2);
+const vs2 = new Vector(1,2,3);
+const vs3 = new Vector(1,2,3,4);
+console.log(vs1.scale(100));
+console.log(vs2.scale(100));
+console.log(vs3.scale(100));
+
+console.log(vs3.xyz);
+
+const ms1 = mat3.identity()
+    .setScale(10, 4, 1);
+const v2d = new Vector(1,1);
+console.log(ms1.multVector(v2d));
+
+ms1[0] = Math.sqrt(-1);
+console.log("ms1: ", ms1.toString());
+console.log("ms1 isNaN = ", mat3.isNaN(ms1));
+
+const ma = new Matrix3(
+    1, 4, 5,
+    4, 2, 2, 
+    9, 3, 1
+);
+
+const mb = new Matrix3([
+    7, 7, 3,
+    1, 9, 4,
+    0, 2, 2
+]);
+
+console.log("ma: ", ma.toString());
+console.log("mb: ", mb.toString());
+console.log("ma = ma x mb:");
+console.log(ma.mult(mb).toString());

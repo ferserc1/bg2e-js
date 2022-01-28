@@ -51,11 +51,11 @@ class Vector extends NumericArray {
             }
             break;
         default:
-            throw new Error(`Invalid parameters in Vector factory method`);
+            throw new Error(`Invalid parameters in Vector constructor`);
         }
     }
 
-    normalize(v) {
+    normalize() {
         const m = this.magnitude();
         switch (this.length) {
         case 4:
@@ -69,7 +69,7 @@ class Vector extends NumericArray {
         default:
             throw new Error(`Invalid vector size: ${ this.length }`);
         }
-        return v;
+        return this;
     }
 
     magnitude() {
@@ -120,6 +120,79 @@ class Vector extends NumericArray {
         else {
             throw new Error(`Invalid vector size: ${ this.length }. Trying to set x=${x}, y=${y}, z=${z}, w=${w}`);
         }
+    }
+
+    scale(s) {
+        switch (this.length) {
+        case 4:
+            this[3] = this[3] * s;
+        case 3:
+            this[2] = this[2] * s;
+        case 2:
+            this[1] = this[1] * s;
+            this[0] = this[0] * s;
+            break;
+        default:
+            throw new Error(`Invalid vector size: ${ v.length }`);
+        }
+        return this;
+    }
+
+    get x() {
+        return this[0];
+    }
+
+    get y() {
+        return this[1];
+    }
+
+    get z() {
+        return this[2];
+    }
+
+    get w() {
+        return this[3];
+    }
+
+    get xy() {
+        switch (this.length) {
+        case 2:
+            return new Vector(this);
+        case 3:
+        case 4:
+            return new Vector(this[0], this[1]);
+        default:
+            throw new Error(`Invalid vector size: ${ this.length }`);
+        }
+    }
+
+    get xz() {
+        switch (this.length) {
+        case 3:
+        case 4:
+            return new Vector(this[0], this[2]);
+        case 2:
+        default:
+            throw new Error(`Invalid vector size: ${ this.length }`);
+        }
+    }
+
+    get yz() {
+        switch (this.length) {
+        case 3:
+        case 4:
+            return new Vector(this[1], this[2]);
+        case 2:
+        default:
+            throw new Error(`Invalid vector size: ${ this.length }`);
+        }
+    }
+
+    get xyz() {
+        if (this.length !== 4) {
+            throw new Error(`Invalid vector size: ${ this.length }`);
+        }
+        return new Vector(this[0], this[1], this[2]);
     }
 }
 
