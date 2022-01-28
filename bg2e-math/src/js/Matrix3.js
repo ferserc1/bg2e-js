@@ -1,10 +1,9 @@
 import { NumericArray } from "./constants";
 import VectorUtils from "./Vector";
 
-const Vector = VectorUtils.Vector;
-const vec = VectorUtils.vec;
+const Vec = VectorUtils.Vec;
 
-class Matrix3 extends NumericArray {
+class Mat3 extends NumericArray {
     constructor() {
         if (arguments.length === 9) {
             super(arguments);
@@ -16,7 +15,7 @@ class Matrix3 extends NumericArray {
             super([0,0,0,0,0,0,0,0,0]);
         }
         else {
-            throw new Error(`Invalid parameter size in Matrix3 constructor`);
+            throw new Error(`Invalid parameter size in Mat3 constructor`);
         }
     }
 
@@ -35,7 +34,7 @@ class Matrix3 extends NumericArray {
     }
 
     row(i) {
-        return new Vector(
+        return new Vec(
             this[i * 3], 
             this[i * 3 + 1],
             this[ i* 3 + 2]);
@@ -62,7 +61,7 @@ class Matrix3 extends NumericArray {
     }
 
     col(i) {
-        return new Vector(
+        return new Vec(
             this[i],
             this[i + 3],
             this[i + 3 * 2]
@@ -107,9 +106,9 @@ class Matrix3 extends NumericArray {
     }
 
     setScale(x,y,z) { 
-		const rx = (new Vector(this[0], this[3], this[6])).normalize().scale(x);
-		const ry = (new Vector(this[1], this[4], this[7])).normalize().scale(y);
-		const rz = (new Vector(this[2], this[5], this[8])).normalize().scale(z);
+		const rx = (new Vec(this[0], this[3], this[6])).normalize().scale(x);
+		const ry = (new Vec(this[1], this[4], this[7])).normalize().scale(y);
+		const rz = (new Vec(this[2], this[5], this[8])).normalize().scale(z);
 		this[0] = rx.x; this[3] = rx.y; this[6] = rx.z;
 		this[1] = ry.x; this[4] = ry.y; this[7] = ry.z;
 		this[2] = rz.x; this[5] = rz.y; this[8] = rz.z;
@@ -143,12 +142,12 @@ class Matrix3 extends NumericArray {
             const c1 = a.col(1);
             const c2 = a.col(2);
             
-            this[0] = vec.dot(r0,c0); this[1] = vec.dot(r0,c1); this[2] = vec.dot(r0,c2);
-            this[3] = vec.dot(r1,c0); this[4] = vec.dot(r1,c1); this[5] = vec.dot(r1,c2);
-            this[6] = vec.dot(r2,c0); this[7] = vec.dot(r2,c1); this[8] = vec.dot(r2,c2);
+            this[0] = Vec.Dot(r0,c0); this[1] = Vec.Dot(r0,c1); this[2] = Vec.Dot(r0,c2);
+            this[3] = Vec.Dot(r1,c0); this[4] = Vec.Dot(r1,c1); this[5] = Vec.Dot(r1,c2);
+            this[6] = Vec.Dot(r2,c0); this[7] = Vec.Dot(r2,c1); this[8] = Vec.Dot(r2,c2);
         }
         else {
-            throw new Error(`Invalid parameter in Matrix3.mult()`);
+            throw new Error(`Invalid parameter in Mat3.mult()`);
         }
         return this;
     }
@@ -159,12 +158,12 @@ class Matrix3 extends NumericArray {
             const y = v[1];
             const z = v.length === 2 ? 1 : v[2];
         
-            return new Vector(	this[0] * x + this[3] * y + this[6] * z,
-                                this[1] * x + this[4] * y + this[7] * z,
-                                this[2] * x + this[5] * y + this[8] * z);
+            return new Vec(	this[0] * x + this[3] * y + this[6] * z,
+                            this[1] * x + this[4] * y + this[7] * z,
+                            this[2] * x + this[5] * y + this[8] * z);
         }
         else {
-            throw new Error(`Invalid parameter in Matrix3.multVector()`);
+            throw new Error(`Invalid parameter in Mat3.multVector()`);
         }
     }
 
@@ -173,52 +172,50 @@ class Matrix3 extends NumericArray {
                 `  ${this[3]}, ${this[4]}, ${this[5]}\n` +
                 `  ${this[6]}, ${this[7]}, ${this[8]} ]`;
     }
+
+    static MakeIdentity() {
+        const m = new Mat3();
+        return m.identity();
+    }
+
+    static MakeZero() {
+        const m = new Mat3();
+        return m.zero();
+    }
+
+    static IsZero(m) {
+        return	v[0]==0 && v[1]==0.0 && v[2]==0.0 &&
+                v[3]==0 && v[4]==0.0 && v[5]==0.0 &&
+                v[6]==0 && v[7]==0.0 && v[8]==0.0;
+    }
+    
+    static IsIdentity(m) {
+        return	v[0]==1.0 && v[1]==0.0 && v[2]==0.0 &&
+                v[3]==0.0 && v[4]==1.0 && v[5]==0.0 &&
+                v[6]==0.0 && v[7]==0.0 && v[8]==1.0;
+    }
+
+    static GetScale(m) {
+        return new Vec(
+            Vec.Magnitude(new Vec(m[0], m[3], m[6])),
+            Vec.Magnitude(new Vec(m[1], m[4], m[7])),
+            Vec.Magnitude(new Vec(m[2], m[5], m[8]))
+        );
+    }
+
+    static Equals(a,b) {
+        return	a[0] == b[0] && a[1] == b[1]  && a[2] == b[2] &&
+                a[3] == b[3] && a[4] == b[4]  && a[5] == b[5] &&
+                a[6] == b[6] && a[7] == b[7]  && a[8] == b[8];
+    }
+
+    static IsNaN(m) {
+        return	isNaN(m[0]) || isNaN(m[1]) || isNaN(m[2]) &&
+                isNaN(m[3]) || isNaN(m[4]) || isNaN(m[5]) &&
+                isNaN(m[6]) || isNaN(m[7]) || isNaN(m[8]);
+    }
 };
 
 export default {
-    Matrix3: Matrix3,
-
-    mat3: {
-        identity() {
-            const m = new Matrix3();
-            return m.identity();
-        },
-
-        zero() {
-            const m = new Matrix3();
-            return m.zero();
-        },
-
-        isZero(m) {
-            return	v[0]==0 && v[1]==0.0 && v[2]==0.0 &&
-                    v[3]==0 && v[4]==0.0 && v[5]==0.0 &&
-                    v[6]==0 && v[7]==0.0 && v[8]==0.0;
-        },
-        
-        isIdentity(m) {
-            return	v[0]==1.0 && v[1]==0.0 && v[2]==0.0 &&
-                    v[3]==0.0 && v[4]==1.0 && v[5]==0.0 &&
-                    v[6]==0.0 && v[7]==0.0 && v[8]==1.0;
-        },
-
-        getScale(m) {
-            return new Vector(
-                vec.magnitude(new Vector(m[0], m[3], m[6])),
-                vec.magnitude(new Vector(m[1], m[4], m[7])),
-                vec.magnitude(new Vector(m[2], m[5], m[8]))
-            );
-        },
-
-        equals(a,b) {
-            return	a[0] == b[0] && a[1] == b[1]  && a[2] == b[2] &&
-				    a[3] == b[3] && a[4] == b[4]  && a[5] == b[5] &&
-				    a[6] == b[6] && a[7] == b[7]  && a[8] == b[8];
-        },
-
-        isNaN(m) {
-            return	isNaN(m[0]) || isNaN(m[1]) || isNaN(m[2]) &&
-				    isNaN(m[3]) || isNaN(m[4]) || isNaN(m[5]) &&
-				    isNaN(m[6]) || isNaN(m[7]) || isNaN(m[8]);
-        }
-    }
+    Mat3: Mat3
 }

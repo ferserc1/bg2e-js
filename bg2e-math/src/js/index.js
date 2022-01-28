@@ -40,6 +40,8 @@ import VectorUtils from './Vector';
 
 import Matrix3Utils from "./Matrix3";
 
+import Matrix4Utils from './Matrix4';
+
 export const math = {
     Axis,
     PI,
@@ -75,7 +77,7 @@ export const math = {
     square
 };
 
-export const Vector = VectorUtils.Vector;
-export const vec = VectorUtils.vec;
-export const Matrix3 = Matrix3Utils.Matrix3;
-export const mat3 = Matrix3Utils.mat3;
+export const Vec = VectorUtils.Vec;
+export const Mat3 = Matrix3Utils.Mat3;
+export const Mat4 = Matrix4Utils.Mat4;
+
