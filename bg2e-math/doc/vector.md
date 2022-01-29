@@ -30,7 +30,9 @@ const color32 = new Vec(color24, 1);
 
 Vectors define instance methods, properties and static methods. In general, methods are organized as follows:
 
-- Methods that cause changes to the vector instance are instance methods, for example, normalize a vector. These methods always return the instance itself, so they can be used functionally.
+### Methods that cause changes to the vector instance
+
+These methods are instance methods, for example, normalize a vector. These methods always return the instance itself, so they can be used functionally. An exception to this case is the `toString()` method, which is an instance method.
 
 ```js
 console.log(
@@ -41,7 +43,9 @@ console.log(
 );
 ```
 
-- Several getters and setters are defined as properties, which allow to get and set the value of all or part of the vector:
+### Getters and setters
+
+Several getters and setters are defined as properties, which allow to get and set the value of all or part of the vector:
 
 ```js
 const v1 = new Vec(2,3,5,6);
@@ -59,7 +63,7 @@ v2.xy = new Vec(1,2);
 v2.z = 3;
 v1.xyzw = v2;
 ```
-You can also use the setter properties to convert normal JavaScript arrays to engine vectors:
+You can also use the setter properties to convert normal JavaScript arrays to bg2 engine vectors:
 
 ```js
 const v1 = new Vec(0,0,0,0);
@@ -68,7 +72,9 @@ v1.xyzw = [9,8,7,6];
 console.log(v1);
 ```
 
-- The methods that do not modify the value of the instances on which they operate are static. That is, those methods that operate on one or several vectors, and return the result.
+### Methods that do not modify the value of the vector instance
+
+These methods are static. That is, those methods that operate on one or several vectors, and return the result. Remember that the exception to this case is the `toString()` method, which is an instance method.
 
 ```js
 const v1 = new Vec(1,3);
@@ -96,7 +102,7 @@ Vec.IsZero(v1);
 Vec.IsNaN(v2);
 ```
 
-All the comparation methods in Vec class takes into account the Epsilon constant:
+All the comparation methods in `Vec` class takes into account the Epsilon constant:
 
 ```js
 const v1 = Vec.Vec2();
@@ -109,7 +115,9 @@ v2[1] = math.sqrt(-1);
 console.log(Vec.IsNaN(v2)); // true
 ```
 
-- Three factory methods are defined for vectors, which simplify the definition of 2-, 3- and 4-dimensional vectors, because it is no necessary to specify their initial values. These methods are also static:
+### Factory methods
+
+Three factory methods are defined for vectors as static methods, which simplify the definition of 2-, 3- and 4-dimensional vectors, because it is no necessary to specify their initial values:
 
 ```js
 const v2 = Vec.Vec2();
