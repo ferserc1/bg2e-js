@@ -20,6 +20,10 @@ export const checkZero = (v) => {
     return v>-EPSILON && v<EPSILON ? 0:v;
 }
 
+export const isZero = (v) => {
+    return checkZero(v) === 0;
+}
+
 export const equals = (a,b) => {
     return Math.abs(a - b) < EPSILON;
 }

@@ -1,4 +1,6 @@
+import { math } from "../../dist/bg2e-math.js";
 import { NumericArray } from "./constants.js";
+import { isZero, equals } from "./functions.js";
 
 const checkEqualLength = (v1,v2) => {
     if (v1.length!=v2.length) throw new Error(`Invalid vector length in operation`);
@@ -56,7 +58,7 @@ class Vec extends NumericArray {
     }
 
     normalize() {
-        const m = this.magnitude();
+        const m = Vec.Magnitude(this);
         switch (this.length) {
         case 4:
             this[3] = this[3] / m;
@@ -70,19 +72,6 @@ class Vec extends NumericArray {
             throw new Error(`Invalid vector size: ${ this.length }`);
         }
         return this;
-    }
-
-    magnitude() {
-        switch (this.length) {
-        case 2:
-            return Math.sqrt(this[0] * this[0] + this[1] * this[1]);
-        case 3:
-            return Math.sqrt(this[0] * this[0] + this[1] * this[1] + this[2] * this[2]);
-        case 4:
-            return Math.sqrt(this[0] * this[0] + this[1] * this[1] + this[2] * this[2] + this[3] * this[3]);
-        default:
-            throw new Error(`Invalid vector size: ${ this.length }`);
-        }
     }
 
     assign(src) {
@@ -154,6 +143,26 @@ class Vec extends NumericArray {
         return this[3];
     }
 
+    set x(v) {
+        this[0] = v;
+        return this;
+    }
+
+    set y(v) {
+        this[1] = v;
+        return this;
+    }
+
+    set z(v) {
+        this[2] = v;
+        return this;
+    }
+
+    set w(v) {
+        this[3] = v;
+        return this;
+    }
+
     get xy() {
         switch (this.length) {
         case 2:
@@ -188,11 +197,65 @@ class Vec extends NumericArray {
         }
     }
 
+    set xy(v) {
+        this[0] = v[0];
+        this[1] = v[1];
+        return this;
+    }
+
+    set xz(v) {
+        if (this.length<3) {
+            throw new Error('Invalid vector size');
+        }
+        this[0] = v[0];
+        this[2] = v[1];
+        return this;
+    }
+
+    set yz(v) {
+        if (this.length<3) {
+            throw new Error('Invalid vector size');
+        }
+        this[1] = v[0];
+        this[2] = v[1];
+        return this;
+    }
+
     get xyz() {
-        if (this.length !== 4) {
+        if (this.length < 3) {
             throw new Error(`Invalid vector size: ${ this.length }`);
         }
         return new Vec(this[0], this[1], this[2]);
+    }
+
+    set xyz(v) {
+        if (v.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        this[0] = v[0];
+        this[1] = v[1];
+        this[2] = v[2];
+        return this;
+    }
+
+    // Copy operator
+    get xyzw() {
+        if (this.length < 4) {
+            throw new Error(`Invalid vector size: ${ this.length }, 4 required`);
+        }
+        return new Vec(this[0], this[1], this[2], this[3]);
+    }
+
+    // Assign operator
+    set xyzw(v) {
+        if (this.length < 4 || v.length<4) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        this[0] = v[0];
+        this[1] = v[1];
+        this[2] = v[2];
+        this[3] = v[3];
+        return this;
     }
 
     static CheckEqualLength(v1,v2) {
@@ -398,56 +461,34 @@ class Vec extends NumericArray {
         else {
             switch (v1.length) {
             case 2:
-                return v1[0] === v2[0] && v1[1] === v2[1];
+                return  equals(v1[0], v2[0]) &&
+                        equals(v1[1], v2[1]);
             case 3:
-                return v1[0] === v2[0] && v1[1] === v2[1] && v1[2] === v2[2];
+                return  equals(v1[0], v2[0]) &&
+                        equals(v1[1], v2[1]) &&
+                        equals(v1[2], v2[2]);
             case 4:
-                return v1[0] === v2[0] && v1[1] === v2[1] && v1[2] === v2[2] && v1[3] === v2[3];
+                return  equals(v1[0], v2[0]) &&
+                        equals(v1[1], v2[1]) &&
+                        equals(v1[2], v2[2]) &&
+                        equals(v1[3], v2[3]);
             default:
                 throw new Error(`Invalid vector size: ${ v1.length }`);
             }
         }
     }
 
-    static Assign(dst,src) {
-        checkEqualLength(dst,src);
-        switch (dst.length) {
-        case 4:
-            dst[3] = src[3];
-        case 3:
-            dst[2] = src[2];
+    static IsZero(v) {
+        switch (v.length) {
         case 2:
-            dst[1] = src[1];
-            dst[0] = src[0];
-            break;
+            return isZero(v[0]) || isZero(v[1]);
+        case 3:
+            return isZero(v[0]) || isZero(v[1]) || isZero(v[2]);
+        case 4:
+            return isZero(v[0]) || isZero(v[1]) || isZero(v[2]) || isZero(v[3]);
         default:
-            throw new Error(`Invalid vector size: ${ dst.length }`);
+            throw new Error(`Invalid vector size: ${ v.length }`);
         }
-    }
-
-    static Set(v, x, y, z = null, w = null) {
-        if (v.length === 2) {
-            v[0] = x;
-            v[1] = y;
-        }
-        else if (v.length === 3 && z !== null) {
-            v[0] = x;
-            v[1] = y;
-            v[2] = z;
-        }
-        else if (v.length === 4 && w !== null) {
-            v[0] = x;
-            v[1] = y;
-            v[2] = z;
-            v[3] = w;
-        }
-        else {
-            throw new Error(`Invalid vector size: ${ v.length }. Trying to set x=${x}, y=${y}, z=${z}, w=${w}`);
-        }
-    }
-
-    static Zero(v) {
-        Vec.Set(v, 0, 0, 0, 0);
     }
 
     static IsNaN(v) {
@@ -462,54 +503,22 @@ class Vec extends NumericArray {
             throw new Error(`Invalid vector size: ${ v.length }`);
         }
     }
+
+    /////// Constructors
+    static Vec2() {
+        return new Vec(0,0);
+    }
+
+    static Vec3() {
+        return new Vec(0,0,0);
+    }
+
+    static Vec4() {
+        return new Vec(0,0,0,0);
+    }
 }
 
 export default {
-    Vec: Vec,
-
-//   vec: {
-//       
-//
-//       xy(v) {
-//           switch (v.length) {
-//           case 2:
-//               return new Vector(v);
-//           case 3:
-//           case 4:
-//               return new Vector(v[0], v[1]);
-//           default:
-//               throw new Error(`Invalid vector size: ${ v.length }`);
-//           }
-//       },
-//
-//       xz(v) {
-//           switch (v.length) {
-//           case 3:
-//           case 4:
-//               return new Vector(v[0], v[2]);
-//           case 2:
-//           default:
-//               throw new Error(`Invalid vector size: ${ v.length }`);
-//           }
-//       },
-//
-//       yz(v) {
-//           switch (v.length) {
-//           case 3:
-//           case 4:
-//               return new Vector(v[1], v[2]);
-//           case 2:
-//           default:
-//               throw new Error(`Invalid vector size: ${ v.length }`);
-//           }
-//       },
-//
-//       xyz(v) {
-//           if (v.length !== 4) {
-//               throw new Error(`Invalid vector size: ${ v.length }`);
-//           }
-//           return new Vector(v[0],v[1],v[2]);
-//       }
-//   }    
+    Vec: Vec
 }
 

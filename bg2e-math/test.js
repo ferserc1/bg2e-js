@@ -1,11 +1,21 @@
 
 import { math, Vec, Mat3, Mat4, Quat } from './dist/bg2e-math.js';
-import Vector from './src/js/Vector.js';
+
+const xAxis = math.Axis.X;
+const yAxis = math.Axis.Y;
+const zAxis = math.Axis.Z;
+console.log(`Axis: ${ math.Axis.name(xAxis) }, ${ math.Axis.name(yAxis) }, ${ math.Axis.name(zAxis) }`);
 
 const deg = 90;
 console.log(`${ deg }º = ${ math.degreesToRadians(deg) } radians`);
 const rad = math.PI_4;
 console.log(`${ rad } radians = ${ math.radiansToDegrees(rad) }º`);
+
+// Convert degrees and radians using numeric constants. See that using RAD_TO_DEG, the converted
+// value is 44.999999999999986, instead of 45, because math.radiansToDegrees(rad) takes into account
+// the EPSILON constant.
+console.log(`${deg}º = ${math.DEG_TO_RAD * deg} radians.`);
+console.log(`${rad} radians = ${math.RAD_TO_DEG * rad} degrees.`);
 
 const a = new Vec(5,2,4);
 const b = new Vec(2,3,1);
@@ -182,3 +192,36 @@ console.log(m4q.toString());
 
 const quatTest = new Vec(1, 0, 0);
 console.log(m4q.multVector(quatTest));
+
+const color24 = new Vec(0.33,0.52,0.18);
+const color32 = new Vec(color24, 1);
+console.log(color24);
+console.log(color32);
+
+(() => {
+    const v1 = new Vec(1,2,3,4);
+    const v2 = v1.xyzw; // v2 is a copy of v1
+    v2.xy = new Vec(4,3);
+    v2.z = 2;
+    v1.xyzw = v2;
+    v1.w = 1;
+    console.log(v1);
+})();
+
+(() => {
+    const v1 = new Vec(0,0,0,0);
+    console.log(v1);
+    v1.xyzw = [9,8,7,6];
+    console.log(v1);
+})();
+
+(() => {
+    const v1 = Vec.Vec2();
+    const v2 = Vec.Vec2();
+    v1[0] = math.EPSILON * 0.5; // Half of Epsilon is in practice zero.
+    console.log(Vec.Equals(v1,v2)); // true
+    console.log(Vec.IsZero(v1));
+
+    v2[1] = math.sqrt(-1);
+    console.log(Vec.IsNaN(v2)); // v2 is NaN because v2[1] = sqrt(-1);
+})();

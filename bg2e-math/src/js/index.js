@@ -17,6 +17,7 @@ import {
 import {
     checkPowerOfTwo,
     checkZero,
+    isZero,
     equals,
     degreesToRadians,
     radiansToDegrees,
@@ -60,6 +61,7 @@ export const math = {
 
     checkPowerOfTwo,
     checkZero,
+    isZero,
     equals,
     degreesToRadians,
     radiansToDegrees,
