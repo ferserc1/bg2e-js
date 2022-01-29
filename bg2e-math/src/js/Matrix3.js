@@ -1,5 +1,5 @@
-import { NumericArray } from "./constants";
-import VectorUtils from "./Vector";
+import { NumericArray } from "./constants.js";
+import VectorUtils from "./Vector.js";
 
 const Vec = VectorUtils.Vec;
 
@@ -181,6 +181,16 @@ class Mat3 extends NumericArray {
     static MakeZero() {
         const m = new Mat3();
         return m.zero();
+    }
+
+    static MakeWithQuaternion(q) {
+        const m = Mat3.MakeIdentity();
+        
+        m.setRow(0, new Vec( 1  - 2 * q[1] * q[1] - 2 * q[2] * q[2], 2 * q[0] * q[1] - 2 * q[2] * q[3], 2 * q[0] * q[2] + 2 * q[1] * q[3]));
+        m.setRow(1, new Vec( 2 * q[0] * q[1] + 2 * q[2] * q[3], 1  - 2.0 * q[0] * q[0] - 2 * q[2] * q[2], 2 * q[1] * q[2] - 2 * q[0] * q[3]));
+        m.setRow(2, new Vec( 2 * q[0] * q[2] - 2 * q[1] * q[3], 2 * q[1] * q[2] + 2 * q[0] * q[3] , 1 - 2 * q[0] * q[0] - 2 * q[1] * q[1]));
+
+        return m;
     }
 
     static IsZero(m) {

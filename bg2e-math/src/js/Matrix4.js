@@ -1,6 +1,6 @@
-import { NumericArray } from "./constants";
-import VectorUtils from "./Vector";
-import MatrixUtils from "./Matrix3";
+import { NumericArray } from "./constants.js";
+import VectorUtils from "./Vector.js";
+import MatrixUtils from "./Matrix3.js";
 
 const Vec = VectorUtils.Vec;
 const Mat3 = MatrixUtils.Mat3;
@@ -504,6 +504,20 @@ class Mat4 extends NumericArray {
         return m.identity();
     }
 
+	static MakeZero() {
+		const m = new Mat4();
+		return m.zero();
+	}
+
+	static MakeWithQuaternion(q) {
+		const m = Mat4.MakeIdentity();
+        
+        m.setRow(0, new Vec( 1  - 2 * q[1] * q[1] - 2 * q[2] * q[2], 2 * q[0] * q[1] - 2 * q[2] * q[3], 2 * q[0] * q[2] + 2 * q[1] * q[3], 0));
+        m.setRow(1, new Vec( 2 * q[0] * q[1] + 2 * q[2] * q[3], 1  - 2.0 * q[0] * q[0] - 2 * q[2] * q[2], 2 * q[1] * q[2] - 2 * q[0] * q[3], 0));
+        m.setRow(2, new Vec( 2 * q[0] * q[2] - 2 * q[1] * q[3], 2 * q[1] * q[2] + 2 * q[0] * q[3] , 1 - 2 * q[0] * q[0] - 2 * q[1] * q[1], 0));//
+        return m;
+	}
+	
     static MakeTranslation(x, y, z) {
 		if (x instanceof NumericArray && x.length >= 3) {
 			y = x[1];

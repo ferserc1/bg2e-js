@@ -1,4 +1,4 @@
-import { NumericArray } from "./constants";
+import { NumericArray } from "./constants.js";
 
 const checkEqualLength = (v1,v2) => {
     if (v1.length!=v2.length) throw new Error(`Invalid vector length in operation`);
@@ -444,6 +444,10 @@ class Vec extends NumericArray {
         else {
             throw new Error(`Invalid vector size: ${ v.length }. Trying to set x=${x}, y=${y}, z=${z}, w=${w}`);
         }
+    }
+
+    static Zero(v) {
+        Vec.Set(v, 0, 0, 0, 0);
     }
 
     static IsNaN(v) {

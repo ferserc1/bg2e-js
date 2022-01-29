@@ -1,5 +1,6 @@
 
-import { math, Vec, Mat3, Mat4 } from './dist/bg2e-math.js';
+import { math, Vec, Mat3, Mat4, Quat } from './dist/bg2e-math.js';
+import Vector from './src/js/Vector.js';
 
 const deg = 90;
 console.log(`${ deg }º = ${ math.degreesToRadians(deg) } radians`);
@@ -170,3 +171,14 @@ console.log(trx.forwardVector);
 M2[0] = Math.sqrt(-1);
 console.log(M2.toString());
 console.log("M2 isNaN: ", Mat4.IsNan(M2));
+
+const quat = new Quat(math.PI_4, 0, 1, 0);
+console.log(quat);
+const m3q = Mat3.MakeWithQuaternion(quat);
+console.log(m3q.toString());
+
+const m4q = Mat4.MakeWithQuaternion(quat);
+console.log(m4q.toString());
+
+const quatTest = new Vec(1, 0, 0);
+console.log(m4q.multVector(quatTest));

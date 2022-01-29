@@ -3,7 +3,7 @@ import {
     EPSILON,
     DEG_TO_RAD,
     RAD_TO_DEG
-} from './constants';
+} from './constants.js';
 
 let s_bg_math_seed = Date.now();
 

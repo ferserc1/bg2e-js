@@ -12,7 +12,7 @@ import {
     NumericArray,
     NumericArrayHighP,
     FLOAT_MAX
-} from "./constants";
+} from "./constants.js";
 
 import {
     checkPowerOfTwo,
@@ -34,13 +34,15 @@ import {
     sqrt,
     lerp,
     square
-} from "./functions";
+} from "./functions.js";
 
-import VectorUtils from './Vector';
+import VectorUtils from './Vector.js';
 
-import Matrix3Utils from "./Matrix3";
+import Matrix3Utils from "./Matrix3.js";
 
-import Matrix4Utils from './Matrix4';
+import Matrix4Utils from './Matrix4.js';
+
+import Quaternion from "./Quaternion.js";
 
 export const math = {
     Axis,
@@ -80,4 +82,5 @@ export const math = {
 export const Vec = VectorUtils.Vec;
 export const Mat3 = Matrix3Utils.Mat3;
 export const Mat4 = Matrix4Utils.Mat4;
+export const Quat = Quaternion.Quat;
 
