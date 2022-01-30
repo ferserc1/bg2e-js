@@ -1,5 +1,6 @@
 import { NumericArray } from "./constants.js";
 import VectorUtils from "./Vector.js";
+import { isZero, equals } from "./functions.js";
 
 const Vec = VectorUtils.Vec;
 
@@ -41,7 +42,7 @@ class Mat3 extends NumericArray {
     }
 
     setRow(i, a, y = null, z = null) {
-        if (a instanceof NumericArray && a.length>=3) {
+        if (a?.length>=3) {
             this[i * 3]      = a[0];
             this[i * 3 + 1]  = a[1];
             this[i * 3 + 2]  = a[2];
@@ -69,7 +70,7 @@ class Mat3 extends NumericArray {
     }
 
     setCol(i, a, y = null, z = null) {
-        if (a instanceof NumericArray && a.length>=3) {
+        if (a?.length>=3) {
             this[i]         = a[0];
             this[i + 3]     = a[1];
             this[i + 3 * 2] = a[2];
@@ -194,15 +195,15 @@ class Mat3 extends NumericArray {
     }
 
     static IsZero(m) {
-        return	v[0]==0 && v[1]==0.0 && v[2]==0.0 &&
-                v[3]==0 && v[4]==0.0 && v[5]==0.0 &&
-                v[6]==0 && v[7]==0.0 && v[8]==0.0;
+        return	isZero(v[0]) && isZero(v[1]) && isZero(v[2]) &&
+                isZero(v[3]) && isZero(v[4]) && isZero(v[5]) &&
+                isZero(v[6]) && isZero(v[7]) && isZero(v[8]);
     }
     
     static IsIdentity(m) {
-        return	v[0]==1.0 && v[1]==0.0 && v[2]==0.0 &&
-                v[3]==0.0 && v[4]==1.0 && v[5]==0.0 &&
-                v[6]==0.0 && v[7]==0.0 && v[8]==1.0;
+        return	equals(v[0], 1) && isZero(v[1]) && isZero(v[2]) &&
+                isZero(v[3]) && equals(v[4], 1) && isZero(v[5]) &&
+                isZero(v[6]) && isZero(v[7]) && equals(v[8], 1);
     }
 
     static GetScale(m) {
@@ -214,9 +215,9 @@ class Mat3 extends NumericArray {
     }
 
     static Equals(a,b) {
-        return	a[0] == b[0] && a[1] == b[1]  && a[2] == b[2] &&
-                a[3] == b[3] && a[4] == b[4]  && a[5] == b[5] &&
-                a[6] == b[6] && a[7] == b[7]  && a[8] == b[8];
+        return	equals(a[0], b[0]) && equals(a[1], b[1])  && equals(a[2], b[2]) &&
+                equals(a[3], b[3]) && equals(a[4], b[4])  && equals(a[5], b[5]) &&
+                equals(a[6], b[6]) && equals(a[7], b[7])  && equals(a[8], b[8]);
     }
 
     static IsNaN(m) {
