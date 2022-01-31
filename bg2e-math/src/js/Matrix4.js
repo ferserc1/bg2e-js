@@ -1,6 +1,7 @@
 import { NumericArray } from "./constants.js";
 import VectorUtils from "./Vector.js";
 import MatrixUtils from "./Matrix3.js";
+import { equals, isZero } from "./functions.js";
 
 const Vec = VectorUtils.Vec;
 const Mat3 = MatrixUtils.Mat3;
@@ -213,6 +214,36 @@ class Mat4 extends NumericArray {
 	set m32(v) { this[14] = v; }
 	set m33(v) { this[15] = v; }
 
+	get mat3() {
+		return new Mat3(this[0], this[1], this[ 2],
+						this[4], this[5], this[ 6],
+						this[8], this[9], this[10]);
+	}
+
+	get forwardVector() {
+		return Mat4.TransformDirection(this, new Vec(0.0, 0.0, 1.0));
+	}
+	
+	get rightVector() {
+		return Mat4.TransformDirection(this, new Vec(1.0, 0.0, 0.0));
+	}
+	
+	get upVector() {
+		return Mat4.TransformDirection(this, new Vec(0.0, 1.0, 0.0));
+	}
+	
+	get backwardVector() {
+		return Mat4.TransformDirection(this, new Vec(0.0, 0.0, -1.0));
+	}
+	
+	get leftVector() {
+		return Mat4.TransformDirection(this, new Vec(-1.0, 0.0, 0.0));
+	}
+	
+	get downVector() {
+		return Mat4.TransformDirection(this, new Vec(0.0, -1.0, 0.0));
+	}
+
     row(i) {
         return new Vec(
             this[i * 4], 
@@ -222,7 +253,7 @@ class Mat4 extends NumericArray {
     }
 
     setRow(i, a, y = null, z = null, w = null) {
-        if (a instanceof NumericArray && a.length>=4) {
+        if (a.length>=4) {
             this[i * 4]      = a[0];
             this[i * 4 + 1]  = a[1];
             this[i * 4 + 2]  = a[2];
@@ -254,7 +285,7 @@ class Mat4 extends NumericArray {
     }
 
     setCol(i, a, y = null, z = null, w = null) {
-        if (a instanceof NumericArray && a.length>=4) {
+        if (a.length>=4) {
             this[i]         = a[0];
             this[i + 4]     = a[1];
             this[i + 4 * 2] = a[2];
@@ -276,12 +307,6 @@ class Mat4 extends NumericArray {
         return this;
     }
 
-    mat3() {
-		return new Mat3(this[0], this[1], this[ 2],
-						this[4], this[5], this[ 6],
-						this[8], this[9], this[10]);
-	}
-
     assign(a) {
 		if (a.length==9) {
 			this[0]  = a[0]; this[1]  = a[1]; this[2]  = a[2]; this[3]  = 0;
@@ -298,48 +323,6 @@ class Mat4 extends NumericArray {
 		return this;
 	}
 
-    get forwardVector() {
-		return Mat4.TransformDirection(this, new Vec(0.0, 0.0, 1.0));
-	}
-	
-	get rightVector() {
-		return Mat4.TransformDirection(this, new Vec(1.0, 0.0, 0.0));
-	}
-	
-	get upVector() {
-		return Mat4.TransformDirection(this, new Vec(0.0, 1.0, 0.0));
-	}
-	
-	get backwardVector() {
-		return Mat4.TransformDirection(this, new Vec(0.0, 0.0, -1.0));
-	}
-	
-	get leftVector() {
-		return Mat4.TransformDirection(this, new Vec(-1.0, 0.0, 0.0));
-	}
-	
-	get downVector() {
-		return Mat4.TransformDirection(this, new Vec(0.0, -1.0, 0.0));
-	}
-
-
-    /////// Query functions
-    isZero() {
-		return	this[ 0]==0 && this[ 1]==0 && this[ 2]==0 && this[ 3]==0 &&
-				this[ 4]==0 && this[ 5]==0 && this[ 6]==0 && this[ 7]==0 &&
-				this[ 8]==0 && this[ 9]==0 && this[10]==0 && this[11]==0 &&
-				this[12]==0 && this[13]==0 && this[14]==0 && this[15]==0;
-	}
-	
-	isIdentity() {
-		return	this[ 0]==1 && this[ 1]==0 && this[ 2]==0 && this[ 3]==0 &&
-				this[ 4]==0 && this[ 5]==1 && this[ 6]==0 && this[ 7]==0 &&
-				this[ 8]==0 && this[ 9]==0 && this[10]==1 && this[11]==0 &&
-				this[12]==0 && this[13]==0 && this[14]==0 && this[15]==1;
-	}
-
-
-    /////// Transform functions
 	translate(x, y, z) {
 		this.mult(Mat4.MakeTranslation(x, y, z));
 		return this;
@@ -355,9 +338,6 @@ class Mat4 extends NumericArray {
 		return this;
 	}
 
-
-
-
     toString() {
         return  `[ ${this[ 0]}, ${this[ 1]}, ${this[ 2]}, ${this[ 3]}\n` +
                 `  ${this[ 4]}, ${this[ 5]}, ${this[ 6]}, ${this[ 7]}\n` +
@@ -365,8 +345,6 @@ class Mat4 extends NumericArray {
                 `  ${this[12]}, ${this[13]}, ${this[14]}, ${this[15]} ]`;
     }
 
-
-    ////// Utilities
     setScale(x,y,z) {
 		const rx = new Vec(this[0], this[4], this[8]).normalize().scale(x);
 		const ry = new Vec(this[1], this[5], this[9]).normalize().scale(y);
@@ -391,7 +369,6 @@ class Mat4 extends NumericArray {
 		return this;
 	}
 
-    /////// Operations
     mult(a) {
 		if (typeof(a)=='number') {
 			this[ 0] *= a; this[ 1] *= a; this[ 2] *= a; this[ 3] *= a;
@@ -495,9 +472,6 @@ class Mat4 extends NumericArray {
 		return this;
 	}
 
-
-
-
     ///////// Factory methods
     static MakeIdentity() {
         const m = new Mat4();
@@ -579,11 +553,6 @@ class Mat4 extends NumericArray {
 		return (new Mat4()).LookAt(origin,target,up);
 	}
 
-
-
-
-
-    /////// Static Utilities
     static Unproject(x, y, depth, mvMat, pMat, viewport) {
 		let mvp = new Mat4(pMat);
 		mvp.mult(mvMat);
@@ -651,6 +620,20 @@ class Mat4 extends NumericArray {
 				isNaN(this[ 4]) || isNaN(this[ 5]) || isNaN(this[ 6]) || isNaN(this[ 7]) ||
 				isNaN(this[ 8]) || isNaN(this[ 9]) || isNaN(this[10]) || isNaN(this[11]) ||
 				isNaN(this[12]) || isNaN(this[13]) || isNaN(this[14]) || isNaN(this[15]);
+	}
+
+	static IsZero(m) {
+		return	isZero(m[ 0]) && isZero(m[ 1]) && isZero(m[ 2]) && isZero(m[ 3]) &&
+				isZero(m[ 4]) && isZero(m[ 5]) && isZero(m[ 6]) && isZero(m[ 7]) &&
+				isZero(m[ 8]) && isZero(m[ 9]) && isZero(m[10]) && isZero(m[11]) &&
+				isZero(m[12]) && isZero(m[13]) && isZero(m[14]) && isZero(m[15]);
+	}
+	
+	static IsIdentity(m) {
+		return	equals(m[ 0],1) && equals(m[ 1],0) && equals(m[ 2],0) && equals(m[ 3],0) &&
+				equals(m[ 4],0) && equals(m[ 5],1) && equals(m[ 6],0) && equals(m[ 7],0) &&
+				equals(m[ 8],0) && equals(m[ 9],0) && equals(m[10],1) && equals(m[11],0) &&
+				equals(m[12],0) && equals(m[13],0) && equals(m[14],0) && equals(m[15],1);
 	}
 }
 
