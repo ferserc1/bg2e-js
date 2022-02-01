@@ -6,6 +6,10 @@
 //     UserAgent
 // };
 
+import Color from './Color.js';
+import Light from './Light.js';
+
 export {
-    
+    Color,
+    Light
 }

@@ -1,14 +1,12 @@
 
+import { Vec, Mat4 } from 'bg2e-math';
+import Color from './Color';
+
 export const LightType = {
     DIRECTIONAL: 4,
     SPOT: 1,
     POINT: 5,
     DISABLED: 10
-};
-
-export const SpecularType = {
-    PHONG: 0,
-    BLINN: 1
 };
 
 export default class Light {
@@ -17,27 +15,23 @@ export default class Light {
         
         this._type = LightType.DIRECTIONAL;
         
-        this._direction = new bg.Vector3(0,0,-1);
+        this._direction = new Vec(0,0,-1);
         
-        this._ambient = new bg.Color(0.2,0.2,0.2,1);
-        this._diffuse = new bg.Color(0.9,0.9,0.9,1);
-        this._specular = bg.Color.White();
-        this._attenuation = new bg.Vector3(1,0.5,0.1);
+        this._ambient = new Color({ r: 0.2, g: 0.2, b: 0.2 });
+        this._diffuse = new Color({ rgb: 0.9 });
+        this._specular = Color.White();
         this._spotCutoff = 20;
         this._spotExponent = 30;
         this._shadowStrength = 0.7;
-        this._cutoffDistance = -1;
         this._castShadows = true;
         this._shadowBias = 0.00002;
-        this._specularType = bg.base.SpecularType.PHONG;
         this._intensity = 1;
         
-        this._projection = bg.Matrix4.Ortho(-10,10,-10,10,0.5,300.0);
+        this._projection = Mat4.MakeOrtho(-10,10,-10,10,0.5,300.0);
     }
     
-    // If context is null, it will be used the same context as this light
-    clone(context) {
-        let newLight = new bg.base.Light(context || this.context);
+    clone() {
+        const newLight = new Light();
         newLight.assign(this);
         return newLight;
     }
@@ -49,15 +43,13 @@ export default class Light {
         this.ambient.assign(other.ambient);
         this.diffuse.assign(other.diffuse);
         this.specular.assign(other.specular);
-        this._attenuation.assign(other._attenuation);
         this.spotCutoff = other.spotCutoff;
         this.spotExponent = other.spotExponent;
         this.shadowStrength = other.shadowStrength;
-        this.cutoffDistance = other.cutoffDistance;
         this.castShadows = other.castShadows;
         this.shadowBias = other.shadowBias;
-        this.specularType = other.specularType;
         this.intensity = other.intensity;
+        this.projection.assign(other.projection);
     }
     
     get enabled() { return this._enabled; }
@@ -75,23 +67,8 @@ export default class Light {
     set diffuse(d) { this._diffuse = d; }
     get specular() { return this._specular; }
     set specular(s) { this._specular = s; }
-    get specularType() { return this._specularType; }
-    set specularType(s) { this._specularType = s; }
     get intensity() { return this._intensity; }
     set intensity(i) { this._intensity = i; }
-    
-    // Attenuation is deprecated in PBR lighting model
-    get attenuationVector() { return this._attenuation; }
-    get constantAttenuation() { return this._attenuation.x; }
-    get linearAttenuation() { return this._attenuation.y; }
-    get quadraticAttenuation() { return this._attenuation.z; }
-    set attenuationVector(a) { this._attenuation = a; }
-    set constantAttenuation(a) { this._attenuation.x = a; }
-    set linearAttenuation(a) { this._attenuation.y = a; }
-    set quadraticAttenuation(a) { this._attenuation.z = a; }
-    
-    get cutoffDistance() { return this._cutoffDistance; }
-    set cutoffDistance(c) { this._cutoffDistance = c; }
     
     get spotCutoff() { return this._spotCutoff; }
     set spotCutoff(c) { this._spotCutoff = c; }
@@ -111,63 +88,46 @@ export default class Light {
     deserialize(sceneData) {
         switch (sceneData.lightType) {
         case 'kTypeDirectional':
-            this._type = bg.base.LightType.DIRECTIONAL;
+            this._type = LightType.DIRECTIONAL;
             // Use the predefined shadow bias for directional lights
             //this._shadowBias = sceneData.shadowBias;
             break;
         case 'kTypeSpot':
-            this._type = bg.base.LightType.SPOT;
+            this._type = LightType.SPOT;
             this._shadowBias = sceneData.shadowBias;
             break;
         case 'kTypePoint':
-            this._type = bg.base.LightType.POINT;
+            this._type = LightType.POINT;
             break;
         }
         
-        this._ambient = new bg.Color(sceneData.ambient);
-        this._diffuse = new bg.Color(sceneData.diffuse);
-        this._specular = new bg.Color(sceneData.specular);
+        this._ambient = new Color(sceneData.ambient);
+        this._diffuse = new Color(sceneData.diffuse);
+        this._specular = new Color(sceneData.specular);
         this._spotCutoff = sceneData.spotCutoff || 20;
         this._spotExponent = sceneData.spotExponent || 30;
         this._shadowStrength = sceneData.shadowStrength;
-        this._cutoffDistance = sceneData.cutoffDistance;
-        this._projection = new bg.Matrix4(sceneData.projection);
+        this._projection = new Mat4(sceneData.projection);
         this._castShadows = sceneData.castShadows;
-        this._specularType = sceneData.specularType=="BLINN" ? bg.base.SpecularType.BLINN : bg.base.SpecularType.PHONG;
-
         this._intensity = sceneData.intensity || 1;
-
-        // Deprecated: not used in PBR lighting model
-        this._attenuation = new bg.Vector3(
-            sceneData.constantAtt,
-            sceneData.linearAtt,
-            sceneData.expAtt
-            );
     }
 
     serialize(sceneData) {
-        let lightTypes = [];
-        lightTypes[bg.base.LightType.DIRECTIONAL] = "kTypeDirectional";
-        lightTypes[bg.base.LightType.SPOT] = "kTypeSpot";
-        lightTypes[bg.base.LightType.POINT] = "kTypePoint";
+        const lightTypes = [];
+        lightTypes[LightType.DIRECTIONAL] = "kTypeDirectional";
+        lightTypes[LightType.SPOT] = "kTypeSpot";
+        lightTypes[LightType.POINT] = "kTypePoint";
         sceneData.lightType = lightTypes[this._type];
-        sceneData.ambient = this._ambient.toArray();
-        sceneData.diffuse = this._diffuse.toArray();
-        sceneData.specular = this._specular.toArray();
+        sceneData.ambient = this._ambient;
+        sceneData.diffuse = this._diffuse;
+        sceneData.specular = this._specular;
         sceneData.intensity = 1;
         sceneData.spotCutoff = this._spotCutoff || 20;
         sceneData.spotExponent = this._spotExponent || 30;
         sceneData.shadowStrength = this._shadowStrength;
-        sceneData.cutoffDistance = this._cutoffDistance;
-        sceneData.projection = this._projection.toArray();
+        sceneData.projection = this._projection;
         sceneData.castShadows = this._castShadows;
         sceneData.shadowBias = this._shadowBias || 0.0029;
-        sceneData.specularType = this.specularType==bg.base.SpecularType.BLINN ? "BLINN" : "PHONG";
         sceneData.intensity = this.intensity || 1;
-
-        // Deprecated: not used in PBR lighting model
-        sceneData.constantAtt = this._attenuation.x;
-        sceneData.linearAtt = this._attenuation.y;
-        sceneData.expAtt = this._attenuation.z;
     }
 }

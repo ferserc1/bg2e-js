@@ -6,10 +6,10 @@ export default [
     {
         input: './src/js/index.js',
 
-        watch: {
+        watch: devMode ? {
             include: './src/**',
             cleanScreen: true
-        },
+        } : false,
 
         output: {
             file: `./dist/${ packageData.name }.js`,

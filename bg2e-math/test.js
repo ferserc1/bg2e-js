@@ -33,6 +33,8 @@ const d = new Vec(new Vec(4,5));
 console.log("d: ", d);
 const e = new Vec(new Vec(6,7,8,9));
 console.log("e: ", e);
+const f= new Vec([9,8,7,6]);
+console.log("f: ", f);
 
 const p = new Vec(1,2,1);
 const q = new Vec(2,2,2);

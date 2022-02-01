@@ -5,10 +5,10 @@ export default [
     {
         input: './src/js/index.js',
 
-        watch: {
+        watch: devMode ? {
             include: './src/*',
             cleanScreen: false
-        },
+        } : false,
 
         output: {
             file: './dist/bg2e-tools.js',

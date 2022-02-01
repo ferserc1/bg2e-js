@@ -9,15 +9,18 @@ const checkEqualLength = (v1,v2) => {
 class Vec extends NumericArray {
     constructor() {
         switch (arguments.length) {
+        case 1:
+            if (arguments[0].length>1 && arguments[0].length<5)
+            {
+                super(arguments[0]);
+            }
+            break;
         case 2:
-            if (arguments[0] instanceof NumericArray && 
-                arguments[0].length === 2 &&
-                typeof(arguments[1]) === "number"
+            if (arguments[0].length === 2 && typeof(arguments[1]) === "number"
             ) {
                 super([ arguments[0][0], arguments[0][1], arguments[1]]);
             }
-            else if (arguments[0] instanceof NumericArray && 
-                arguments[0].length === 3 &&
+            else if (arguments[0].length === 3 &&
                 typeof(arguments[1]) === "number"
             ) {
                 super([ arguments[0][0], arguments[0][1], arguments[0][2], arguments[1]]);
@@ -29,8 +32,7 @@ class Vec extends NumericArray {
             }
             break;
         case 3:
-            if (arguments[0] instanceof NumericArray &&
-                arguments[0].length === 2 &&
+            if (arguments[0].length === 2 &&
                 typeof(arguments[1]) === "number" && typeof(arguments[2]) === "number"
             ) {
                 super([ arguments[0][0], arguments[0][1], arguments[1], arguments[2]])
@@ -44,13 +46,6 @@ class Vec extends NumericArray {
             break;
         case 4:
             super([arguments[0],arguments[1],arguments[2],arguments[3]]);
-            break;
-        case 1:
-            if (arguments[0] instanceof NumericArray &&
-                arguments[0].length>1 && arguments[0].length<5)
-            {
-                super(arguments[0]);
-            }
             break;
         default:
             throw new Error(`Invalid parameters in Vec constructor`);

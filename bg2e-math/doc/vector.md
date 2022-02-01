@@ -26,6 +26,23 @@ const color24 = new Vec(0.33,0.52,0.18);
 const color32 = new Vec(color24, 1);
 ```
 
+You can also initialize vectors using an array-like parameter (`bg2e.math.NumericArray`, `Array`, etc.). In this case, the length of the vector will be determined by the array parameter length.
+
+```js
+const v = new Vec([1, 2, 3]);       // 3D vector
+const u = new Vec(v);               // A copy of v
+const r = new Vec([1, 2, 3, 4]);    // 4D vector
+```
+
+Also, you can create vectors by adding components to a lower length vector:
+
+```js
+const v = new Vec(1, 2);        // [1, 2]
+const u = new Vec(v, 3);        // [1, 2, 3]
+const r = new Vec(u, 4);        // [1, 2, 3, 4]
+const t = new Vec(v, 5, 6)      // [1, 2, 5, 6]
+```
+
 ## Vector methods
 
 Vectors define instance methods, properties and static methods. In general, methods are organized as follows:
