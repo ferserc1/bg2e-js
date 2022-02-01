@@ -8,8 +8,10 @@
 
 import Color from './Color.js';
 import Light from './Light.js';
+import PolyList from './PolyList.js';
 
 export {
     Color,
-    Light
+    Light,
+    PolyList
 }

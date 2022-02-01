@@ -1,7 +1,8 @@
 
 import {
     Color,
-    Light
+    Light,
+    PolyList
 } from './dist/bg2e-base.js';
 
 import { Vec } from 'bg2e-math';
@@ -36,3 +37,32 @@ try {
     const invalidColor = new Color([1, 0.3]);
 }
 catch (e) {}
+
+const plist = new PolyList();
+
+plist.vertex = [
+    1, 0, 0,
+    0, 1, 0,
+    1, 1, 0
+];
+
+plist.normal = [
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1
+];
+
+plist.texCoord0 = [
+    1, 0,
+    0, 1,
+    1, 1
+];
+
+plist.index = [
+    0, 1, 2
+];
+
+console.log(plist.vertex);
+console.log(plist.normal);
+console.log(plist.texCoord0);
+console.log(plist.tangent);

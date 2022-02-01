@@ -120,7 +120,7 @@ console.log(m
 
 **`m.mXY`**: (read/write) Sets or gets the element at X row, Y column, for example: `myMatrix.m13 = 0; console.log(myMatrix.m00);`
 
-**`m.mat3()`**: (read) Returns the rotation/scale matrix part from `m`:
+**`m.mat3`**: (read) Returns the rotation/scale matrix part from `m`:
 
 **`m.forwardVector`**: (read) Returns the forward vector, assuming that `m` is a valid transformation matrix.
 
