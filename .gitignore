@@ -9,3 +9,6 @@ bg2e-base/dist
 bg2e-tools/debug
 bg2e-math/debug
 bg2e-base/debug
+bg2e-tools/package-lock.json
+bg2e-math/package-lock.json
+bg2e-base/package-lock.json
