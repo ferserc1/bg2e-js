@@ -2,13 +2,14 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const devMode = (process.env.NODE_ENV === 'development');
 console.log(`${ devMode ? 'development' : 'production'} mode bundle`);
+const port = 8080;
 
 export default [
     {
         input: './src/js/index.js',
 
         watch: devMode ? {
-            include: './*',
+            include: './**',
             cleanScreen: false
         } : false,
 
@@ -24,7 +25,7 @@ export default [
     {
         input: './test.js',
         watch:  devMode ? {
-            include: './*.js',
+            include: './**',
             cleanScreen: false
         } : false,
 

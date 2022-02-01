@@ -6,7 +6,7 @@ export default [
         input: './src/js/index.js',
 
         watch: devMode ? {
-            include: './src/*',
+            include: './**',
             cleanScreen: false
         } : false,
 

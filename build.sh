@@ -3,17 +3,17 @@
 ./clean.hs
 
 cd bg2e-tools
-npm ci
+npm install
 npm run build
 cd ..
 
 cd bg2e-math
-npm ci
+npm install
 npm run build
 cd ..
 
 cd bg2e-base
-npm ci
+npm install
 npm run build
 cd ..
 
