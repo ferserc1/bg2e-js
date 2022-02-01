@@ -2,3 +2,10 @@ node_modules
 
 dist
 debug
+
+bg2e-tools/dist
+bg2e-math/dist
+bg2e-base/dist
+bg2e-tools/debug
+bg2e-math/debug
+bg2e-base/debug

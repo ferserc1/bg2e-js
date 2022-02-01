@@ -1,4 +1,4 @@
-import { math } from "../../dist/bg2e-math.js";
+
 import { NumericArray } from "./constants.js";
 import { isZero, equals } from "./functions.js";
 
