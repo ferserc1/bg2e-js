@@ -261,18 +261,18 @@ class Vec extends NumericArray {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
-            return new NumericArray([
+            return new Vec([
                 v1[0]>v2[0] ? v1[0] : v2[0],
                 v1[1]>v2[1] ? v1[1] : v2[1]
             ]);
         case 3:
-            return new NumericArray([
+            return new Vec([
                 v1[0]>v2[0] ? v1[0] : v2[0],
                 v1[1]>v2[1] ? v1[1] : v2[1],
                 v1[2]>v2[2] ? v1[2] : v2[2]
             ]);
         case 4:
-            return new NumericArray([
+            return new Vec([
                 v1[0]>v2[0] ? v1[0] : v2[0],
                 v1[1]>v2[1] ? v1[1] : v2[1],
                 v1[2]>v2[2] ? v1[2] : v2[2],
@@ -287,18 +287,18 @@ class Vec extends NumericArray {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
-            return new NumericArray([
+            return new Vec([
                 v1[0]<v2[0] ? v1[0] : v2[0],
                 v1[1]<v2[1] ? v1[1] : v2[1]
             ]);
         case 3:
-            return new NumericArray([
+            return new Vec([
                 v1[0]<v2[0] ? v1[0] : v2[0],
                 v1[1]<v2[1] ? v1[1] : v2[1],
                 v1[2]<v2[2] ? v1[2] : v2[2]
             ]);
         case 4:
-            return new NumericArray([
+            return new Vec([
                 v1[0]<v2[0] ? v1[0] : v2[0],
                 v1[1]<v2[1] ? v1[1] : v2[1],
                 v1[2]<v2[2] ? v1[2] : v2[2],
@@ -313,18 +313,18 @@ class Vec extends NumericArray {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
-            return new NumericArray([
+            return new Vec([
                 v1[0] + v2[0],
                 v1[1] + v2[1]
             ]);
         case 3:
-            return new NumericArray([
+            return new Vec([
                 v1[0] + v2[0],
                 v1[1] + v2[1],
                 v1[2] + v2[2]
             ]);
         case 4:
-            return new NumericArray([
+            return new Vec([
                 v1[0] + v2[0],
                 v1[1] + v2[1],
                 v1[2] + v2[2],
@@ -339,18 +339,18 @@ class Vec extends NumericArray {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
-            return new NumericArray([
+            return new Vec([
                 v1[0] - v2[0],
                 v1[1] - v2[1]
             ]);
         case 3:
-            return new NumericArray([
+            return new Vec([
                 v1[0] - v2[0],
                 v1[1] - v2[1],
                 v1[2] - v2[2]
             ]);
         case 4:
-            return new NumericArray([
+            return new Vec([
                 v1[0] - v2[0],
                 v1[1] - v2[1],
                 v1[2] - v2[2],
@@ -399,7 +399,7 @@ class Vec extends NumericArray {
         case 2:
             return v1[0] * v2[1] - v1[1] - v2[0];
         case 3:
-            return new NumericArray([
+            return new Vec([
                 v1[1] * v2[2] - v1[2] * v2[1],
                 v1[2] * v2[0] - v1[0] * v2[2],
                 v1[0] * v2[1] - v1[1] * v2[0],
@@ -413,11 +413,11 @@ class Vec extends NumericArray {
         const m = Vec.Magnitude(v);
         switch (v.length) {
         case 2:
-            return new NumericArray([ v[0] / m, v[1] / m ]);
+            return new Vec([ v[0] / m, v[1] / m ]);
         case 3:
-            return new NumericArray([ v[0] / m, v[1] / m, v[2] / m ]);
+            return new Vec([ v[0] / m, v[1] / m, v[2] / m ]);
         case 4:
-            return new NumericArray([ v[0] / m, v[1] / m, v[2] / m, v[3] / m ])
+            return new Vec([ v[0] / m, v[1] / m, v[2] / m, v[3] / m ])
         default:
             throw new Error(`Invalid vector size: ${ v.length }`);
         }
@@ -426,11 +426,11 @@ class Vec extends NumericArray {
     static Mult(v,s) {
         switch (v.length) {
         case 2:
-            return new NumericArray([ v[0] * s, v[1] * s ]);
+            return new Vec([ v[0] * s, v[1] * s ]);
         case 3:
-            return new NumericArray([ v[0] * s, v[1] * s, v[2] * s ]);
+            return new Vec([ v[0] * s, v[1] * s, v[2] * s ]);
         case 4:
-            return new NumericArray([ v[0] * s, v[1] * s, v[2] * s, v[3] * s ]);
+            return new Vec([ v[0] * s, v[1] * s, v[2] * s, v[3] * s ]);
         default:
             throw new Error(`Invalid vector size: ${ v.length }`);
         }
@@ -439,11 +439,11 @@ class Vec extends NumericArray {
     static Div(v,s) {
         switch (v.length) {
         case 2:
-            return new NumericArray([ v[0] / s, v[1] / s ]);
+            return new Vec([ v[0] / s, v[1] / s ]);
         case 3:
-            return new NumericArray([ v[0] / s, v[1] / s, v[2] / s ]);
+            return new Vec([ v[0] / s, v[1] / s, v[2] / s ]);
         case 4:
-            return new NumericArray([ v[0] / s, v[1] / s, v[2] / s, v[3] / s ]);
+            return new Vec([ v[0] / s, v[1] / s, v[2] / s, v[3] / s ]);
         default:
             throw new Error(`Invalid vector size: ${ v.length }`);
         }
