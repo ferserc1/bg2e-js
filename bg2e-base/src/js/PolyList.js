@@ -130,23 +130,25 @@ export default class PolyList {
 
     clone() {
         const result = new PolyList();
-
-        result.drawMode = this.drawMode;
-        
+        result.assign(this);
         result.name = this.name + " clone";
-        result.groupName = this.groupName;
-        result.visible = this.visible;
-        result.visibleToShadows = this.visibleToShadows;
-
-        result.vertex = [...this.vertex];
-        result.normal = [...this.normal];
-        result.texCoord0 = [...this.texCoord0];
-        result.texCoord1 = [...this.texCoord1];
-        result.texCoord2 = [...this.texCoord2];
-        result.color = [...this.color];
-        result.index = [...this.index];
-
         return result;
+    }
+
+    assign(other) {
+        this.drawMode = other.drawMode; 
+        this.name = other.name;
+        this.groupName = other.groupName;
+        this.visible = other.visible;
+        this.visibleToShadows = other.visibleToSh
+        this.vertex = [...other.vertex];
+        this.normal = [...other.normal];
+        this.texCoord0 = [...other.texCoord0];
+        this.texCoord1 = [...other.texCoord1];
+        this.texCoord2 = [...other.texCoord2];
+        this.color = [...other.color];
+        this.index = [...other.index];
+        this.rebuildTangents();
     }
 
     get drawMode() { return this._drawMode; }

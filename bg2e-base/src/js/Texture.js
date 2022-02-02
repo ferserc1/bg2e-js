@@ -98,6 +98,25 @@ export default class Texture {
         this._proceduralParameters = {};
     }
 
+    clone() {
+        const copy = new Texture();
+        copy.assign(this);
+        return copy;
+    }
+
+    assign(other) {
+        this._dataType = other._dataType;
+        this._wrapModeX = other._wrapModeX;
+        this._wrapModeY = other._wrapModeY;
+        this._magFilter = other._magFilter;
+        this._minFilter = other._minFilter;
+        this._target = other._target;
+        this._size = new Vec(other._size);
+        this._fileName = other._fileName;
+        this._proceduralFunction = other._proceduralFunction;
+        this._proceduralParameters = other._proceduralParameters;
+    }
+
     get dataType() { return this._dataType; }
     set dataType(v) { this._dataType = v; }
     get wrapModeX() { return this._wrapModeX; }

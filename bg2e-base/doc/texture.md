@@ -133,6 +133,10 @@ console.log("Mag filter: ", TextureFilterName[t2.magFilter]);
 
 ### Functions
 
+**`texture.clone()`**: create a copy of `texture`.
+
+**`texture.assign(t2)`**: assign the properties of `t2` to `texture`.
+
 **`serialize(sceneData)`**: see [serialization/deserialization protocol](serialization.md).
 
 **`deserialize(sceneData)`**: see [serialization/deserialization protocol](serialization.md).

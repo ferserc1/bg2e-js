@@ -24,6 +24,7 @@ import Texture, {
     TextureTargetName,
     ProceduralTextureFunctionName
 } from './Texture.js';
+import Material from './Material.js';
 
 export {
     Color,
@@ -41,5 +42,6 @@ export {
     Texture,
     PolyList,
     BufferType,
-    DrawMode
+    DrawMode,
+    Material
 }

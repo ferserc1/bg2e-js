@@ -110,6 +110,10 @@ Some display attributes that do not depend on the mesh may be processed in the m
 
 ### Functions
 
+**`plist.clone()`**: Creates and returns a copy of `plist`.
+
+**`plist.assign(other)`**: Assigns the `other` mesh attributes to `plist`, and rebuild the tangent vectors.
+
 **`plist.rebuildTangents()`**: Re-generates the tangents. When the array of vertices and/or texture coordinates is modified, it may happen that the tangents are still valid. To check if the tangents are valid, only three conditions are taken into account: that the tangent array is not `null`, that its size matches the vertex array and that its size matches the texture coordinate array.
 
 However, it may be the case that texture coordinates or vertices are changed, but the size of the array is not changed (for example, if the number of vertices is the same, but the positions change). In this case, the tangent array will remain valid and unchanged, but the tangent information will not be consistent with the new geometry. In these cases, the `rebuildTangents()` function must be called manually.
