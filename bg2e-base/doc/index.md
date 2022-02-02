@@ -9,4 +9,5 @@ Bg2 engine foundation library: data types and objects.
 ## Objects
 
 - [Light](light.md)
+- [PolyList](poly-list-md)
 
