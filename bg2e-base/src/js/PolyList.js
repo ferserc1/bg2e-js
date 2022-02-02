@@ -131,6 +131,8 @@ export default class PolyList {
     clone() {
         const result = new PolyList();
 
+        result.drawMode = this.drawMode;
+        
         result.name = this.name + " clone";
         result.groupName = this.groupName;
         result.visible = this.visible;
@@ -146,6 +148,9 @@ export default class PolyList {
 
         return result;
     }
+
+    get drawMode() { return this._drawMode; }
+    set drawMode(m) { this._drawMode = m; }
 
     get name() { return this._name; }
     set name(v) { this._name = v; }
