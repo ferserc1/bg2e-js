@@ -39,7 +39,8 @@ export const TextureTarget = {
 
 export const ProceduralTextureFunction = {
     PLAIN_COLOR: 0,
-    RANDOM_NOISE: 1
+    RANDOM_NOISE: 1,
+    DYNAMIC_CUBEMAP: 2
 };
 
 export const TextureDataTypeName = {
@@ -114,13 +115,23 @@ export default class Texture {
     get target() { return this._target; }
     set target(v) { this._target = v; }
     get size() { return this._size; }
-    set size(v) { this._size = v; }
+    set size(v) {
+        if (!v.length) {
+            throw new Error("Invalid parameter specified setting texture size.");
+        }
+        this._size = new Vec(v[0],v[1]);
+    }
     get fileName() { return this._fileName; }
     set fileName(v) { this._fileName = v; }
     get proceduralFunction() { return this._proceduralFunction; }
     set proceduralFunction(v) { this._proceduralFunction = v; }
     get proceduralParameters() { return this._proceduralParameters; }
-    set proceduralParameters(v) { this._proceduralParameters = v; }
+    set proceduralParameters(v) {
+        if (typeof(v) !== 'object' || !v) {
+            throw new Error("Invalid parameter specified setting procedural texture parameters.");
+        }
+        this._proceduralParameters = v;
+    }
 
     deserialize(sceneData) {
         this._dataType = sceneData.dataType !== undefined ? TextureDataType[sceneData.dataType] : TextureDataType.NONE;
