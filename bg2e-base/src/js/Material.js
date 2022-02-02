@@ -4,8 +4,90 @@ import Color from './Color.js';
 import Texture, { TextureDataType } from './Texture.js';
 
 export const MaterialType = {
-    PBR: "PBR"
+    PBR: "pbr"
 };
+
+export const MaterialAttributeNames = [
+    "type",
+    "diffuse",
+    "diffuseScale",
+    "diffuseUV",
+    "alphaCutoff",
+    "isTransparent",
+    "metallic",
+    "metallicChannel",
+    "metallicScale",
+    "metallicUV",
+    "roughness",
+    "roughnessChannel",
+    "roughnessScale",
+    "roughnessUV",
+    "fresnel",
+    "lightEmission",
+    "lightEmissionChannel",
+    "lightEmissionScale",
+    "lightEmissionUV",
+    "ambientOcclussion",
+    "ambientOcclussionChannel",
+    "ambientOcclussionUV",
+    "normal",
+    "normalScale",
+    "normalUV",
+    "height",
+    "heightChannel",
+    "heightScale",
+    "heightUV",
+    "heightIntensity",
+    "castShadows",
+    "cullFace"
+];
+
+export const ColorTextureAttributes = [
+    "diffuse",
+    "normal"
+];
+
+export const ValueTextureAttributes = [
+    "metallic",
+    "roughness",
+    "lightEmission",
+    "ambientOcclussion",
+    "height"
+];
+
+export const VectorAttribures = [
+    "diffuseScale",
+    "metallicScale",
+    "roughnessScale",
+    "lightEmissionScale",
+    "normalScale",
+    "heightScale"
+];
+
+export const ColorAttributes = [
+    "fresnel"
+];
+
+export const PrimitiveTypeAttributes = [
+    "type",
+    "alphaCutoff",
+    "isTransparent",
+    "metallicChannel",
+    "metallicUV",
+    "roughnessChannel",
+    "roughnessUV",
+    "lightEmissionChannel",
+    "lightEmissionUV",
+    "ambientOcclussionChannel",
+    "ambientOcclussionUV",
+    "normalUV",
+    "heightChannel",
+    "heightUV",
+    "heightIntensity",
+    "castShadows",
+    "cullFace"
+];
+
 
 const assertColorTexture = (v, name) => {
     if (!v instanceof Color && !v instanceof Texture) {
@@ -127,6 +209,28 @@ const serializeValueTexture = (obj) => {
     }
 }
 
+const serializeAttribute = (att,mat) => {
+    if (ColorTextureAttributes.indexOf(att) !== -1) {
+        return serializeColorTexture(mat[att]);
+    }
+    else if (ValueTextureAttributes.indexOf(att) !== -1) {
+        return serializeValueTexture(mat[att]);
+    }
+    else if (VectorAttribures.indexOf(att) !== -1 ||
+             ColorAttributes.indexOf(att) !== -1  ||
+             PrimitiveTypeAttributes.indexOf(att) !== -1
+    ) {
+        return mat[att];
+    }
+    else {
+        throw new Error(`Error in material attribute deserialization: invalid attribute '${ att }'`);
+    }
+}
+
+const deserializeAttribute = (att,obj) => {
+
+}
+
 const deserializeValueTexture = (obj) => {
     if (!obj) {
         return null;
@@ -156,7 +260,7 @@ const deserializeValueTexture = (obj) => {
 export default class Material {
 
     constructor() {
-        this._materialType = "PBR";
+        this._type = MaterialType.PBR;
 
         this._diffuse = Color.White();
         this._diffuseScale = new Vec(1, 1);
@@ -180,7 +284,6 @@ export default class Material {
         this._ambientOcclussionChannel = 0;
         this._ambientOcclussionUV = 1;
         this._normal = new Color({ r: 0.5, g: 0.5, b: 1 });
-        this._normalChannel = 0;
         this._normalScale = new Vec(1, 1);
         this._normalUV = 0;
         this._height = Color.Black();
@@ -200,7 +303,7 @@ export default class Material {
     }
 
     assign(other) {
-        this.materialType = other._materialType;
+        this.type = other._type;
         this.diffuse = cloneObject(other._diffuse);
         this.diffuseScale = cloneObject(other._diffuseScale);
         this.diffuseUV = other._diffuseUV;
@@ -223,7 +326,6 @@ export default class Material {
         this.ambientOcclussionChannel = other._ambientOcclussionChannel;
         this.ambientOcclussionUV = other._ambientOcclussionUV;
         this.normal = cloneObject(other._normal);
-        this.normalChannel = other._normalChannel;
         this.normalScale = cloneObject(other._normalScale);
         this.normalUV = other._normalUV;
         this.height = cloneObject(other._height);
@@ -236,8 +338,8 @@ export default class Material {
         this.unlit = other._unlit;
     }
 
-    get materialType() { return this._materialType; }
-    set materialType(v) { this._materialType = v; }
+    get type() { return this._type; }
+    set type(v) { this._type = v; }
 
 
     get diffuse() { return this._diffuse; }
@@ -284,8 +386,6 @@ export default class Material {
     set ambientOcclussionUV(v) { this._ambientOcclussionUV = v; }
     get normal() { return this._normal; }
     set normal(v) { assertColorTexture(v, "normal"); this._normal = v; }
-    get normalChannel() { return this._normalChannel; }
-    set normalChannel(v) { this._normalChannel = v; }
     get normalScale() { return this._normalScale; }
     set normalScale(v) { assertScale(v, "normalScale"); this._normalScale = v; }
     get normalUV() { return this._normalUV; }
@@ -308,43 +408,18 @@ export default class Material {
     set unlit(v) { this._unlit = v; }
 
     serialize(sceneData) {
-        sceneData.materialType = this._materialType;
-        sceneData.diffuse = serializeColorTexture(other._diffuse);
-        sceneData.diffuseScale = other._diffuseScale;
-        sceneData.diffuseUV = other._diffuseUV;
-        sceneData.alphaCutoff = other._alphaCutoff;
-        sceneData.isTransparent = other._isTransparent;
-        sceneData.metallic = serializeValueTexture(other._metallic);
-        sceneData.metallicChannel = other._metallicChannel;
-        sceneData.metallicScale = other._metallicScale;
-        sceneData.metallicUV = other._metallicUV;
-        sceneData.roughness = serializeValueTexture(other._roughness);
-        sceneData.roughnessChannel = other._roughnessChannel;
-        sceneData.roughnessScale = other._roughnessScale;
-        sceneData.roughnessUV = other._roughnessUV;
-        sceneData.fresnel = other._fresnel;
-        sceneData.lightEmission = serializeValueTexture(other._lightEmission);
-        sceneData.lightEmissionChannel = other._lightEmissionChannel;
-        sceneData.lightEmissionScale = other._lightEmissionScale;
-        sceneData.lightEmissionUV = other._lightEmissionUV;
-        sceneData.ambientOcclussion = serializeColorTexture(other._ambientOcclussion);
-        sceneData.ambientOcclussionChannel = other._ambientOcclussionChannel;
-        sceneData.ambientOcclussionUV = other._ambientOcclussionUV;
-        sceneData.normal = serializeColorTexture(other._normal);
-        sceneData.normalChannel = other._normalChannel;
-        sceneData.normalScale = other._normalScale;
-        sceneData.normalUV = other._normalUV;
-        sceneData.height = serializeValueTexture(other._height);
-        sceneData.heightChannel = other._heightChannel;
-        sceneData.heightScale = other._heightScale;
-        sceneData.heightlUV = other._heightlUV;
-        sceneData.heightIntensity = other._heightIntensity;
-        sceneData.castShadows = other._castShadows;
-        sceneData.cullFace = other._cullFace;
-        sceneData.unlit = other._unlit;
+        MaterialAttributeNames.forEach(att => {
+            const value = serializeAttribute(att, this);
+            sceneData[att] = value;
+        });
     }
 
     deserialize(sceneData) {
-        // TODO: deserialize
+        MaterialAttributeNames.forEach(att => {
+            const value = deserializeAttribute(att, sceneData);
+            if (value) {
+                this[att] = value;
+            }
+        })
     }
 }
