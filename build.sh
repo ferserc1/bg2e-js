@@ -1,6 +1,6 @@
 #!/bin/sh
 
-./clean.hs
+./clean.sh
 
 cd bg2e-tools
 npm install

@@ -8,10 +8,38 @@
 
 import Color from './Color.js';
 import Light from './Light.js';
-import PolyList from './PolyList.js';
+import PolyList, {
+    BufferType,
+    DrawMode
+} from './PolyList.js';
+import Texture, { 
+    TextureDataType,
+    TextureWrap,
+    TextureFilter,
+    TextureTarget,
+    ProceduralTextureFunction,
+    TextureDataTypeName,
+    TextureWrapName,
+    TextureFilterName,
+    TextureTargetName,
+    ProceduralTextureFunctionName
+} from './Texture.js';
 
 export {
     Color,
     Light,
-    PolyList
+    TextureDataType,
+    TextureWrap,
+    TextureFilter,
+    TextureTarget,
+    ProceduralTextureFunction,
+    TextureDataTypeName,
+    TextureWrapName,
+    TextureFilterName,
+    TextureTargetName,
+    ProceduralTextureFunctionName,
+    Texture,
+    PolyList,
+    BufferType,
+    DrawMode
 }

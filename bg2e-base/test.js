@@ -2,10 +2,17 @@
 import {
     Color,
     Light,
-    PolyList
+    PolyList,
+    Texture,
+    TextureDataType,
+    TextureWrap,
+    TextureFilter,
+    TextureWrapName,
+    TextureFilterName,
 } from './dist/bg2e-base.js';
 
 import { Vec } from 'bg2e-math';
+import { TextureDataTypeName } from './src/js/Texture.js';
 
 console.log(Vec);
 
@@ -66,3 +73,24 @@ console.log(plist.vertex);
 console.log(plist.normal);
 console.log(plist.texCoord0);
 console.log(plist.tangent);
+
+const t = new Texture();
+t.dataType = TextureDataType.IMAGE;
+t.fileName = "test.jpg";
+t.size.x = 128;
+t.size.y = 128;
+t.wrapModeXY = TextureWrap.REPEAT;
+t.minFilter = TextureFilter.LINEAR;
+t.magFilter = TextureFilter.NEAREST_MIPMAP_LINEAR;
+
+const textureData = {};
+t.serialize(textureData);
+console.log(textureData);
+const t2 = new Texture();
+t2.deserialize(textureData);
+console.log("Size: ", t2.size.toString());
+console.log("File name: ", t2.fileName);
+console.log("Wrap mode X: ", TextureWrapName[t2.wrapModeX]);
+console.log("Data type: ", TextureDataTypeName[t2.dataType]);
+console.log("Min filter: ", TextureFilterName[t2.minFilter]);
+console.log("Mag filter: ", TextureFilterName[t2.magFilter]);
