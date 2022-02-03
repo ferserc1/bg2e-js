@@ -102,3 +102,9 @@ m.diffuseScale = [0.5, 0.5];
 const data = {};
 m.serialize(data);
 console.log(data);
+
+const m2 = new Material();
+m2.deserialize(data);
+const m2Data = {}
+m2.serialize(m2Data);
+console.log(data);

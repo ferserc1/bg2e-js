@@ -211,28 +211,6 @@ const serializeValueTexture = (obj) => {
     return result;
 }
 
-const serializeAttribute = (att,mat) => {
-    if (ColorTextureAttributes.indexOf(att) !== -1) {
-        return serializeColorTexture(mat[att]);
-    }
-    else if (ValueTextureAttributes.indexOf(att) !== -1) {
-        return serializeValueTexture(mat[att]);
-    }
-    else if (VectorAttribures.indexOf(att) !== -1 ||
-             ColorAttributes.indexOf(att) !== -1  ||
-             PrimitiveTypeAttributes.indexOf(att) !== -1
-    ) {
-        return mat[att];
-    }
-    else {
-        throw new Error(`Error in material attribute deserialization: invalid attribute '${ att }'`);
-    }
-}
-
-const deserializeAttribute = (att,obj) => {
-
-}
-
 const deserializeValueTexture = (obj) => {
     if (!obj) {
         return null;
@@ -256,6 +234,45 @@ const deserializeValueTexture = (obj) => {
     }
     else {
         throw new Error(`Invalid parameter found in material serialization`)
+    }
+}
+
+const serializeAttribute = (att,mat) => {
+    if (ColorTextureAttributes.indexOf(att) !== -1) {
+        return serializeColorTexture(mat[att]);
+    }
+    else if (ValueTextureAttributes.indexOf(att) !== -1) {
+        return serializeValueTexture(mat[att]);
+    }
+    else if (VectorAttribures.indexOf(att) !== -1 ||
+             ColorAttributes.indexOf(att) !== -1  ||
+             PrimitiveTypeAttributes.indexOf(att) !== -1
+    ) {
+        return mat[att];
+    }
+    else {
+        throw new Error(`Error in material attribute deserialization: invalid attribute '${ att }'`);
+    }
+}
+
+const deserializeAttribute = (att,obj) => {
+    if (ColorTextureAttributes.indexOf(att) !== -1) {
+        return deserializeColorTexture(obj[att]);
+    }
+    else if (ValueTextureAttributes.indexOf(att) !== -1) {
+        return deserializeValueTexture(obj[att]);
+    }
+    else if (VectorAttribures.indexOf(att) !== -1) {
+        return new Vec(obj[att]);
+    }
+    else if (ColorAttributes.indexOf(att) !== -1) {
+        return new Color(obj[att]);
+    }
+    else if (PrimitiveTypeAttributes.indexOf(att) !== -1) {
+        return obj[att];
+    }
+    else {
+        throw new Error(`Error in material attribute deserialization: invalid attribute '${ att }'`);
     }
 }
 
