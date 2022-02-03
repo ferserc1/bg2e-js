@@ -30,19 +30,19 @@ export default class Color extends Vec {
         }
     }
    
-    static Yellow() { return new Vec(1.0,1.0,0.0,1.0); }
-    static Orange() { return new Vec(1.0,0.5,0.0,1.0); }
-    static Red() { return new Vec(1.0,0.0,0.0,1.0); }
-    static Violet() { return new Vec(0.5,0.0,1.0,1.0); }
-    static Blue() { return new Vec(0.0,0.0,1.0,1.0); }
-    static Green() { return new Vec(0.0,1.0,0.0,1.0); }
-    static White() { return new Vec(1.0,1.0,1.0,1.0); }
-    static LightGray() { return new Vec(0.8,0.8,0.8,1.0); }
-    static Gray() { return new Vec(0.5,0.5,0.5,1.0); }
-    static DarkGray() { return new Vec(0.2,0.2,0.2,1.0); }
-    static Black() { return new Vec(0.0,0.0,0.0,1.0); }
-    static Brown() { return new Vec(0.4,0.2,0.0,1.0); }
-    static Transparent() { return new Vec(0,0,0,0); }
+    static Yellow() { return new Color([1.0,1.0,0.0,1.0]); }
+    static Orange() { return new Color([1.0,0.5,0.0,1.0]); }
+    static Red() { return new Color([1.0,0.0,0.0,1.0]); }
+    static Violet() { return new Color([0.5,0.0,1.0,1.0]); }
+    static Blue() { return new Color([0.0,0.0,1.0,1.0]); }
+    static Green() { return new Color([0.0,1.0,0.0,1.0]); }
+    static White() { return new Color([1.0,1.0,1.0,1.0]); }
+    static LightGray() { return new Color([0.8,0.8,0.8,1.0]); }
+    static Gray() { return new Color([0.5,0.5,0.5,1.0]); }
+    static DarkGray() { return new Color([0.2,0.2,0.2,1.0]); }
+    static Black() { return new Color([0.0,0.0,0.0,1.0]); }
+    static Brown() { return new Color([0.4,0.2,0.0,1.0]); }
+    static Transparent() { return new Color([0,0,0,0]); }
 
     get r() { return this[0]; }
     set r(v) { this[0] = v; }

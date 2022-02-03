@@ -9,6 +9,7 @@ import {
     TextureFilter,
     TextureWrapName,
     TextureFilterName,
+    Material
 } from './dist/bg2e-base.js';
 
 import { Vec } from 'bg2e-math';
@@ -94,3 +95,10 @@ console.log("Wrap mode X: ", TextureWrapName[t2.wrapModeX]);
 console.log("Data type: ", TextureDataTypeName[t2.dataType]);
 console.log("Min filter: ", TextureFilterName[t2.minFilter]);
 console.log("Mag filter: ", TextureFilterName[t2.magFilter]);
+
+const m = new Material();
+m.diffuse = t;
+m.diffuseScale = [0.5, 0.5];
+const data = {};
+m.serialize(data);
+console.log(data);

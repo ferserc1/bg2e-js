@@ -15,7 +15,7 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-serve": "^1.1.0"
   },
-  "dependencies": {
+  "peerDependencies": {
     "bg2e-math": "file:../bg2e-math",
     "bg2e-tools": "file:../bg2e-tools"
   }
