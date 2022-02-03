@@ -108,3 +108,8 @@ m2.deserialize(data);
 const m2Data = {}
 m2.serialize(m2Data);
 console.log(data);
+
+const m3 = m2.clone();
+const m3Data = {}
+m3.serialize(m3Data);
+console.log(JSON.stringify(m3Data, "", "  "));

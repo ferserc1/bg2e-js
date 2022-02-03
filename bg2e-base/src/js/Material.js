@@ -39,7 +39,8 @@ export const MaterialAttributeNames = [
     "heightUV",
     "heightIntensity",
     "castShadows",
-    "cullFace"
+    "cullFace",
+    "unlit"
 ];
 
 export const ColorTextureAttributes = [
@@ -86,7 +87,8 @@ export const PrimitiveTypeAttributes = [
     "heightUV",
     "heightIntensity",
     "castShadows",
-    "cullFace"
+    "cullFace",
+    "unlit"
 ];
 
 
@@ -187,7 +189,7 @@ const deserializeVector = (obj) => {
     if (!obj) {
         return null;
     }
-    else if (Array.isArray(obj) && obj.length === 2) {
+    else if (obj.length === 2) {
         return new Vec(obj);
     }
     else {
@@ -263,7 +265,7 @@ const deserializeAttribute = (att,obj) => {
         return deserializeValueTexture(obj[att]);
     }
     else if (VectorAttribures.indexOf(att) !== -1) {
-        return new Vec(obj[att]);
+        return deserializeVector(obj[att]);
     }
     else if (ColorAttributes.indexOf(att) !== -1) {
         return new Color(obj[att]);
