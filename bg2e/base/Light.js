@@ -86,7 +86,7 @@ export default class Light {
     get projection() { return this._projection; }
     set projection(p) { this._projection = p; }
 
-    deserialize(sceneData) {
+    async deserialize(sceneData) {
         switch (sceneData.lightType) {
         case 'kTypeDirectional':
             this._type = LightType.DIRECTIONAL;
@@ -113,7 +113,7 @@ export default class Light {
         this._intensity = sceneData.intensity || 1;
     }
 
-    serialize(sceneData) {
+    async serialize(sceneData) {
         const lightTypes = [];
         lightTypes[LightType.DIRECTIONAL] = "kTypeDirectional";
         lightTypes[LightType.SPOT] = "kTypeSpot";

@@ -428,14 +428,14 @@ export default class Material {
     get unlit() { return this._unlit; }
     set unlit(v) { this._unlit = v; }
 
-    serialize(sceneData) {
+    async serialize(sceneData) {
         MaterialAttributeNames.forEach(att => {
             const value = serializeAttribute(att, this);
             sceneData[att] = value;
         });
     }
 
-    deserialize(sceneData) {
+    async deserialize(sceneData) {
         MaterialAttributeNames.forEach(att => {
             const value = deserializeAttribute(att, sceneData);
             if (value) {

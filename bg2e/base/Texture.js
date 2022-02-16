@@ -152,7 +152,7 @@ export default class Texture {
         this._proceduralParameters = v;
     }
 
-    deserialize(sceneData) {
+    async deserialize(sceneData) {
         this._dataType = sceneData.dataType !== undefined ? TextureDataType[sceneData.dataType] : TextureDataType.NONE;
         this._wrapModeX = sceneData.wrapModeX !== undefined ? TextureWrap[sceneData.wrapModeX] : TextureWrap.REPEAT;
         this._wrapModeY = sceneData.wrapModeY !== undefined ? TextureWrap[sceneData.wrapModeY] : TextureWrap.REPEAT;
@@ -165,7 +165,7 @@ export default class Texture {
         this._proceduralParameters = sceneData.proceduralParameters !== undefined ? sceneData.proceduralParameters : {};
     }
 
-    serialize(sceneData) {
+    async serialize(sceneData) {
         sceneData.dataType = TextureDataTypeName[this.dataType];
         sceneData.wrapModeX = TextureWrapName[this.wrapModeX];
         sceneData.wrapModeY = TextureWrapName[this.wrapModeY];

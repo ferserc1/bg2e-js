@@ -27,11 +27,11 @@ console.log(gray.toString());
 const l = new Light();
 l.diffuse = Color.Red();
 const sceneData = {};
-l.serialize(sceneData);
+await l.serialize(sceneData);
 //console.log(JSON.stringify(sceneData, "", "  "));
 
 const l2 = new Light();
-l2.deserialize(sceneData);
+await l2.deserialize(sceneData);
 console.log("Light 2 intensity: " + l2.intensity);
 
 console.log(l2.diffuse.toString()); // Red
