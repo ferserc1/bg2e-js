@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "a graphics engine for productivity applications",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "bg2io": "^1.0.0"
+  },
   "scripts": {},
   "repository": {
     "type": "git",
