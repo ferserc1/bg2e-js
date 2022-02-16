@@ -4,6 +4,7 @@
   "description": "",
   "main": "rollup.config.js",
   "scripts": {
+    "build": "rollup -c",
     "dev": "rollup -c --watch"
   },
   "author": "",

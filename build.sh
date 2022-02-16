@@ -2,18 +2,18 @@
 
 ./clean.sh
 
-cd bg2e-tools
+cd examples/base
 npm install
 npm run build
-cd ..
+cd -
 
-cd bg2e-math
+cd examples/math
 npm install
 npm run build
-cd ..
+cd -
 
-cd bg2e-base
+cd examples/tools
 npm install
 npm run build
-cd ..
+cd -
 
