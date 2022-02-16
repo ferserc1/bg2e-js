@@ -1,9 +1,10 @@
-import Bg2ioWrapper from 'bg2io/Bg2ioBrowser';
+
 import { getExtension } from '../tools/Resource';
 
 export const ResourceType = {
-    PolyList: 'PolyList',
-    Scene: 'Scene',
+    PolyList: 'PolyList',   // Returns a mesh or a list of meshes
+    Drawable: 'Drawable',
+    Node: 'Node',
     Texture: 'Texture',
     Material: 'Material'
 };
@@ -38,16 +39,19 @@ export const getLoaderPlugin = (path, type) => {
 }
 
 export const loadPolyList = async path => {
-
+    const plugin = getLoaderPlugin(path, ResourceType.PolyList);
+    return await plugin.load(path, ResourceType.PolyList);
 }
 
-export default class Test {
-
-    static async DoImportTest(wasmPath = null) {
-        const params = wasmPath ? {wasmPath} : {}
-        params.debug = true;
-        const wrapper = await Bg2ioWrapper(params);
-        console.log(wrapper);
-    }
+export const loadDrawable = async path => {
+    const plugin = getLoaderPlugin(path, ResourceType.Drawable);
+    return await plugin.load(path, ResourceType.Drawable);
 }
+
+export const loadNode = async path => {
+    const plugin = getLoaderPlugin(path, ResourceType.Node);
+    return await plugin.load(path, ResourceType.Node);
+}
+
+
 

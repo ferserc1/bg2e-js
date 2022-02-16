@@ -14,11 +14,11 @@ export const BufferType = {
 };
 
 export const DrawMode = {
-    TRIANGLES: null,
-    TRIANGLE_FAN: null,
-    TRIANGLE_STRIP: null,
-    LINES: null,
-    LINE_STRIP: null
+    TRIANGLES: 1,
+    TRIANGLE_FAN: 2,
+    TRIANGLE_STRIP: 3,
+    LINES: 4,
+    LINE_STRIP: 5
 };
 
 function buildTangents(plist) {
