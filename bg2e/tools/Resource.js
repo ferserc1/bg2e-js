@@ -4,6 +4,15 @@ import VideoResourceProvider from "./VideoResourceProvider.js";
 import BinaryResourceProvider from "./BinaryResourceProvider.js";
 import TextResourceProvider from "./TextResourceProvider.js";
 
+export const getExtension = (url) => {
+    const reResult = /\.([a-z0-9]+)$/i.exec(url);
+    if (reResult) {
+        return reResult[1];
+    }
+    else {
+        return "";
+    }
+}
 export const isFormat = (url,formats) => formats.some(fmt => (new RegExp(`\.${fmt}`,'i')).test(url));
 
 export const addFormats = (fmts, dst) => {
