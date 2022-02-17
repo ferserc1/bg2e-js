@@ -43,11 +43,11 @@ export default class Component {
 
     }
 
-    async deserialize(sceneData) {
+    async deserialize(sceneData,loader) {
         throw new Error("Component.deserialize() not implemented");
     }
 
-    async serialize(sceneData) {
+    async serialize(sceneData,writer) {
         throw new Error("Component.serialice() not implemented");
     }
 }

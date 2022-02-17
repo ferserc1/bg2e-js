@@ -15,7 +15,7 @@ export default class LoaderPlugin {
 
     // Returns the resource loaded with the path. The resource type must be one
     // of the specified in the resourceTypes attribute
-    async load(path) {
+    async load(path, type) {
         throw new Error("LoaderPlugin.load(): method not implemented");
     }
 }

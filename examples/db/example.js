@@ -1,4 +1,4 @@
-import { registerLoaderPlugin, loadPolyList } from "bg2e/db/loaders";
+import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
 import Bg2LoaderPlugin from "bg2e/db/Bg2LoaderPlugin";
 
 // bg2ioPath is the path from the html file to the distribution files of the bg2io library, if
@@ -6,7 +6,9 @@ import Bg2LoaderPlugin from "bg2e/db/Bg2LoaderPlugin";
 // using Rollup)
 registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist/" }));
 
-const plist = await loadPolyList("../resources/sphere.bg2");
+const loader = new Loader();
+
+const plist = await loader.loadPolyList("../resources/sphere.bg2");
 
 plist.forEach(pl => {
     console.log(pl.tangent);

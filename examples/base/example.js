@@ -12,7 +12,6 @@ import Texture, {
 } from 'bg2e/base/Texture';
 import Material from 'bg2e/base/Material';
 import Vec from 'bg2e/math/Vec';
-import Test from 'bg2e/fs/Test';
 
 await Test.DoImportTest("dist/");
 

@@ -4,6 +4,14 @@ import VideoResourceProvider from "./VideoResourceProvider.js";
 import BinaryResourceProvider from "./BinaryResourceProvider.js";
 import TextResourceProvider from "./TextResourceProvider.js";
 
+export const ResourceType = {
+    PolyList: 'PolyList',   // Array of meshes
+    Drawable: 'Drawable',
+    Node: 'Node',
+    Texture: 'Texture',
+    Material: 'Material'
+};
+
 export const getExtension = (url) => {
     const reResult = /\.([a-z0-9]+)$/i.exec(url);
     if (reResult) {

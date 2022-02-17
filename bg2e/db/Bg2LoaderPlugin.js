@@ -1,5 +1,5 @@
 import LoaderPlugin from "./LoaderPlugin";
-import { ResourceType } from "./loaders";
+import { ResourceType } from "./../tools/Resource";
 import Resource from "../tools/Resource";
 import PolyList from "../base/PolyList";
 
