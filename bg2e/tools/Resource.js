@@ -108,4 +108,9 @@ export default class Resource {
         const data = await provider.load(url);
         return data;
     }
+
+    async write(url,data) {
+        const provider = this.getProvider(url);
+        return await provider.write(url,data);
+    }
 }
