@@ -82,12 +82,27 @@ export default class Resource {
         imageProvider = null,
         videoProvider = null,
         binaryProvider = null,
-        textProvider = null 
+        textProvider = null,
+        writeStrategy = null
     } = {}) {
         this._imageProvider = imageProvider || new ImageResourceProvider();
         this._videoProvider = videoProvider || new VideoResourceProvider();
         this._binaryProvider = binaryProvider || new BinaryResourceProvider();
         this._textProvider = textProvider || new TextResourceProvider();
+        this.writeStrategy = writeStrategy;
+    }
+
+    set writeStrategy(ws) {
+        this._writeStrategy = ws;
+
+        this._imageProvider.writeStrategy = ws;
+        this._videoProvider.writeStrategy = ws;
+        this._binaryProvider.writeStrategy = ws;
+        this._textProvider.writeStrategy = ws;
+    }
+
+    get writeStrategy() {
+        return this._writeStrategy;
     }
 
     getProvider(url) {

@@ -1,4 +1,4 @@
 import { executeExample } from "./processDetection.js";
 
-const text = executeExample();
+const text = await executeExample();
 console.log(text);

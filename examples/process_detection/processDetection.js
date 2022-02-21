@@ -1,6 +1,7 @@
 import { ProcessType, ProcessTypeName, getProcessType } from "bg2e/tools/processType.js";
 
-export const executeExample = () => {
+export const executeExample = async () => {
+    await writeFile("test.txt","Hello, World!", { encoding: "utf-8" });
     const processType = getProcessType();
     let result = `Current process: ${ ProcessTypeName[processType] }\n`;
     switch (processType) {

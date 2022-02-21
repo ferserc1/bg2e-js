@@ -44,4 +44,8 @@ export default class VideoResourceProvider extends ResourceProvider {
         const video = await loadVideo(url);
         return video;
     }
+
+    async write(url,data) {
+        throw new Error("VideoResourceProvider.write(): not supported");
+    }
 }

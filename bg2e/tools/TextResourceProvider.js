@@ -17,4 +17,8 @@ export default class TextResourceProvider extends ResourceProvider {
             throw new Error(`Resource not found at '${ url }'`);
         }
     }
+
+    async write(url,data) {
+        return await this.writeStrategy.writeData(url,data,{encoding: 'utf-8'});
+    }
 }

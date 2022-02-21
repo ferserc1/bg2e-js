@@ -45,4 +45,21 @@ export default class ImageResourceProvider extends ResourceProvider {
         const img = await loadImage(url, true);
         return img;
     }
+
+    async write(url,img) {
+        let data = null;
+        if (img instanceof Image) {
+            // TODO: convert to Uint8Array data
+        }
+        else if (typeof(img) === "string" && /base64/i.test(img)) {
+            // Convert base64 image into Uint8Array data
+        }
+        else if (typeof(img) === "string") {
+            // Path: copy image
+        }
+        else {
+            throw new Error("Unsupported image type specified for write");
+        }
+        return await this.writeStrategy.writeData(url,data);
+    }
 }
