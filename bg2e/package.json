@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "a graphics engine for productivity applications",
   "main": "index.js",
+  "type": "module",
   "dependencies": {
     "bg2io": "^1.0.0"
   },

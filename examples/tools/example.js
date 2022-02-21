@@ -10,6 +10,24 @@ import Resource, {
     getValidVideoFormats,
     getValidBinaryFormats
 } from "bg2e/tools/Resource";
+import { ProcessType, ProcessTypeName, getProcessType } from "bg2e/tools/processType";
+
+const processType = getProcessType();
+console.log(`Current process: ${ ProcessTypeName[processType] }`);
+switch (processType) {
+case ProcessType.BROWSER:
+    console.log("The application is running in a browser");
+    break;
+case ProcessType.ELECTRON_RENDERER:
+    console.log("The application is running in Electron (renderer process)");
+    break;
+case ProcessType.ELECTRON_MAIN:
+    console.log("The application is running in Electron (main process)");
+    break;
+case ProcessType.NODE:
+    console.log("The application is running in Node.js");
+    break;
+}
 
 console.log(generateMD5("Hello, World!"));
 console.log(generateUUID());
