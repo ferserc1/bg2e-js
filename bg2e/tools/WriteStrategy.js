@@ -1,7 +1,19 @@
 
 export default class WriteStrategy {
-    async writeData(path, data, options) {
-        throw new Error("WriteStrategy: writeData() not implemented");
+    async writeBytes(path, data) {
+        throw new Error("WriteStrategy: writeBytes() not implemented");
+    }
+
+    async writeImage(path, img) {
+        throw new Error("WriteStrategy: writeImage() not implemented");
+    }
+
+    async writeText(path, data) {
+        throw new Error("WriteStrategy: writeText() not implemented");
+    }
+
+    async writeJson(path, object) {
+        throw new Error("WriteStrategy: writeJson() not implemented");
     }
 
     async copyFile(srcPath, dstPath) {

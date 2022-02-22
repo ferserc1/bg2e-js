@@ -42,6 +42,11 @@ export const isElectron = () => {
     }
 }
 
+export const isBrowserOrElectronRenderer = () => {
+    const type = getProcessType();
+    return type === ProcessType.BROWSER || type === ProcessType.ELECTRON_RENDERER;
+}
+
 export const isBrowser = () => {
     return getProcessType() === ProcessType.BROWSER;
 }
