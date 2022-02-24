@@ -21,6 +21,27 @@ export const getExtension = (url) => {
         return "";
     }
 }
+
+export const getFileName = (url) => {
+    const reResult = /(.+)\/(.+)$/.exec(url);
+    if (reResult) {
+        return reResult[2];
+    }
+    else {
+        return url;
+    }
+}
+
+export const removeExtension = (url) => {
+    const reResult = /(.+)\.(.+)$/.exec(url);
+    if (reResult) {
+        return reResult[1];
+    }
+    else {
+        return url;
+    }
+}
+
 export const isFormat = (url,formats) => formats.some(fmt => (new RegExp(`\.${fmt}`,'i')).test(url));
 
 export const addFormats = (fmts, dst) => {

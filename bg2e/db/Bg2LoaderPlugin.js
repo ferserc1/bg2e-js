@@ -1,7 +1,9 @@
 import LoaderPlugin from "./LoaderPlugin";
-import { ResourceType } from "./../tools/Resource";
+import { ResourceType, getFileName, removeExtension } from "./../tools/Resource";
 import Resource from "../tools/Resource";
 import PolyList from "../base/PolyList";
+import Drawable from "../scene/Drawable";
+import Material from "../base/Material";
 
 import Bg2ioWrapper from 'bg2io/Bg2ioBrowser';
 
@@ -30,14 +32,21 @@ const createPolyList = (jsonData) => {
         plist.texCoord1 = plData.texCoord1
         plist.texCoord2 = plData.texCoord2
         plist.index = plData.index;
-        return plist;
+        return { plist, materialData };
     });
 
     return result;
 }
 
-const createDrawable = (jsonData) => {
-    throw new Error("Bg2LoaderPlugin: createDrawable. Not implemented");
+const createDrawable = (jsonData,filePath) => {
+    const name = removeExtension(getFileName(filePath));
+    const drawable = new Drawable(name);
+    createPolyList(jsonData).forEach(item => {
+        const mat = new Material();
+        mat.deserialize(item.materialData);
+        drawable.addPolyList(item.plist, mat);
+    });
+    return drawable;
 }
 
 const createNode = (jsonData) => {
@@ -69,9 +78,9 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
 
         switch (resourceType) {
         case ResourceType.PolyList:
-            return createPolyList(jsonData);
+            return createPolyList(jsonData).map(item => item.plist);
         case ResourceType.Drawable:
-            return createDrawable(jsonData);
+            return createDrawable(jsonData,path);
         case ResourceType.Node:
             return createNode(jsonData)
         default:

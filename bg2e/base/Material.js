@@ -9,6 +9,7 @@ export const MaterialType = {
 
 export const MaterialAttributeNames = [
     "type",
+    "class",    // Alias of "type"
     "diffuse",
     "diffuseScale",
     "diffuseUV",
@@ -71,6 +72,7 @@ export const ColorAttributes = [
 
 export const PrimitiveTypeAttributes = [
     "type",
+    "class",    // alias off type
     "alphaCutoff",
     "isTransparent",
     "diffuseUV",
@@ -279,7 +281,6 @@ const deserializeAttribute = (att,obj) => {
 }
 
 export default class Material {
-
     constructor() {
         this._type = MaterialType.PBR;
 
@@ -360,7 +361,17 @@ export default class Material {
     }
 
     get type() { return this._type; }
-    set type(v) { this._type = v; }
+    set type(v) {
+        // Compatibility with v1.4
+        if (v === "PBRMaterial") {
+            v = "pbr";
+        }
+        this._type = v;
+    }
+
+    // Compatibility with v1.4
+    set class(v) { this.type = v; }
+    get class() { return this.type; }
 
 
     get diffuse() { return this._diffuse; }
@@ -437,9 +448,17 @@ export default class Material {
 
     async deserialize(sceneData) {
         MaterialAttributeNames.forEach(att => {
-            const value = deserializeAttribute(att, sceneData);
+            let value = deserializeAttribute(att, sceneData);
+            if (att === "type" && !value) {
+                value = deserializeAttribute("class", sceneData);
+            }
             if (value) {
-                this[att] = value;
+                if (this[att] === undefined) {
+                    console.warn(`Material.deserialize(): invalid material attribute found in JSON material definition: '${ att }`);
+                }
+                else {
+                    this[att] = value;
+                }
             }
         })
     }

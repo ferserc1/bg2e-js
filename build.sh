@@ -17,3 +17,13 @@ npm install
 npm run build
 cd -
 
+cd examples/db
+npm install
+npm run build
+cd -
+
+cd examples/process_detection
+npm install
+npm run build
+cd -
+
