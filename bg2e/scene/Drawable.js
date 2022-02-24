@@ -4,7 +4,7 @@ import Mat4 from "../math/Mat4";
 
 export default class Drawable extends Component {
     constructor(name) {
-        super();
+        super("Drawable");
         this._name = name || "";
         this._items = [];
     }

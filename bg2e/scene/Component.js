@@ -17,11 +17,17 @@ export const createComponent = (typeId) => {
 }
 
 export default class Component {
-    constructor() {
+    constructor(typeId) {
         this._node = null;
+        if (!typeId) {
+            throw new Error("Invalid typeId specified creating component");
+        }
+        this._typeId = typeId;
     }
 
     get node() { return this._node; }
+
+    get typeId() { return this._typeId; }
 
     clone() {
         throw new Error("Component.clone() not implemented");

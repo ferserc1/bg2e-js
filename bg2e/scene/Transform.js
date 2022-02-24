@@ -3,7 +3,7 @@ import Mat4 from "../math/Mat4";
 
 export default class Transform extends Component {
     constructor(mat = Mat4.MakeIdentity()) {
-        super();
+        super("Transform");
         if (!mat instanceof Mat4) {
             throw new Error("Invalid parameter in Transform component initialization. The parameter must be a Mat4 instance.");
         }
