@@ -24,7 +24,12 @@ export default class Transform extends Component {
     }
 
     async deserialize(sceneData,loader) {
-        throw new Error("Transform.deserialize() not implemented");
+        if (Array.isArray(sceneData.transformMatrix) && sceneData.transformMatrix.length === 16) {
+            this._matrix.assign(sceneData.transformMatrix);
+        }
+        else {
+            console.warn("Transform.deserialize(): invalid transformMatrix attribute found in scene data");
+        }
     }
 
     async serialize(sceneData,writer) {

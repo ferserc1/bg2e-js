@@ -23,7 +23,7 @@ export default class Writer {
 
     async writeResource(path, data, type) {
         const plugin = getWriterPlugin(path, type);
-        const result = await plugin.write(path, data, type);
+        const result = await plugin.write(path, data, type, this);
         return result;
     }
 

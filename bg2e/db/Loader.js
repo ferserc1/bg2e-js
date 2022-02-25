@@ -44,7 +44,7 @@ export default class Loader {
         let result = this.findCache(path, type);
         if (!result) {
             const plugin = getLoaderPlugin(path, type);
-            result = await plugin.load(path, type);
+            result = await plugin.load(path, type, this);
         }
         return result;
     }

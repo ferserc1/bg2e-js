@@ -58,6 +58,14 @@ export default class Node {
         throw new Error("Node.serialice() not implemented");
     }
 
+    addComponent(component) {
+        this.components.add(component);
+    }
+
+    component(typeId) {
+        return this.components.find(typeId);
+    }
+
     addedToNode(node) {
 
     }
