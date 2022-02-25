@@ -16,6 +16,12 @@ export const createComponent = (typeId) => {
     }
 }
 
+export const deserializeComponent = async (sceneData,loader) => {
+    const componentInstance = createComponent(sceneData.type);
+    await componentInstance.deserialize(sceneData,loader);
+    return componentInstance;
+}
+
 export default class Component {
     constructor(typeId) {
         this._node = null;

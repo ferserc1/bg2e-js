@@ -5,7 +5,7 @@ import PolyList from "../base/PolyList";
 import Drawable from "../scene/Drawable";
 import Node from "../scene/Node";
 import Material from "../base/Material";
-import { createComponent } from "../scene/Component";
+import { deserializeComponent } from "../scene/Component";
 
 import Bg2ioWrapper from 'bg2io/Bg2ioBrowser';
 
@@ -58,8 +58,7 @@ const createNode = async (jsonData,filePath,loader) => {
     node.addChild(drawable);
     for (const compData of jsonData.components) {
         try {
-            const comp = createComponent(compData.type);
-            await comp.deserialize(compData,loader);
+            const comp = await deserializeComponent(compData,loader);
             node.addComponent(comp);
         }
         catch (err) {
