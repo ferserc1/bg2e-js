@@ -231,4 +231,6 @@ console.log(color32);
 
     v2[1] = math.sqrt(-1);
     console.log(Vec.IsNaN(v2)); // v2 is NaN because v2[1] = sqrt(-1);
+
+    console.log(JSON.stringify(Array.from(v1)));
 })();
