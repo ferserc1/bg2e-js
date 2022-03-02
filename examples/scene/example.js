@@ -21,4 +21,4 @@ if (drawable instanceof Drawable) {
 
 
 const prefab = await loader.loadNode("../resources/cubes.bg2");
-
+console.log(prefab);

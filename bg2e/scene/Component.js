@@ -10,7 +10,15 @@ export const registerComponent = (typeId,componentClass) => {
 export const createComponent = (typeId) => {
     const ComponentClass = g_componentClasses[typeId];
     if (ComponentClass) {
-        return new ComponentClass();
+        try {
+            const compInstance = new ComponentClass();
+            return compInstance;
+        }
+        catch (err) {
+            if (err.code === -1) {
+                throw new Error(`Error in component constructor definition. Check the implementation of the '${ typeId }' component constructor. It should call super('typeId') to configure the component type id.`);
+            }
+        }
     }
     else {
         throw new Error(`Could not instantiate component: No component found with type id='${typeId}'`)
@@ -29,7 +37,9 @@ export default class Component extends LifeCycle {
 
         this._node = null;
         if (!typeId) {
-            throw new Error("Invalid typeId specified creating component");
+            const e = new Error("Invalid typeId specified creating component.");
+            e.code = -1;
+            throw e;
         }
         this._typeId = typeId;
     }

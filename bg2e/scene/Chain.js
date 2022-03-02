@@ -4,7 +4,7 @@ import Component from "./Component";
 
 export default class Chain extends Component {
     constructor() {
-        super();
+        super('Chain');
     }
 
     willUpdate(frame,matrixState) {

@@ -2,8 +2,8 @@ import Component from "./Component";
 import Joint, { LinkTransformOrder, LinkJoint } from "../phsics/joint";
 
 export class ChainJoint extends Component {
-    constructor() {
-        super();
+    constructor(typeId) {
+        super(typeId);
 
         this._joint = new LinkJoint();
     }
@@ -30,7 +30,7 @@ export class ChainJoint extends Component {
 
 export class InputChainJoint extends ChainJoint {
     constructor() {
-        super();
+        super('InputChainJoint');
         this.joint.transformOrder = LinkTransformOrder.ROTATE_TRANSLATE;
     }
 
@@ -43,7 +43,7 @@ export class InputChainJoint extends ChainJoint {
 
 export class OutputChainJoint extends ChainJoint {
     constructor() {
-        super();
+        super('OutputChainJoint');
         this.joint.transformOrder = LinkTransformOrder.TRANSLATE_ROTATE;
     }
 

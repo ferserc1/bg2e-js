@@ -27,3 +27,8 @@ npm install
 npm run build
 cd -
 
+cd examples/scene
+npm install
+npm run build
+cd -
+
