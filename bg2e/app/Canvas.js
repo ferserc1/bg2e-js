@@ -1,4 +1,12 @@
 
+export const getMouseEventOffset = (evt,canvas) => {
+    const offset = canvas.domElement.getBoundingClientRect();
+    return {
+        x: evt.clientX - offset.left,
+        y: evt.clientY - offset.top
+    };
+}
+
 export default class Canvas {
     constructor(domElement,renderer) {
         this._renderer = renderer;
