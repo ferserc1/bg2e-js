@@ -1,4 +1,5 @@
 
+import LifeCycle from "./LifeCycle";
 
 const g_componentClasses = {}
 
@@ -22,8 +23,10 @@ export const deserializeComponent = async (sceneData,loader) => {
     return componentInstance;
 }
 
-export default class Component {
+export default class Component extends LifeCycle {
     constructor(typeId) {
+        super();
+
         this._node = null;
         if (!typeId) {
             throw new Error("Invalid typeId specified creating component");
@@ -56,11 +59,10 @@ export default class Component {
     }
 
     async deserialize(sceneData,loader) {
-        throw new Error("Component.deserialize() not implemented");
     }
 
     async serialize(sceneData,writer) {
-        throw new Error("Component.serialice() not implemented");
+        sceneData.type = this.typeId;
     }
 }
 

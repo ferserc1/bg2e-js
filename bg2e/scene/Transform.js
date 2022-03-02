@@ -33,6 +33,7 @@ export default class Transform extends Component {
     }
 
     async serialize(sceneData,writer) {
+        await super.serialize(sceneData,writer);
         throw new Error("Transform.serialice() not implemented");
     }
 }
