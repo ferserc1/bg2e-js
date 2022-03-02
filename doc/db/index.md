@@ -43,5 +43,8 @@ The main differences between the two classes are that the Loader class includes 
 
 Otherwise, all load or write functions are asynchronous.
 
+- [`Loader`](loader.md)
+- [`Writer`](writer.md)
+
 
 

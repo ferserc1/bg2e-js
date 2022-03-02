@@ -68,3 +68,20 @@ class Light {
     }
 }
 ```
+
+The serialize/deserialize protocol exists in two forms: a synchronous and an asynchronous form. The asynchronous form is intended for objects that have to retrieve or save data from a [loader](../db/loader.md) or [writer](../db/writer.md). A class or object that implements the serialize/deserialize protocol must specify whether its implementation is asynchronous or synchronous. In turn, all classes that inherit from it must perform the same type of implementation as its base class.
+
+```js
+class MyClass {
+    ...
+    async serialize(sceneData,writer) {
+        sceneData.texturePath = this.texturePath;
+        await writer.writeTexture(this.texturePath, this.textureData);
+    }
+
+    async deserialize(sceneData,loader) {
+        this.texturePath = sceneData.texturePath;
+        this.textureData = await loader.loadTexture(this.texturePath);
+    }
+}
+```
