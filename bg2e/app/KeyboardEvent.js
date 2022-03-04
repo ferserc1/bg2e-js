@@ -1,3 +1,5 @@
+import EventBase from "./EventBase";
+
 export const SpecialKey = {
     BACKSPACE: "Backspace",
     TAB: "Tab",
@@ -31,12 +33,13 @@ export const createKeyboardEvent = (evt) => {
     return new KeyboardEvent(code, evt);
 }
 
-export default class KeyboardEvent {
+export default class KeyboardEvent extends EventBase {
     static IsSpecialKey(event) {
         return SpecialKey[event.code]!=null;
     }
     
     constructor(key,event) {
+        super();
         this.key = key;
         this.event = event;
     }

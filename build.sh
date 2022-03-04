@@ -32,3 +32,8 @@ npm install
 npm run build
 cd -
 
+cd examples/app
+npm install
+npm run build
+cd -
+

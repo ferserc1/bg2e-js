@@ -7,10 +7,14 @@ export default class WebGLRenderer extends Renderer {
 
     async init(canvas) {
         await super.init(canvas);
+        this._canvas = canvas;
 
-        // TODO: init webgl
-
+        this._gl = canvas.domElement.getContext("webgl", { preserveDrawingBuffer: true });
     }
+
+    get gl() { return this._gl; }
+
+    get canvas() { return this._canvas; }
 
     postReshape() {
 

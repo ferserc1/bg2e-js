@@ -28,6 +28,7 @@ export default class MainLoop {
         this._canvas = canvas;
         this._canvas._mainLoop = this;
         this._appController = appController;
+        this._appController._mainLoop = this;
         this._updateMode = FrameUpdate.AUTO;
         this._redisplayFrames = 1;
 
@@ -44,7 +45,8 @@ export default class MainLoop {
     }
 
     get canvas() { return this._canvas; }
-    get appContoller() { return this._appController; }
+    get appController() { return this._appController; }
+    get renderer() { return this._canvas?.renderer; }
 
     get updateMode() { return this._updateMode; }
     set updateMode(um) { this._updateMode = um; }
@@ -53,9 +55,10 @@ export default class MainLoop {
 
     get redisplay() { return this._redisplayFrames>0; }
 
-    run() {
-        this.appContoller.init();
-        initEvents(this.canvas);
+    async run() {
+        await this.canvas.init();
+        this.appController.init();
+        initEvents(this);
         g_animationLoop.mainLoop.push(this);
         animationLoop();
     }
@@ -80,54 +83,59 @@ export default class MainLoop {
 function initEvents(mainLoop) {
     onResize(mainLoop);
 
+    const handlePropagation = (bgEvt,evt) => {
+        if (bgEvt.isEventPropagationStopped) {
+            evt.stopPropagation();
+            evt.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
     const c = mainLoop.canvas.domElement;
     c.__mainLoop = mainLoop;
     c.addEventListener("mousedown", evt => {
-        onMouseDown(evt, evt.target.__mainLoop);
-        evt.stopPropagation();
+        return handlePropagation(onMouseDown(evt, evt.target.__mainLoop), evt);
     });
     c.addEventListener("mousemove", evt => {
-        onMouseMove(evt, evt.target.__mainLoop);
-        evt.stopPropagation();
+        return handlePropagation(onMouseMove(evt, evt.target.__mainLoop), evt);
     });
     c.addEventListener("mouseout", evt => {
-        onMouseOut(evt, evt.target.__mainLoop);
-        evt.stopPropagation();
+        return handlePropagation(onMouseOut(evt, evt.target.__mainLoop), evt);
     });
     
     c.addEventListener("mouseover", evt => {
-        onMouseOver(evt, evt.target.__mainLoop);
-        evt.stopPropagation();
+        return handlePropagation(onMouseOver(evt, evt.target.__mainLoop), evt);
     });
 
     c.addEventListener("mouseup", evt => {
-        onMouseUp(evt, evt.target.__mainLoop);
-        evt.stopPropagation();
+        return handlePropagation(onMouseUp(evt, evt.target.__mainLoop), evt);
     });
     
     c.addEventListener("touchstart", evt => {
-        onTouchStart(evt, evt.target.__mainLoop);
-        evt.stopPropagation();
+        return handlePropagation(onTouchStart(evt, evt.target.__mainLoop), evt);
     });
 
     c.addEventListener("touchmove", evt => {
-        onTouchMove(evt, evt.target.__mainLoop);
-        evt.stopPropagation();
+        return handlePropagation(onTouchMove(evt, evt.target.__mainLoop), evt);
     });
     
     c.addEventListener("touchend", evt => {
-        onTouchEnd(evt, evt.target.__mainLoop);
-        evt.stopPropagation();
+        return handlePropagation(onTouchEnd(evt, evt.target.__mainLoop), evt);
     });
 
     const mouseWheelEvt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
     c.addEventListener(mouseWheelEvt, evt => {
-        onMouseWheel(evt, evt.target.__mainLoop);
-        evt.stopPropagation()
+        return handlePropagation(onMouseWheel(evt, evt.target.__mainLoop), evt);
     });
 
-    window.addEventListener("keydown", evt => onKeyDown(evt));
-    window.addEventListener("keyup", evt => onKeyUp(evt));
+    window.addEventListener("keydown", evt => {
+        g_animationLoop.mainLoop.forEach(ml => onKeyDown(evt, ml));
+    });
+
+    window.addEventListener("keyup", evt => {
+        g_animationLoop.mainLoop.forEach(ml => onKeyUp(evt, ml));
+    });
 
     c.oncontextmenu = evt => false;
 }
@@ -157,9 +165,9 @@ function onMouseDown(evt,mainLoop) {
 
 function onMouseMove(evt,mainLoop) {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.NONE);
-    mainLoop.appContoller.mouseMove(bg2Event);
+    mainLoop.appController.mouseMove(bg2Event);
     if (mainLoop._mouseStatus.anyButton) {
-        mainLoop.appContoller.mouseDrag(bg2Event);
+        mainLoop.appController.mouseDrag(bg2Event);
     }
     return bg2Event;
 }
@@ -183,7 +191,7 @@ function onMouseUp(evt,mainLoop) {
 function onMouseWheel(evt,mainLoop) {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.NONE);
     bg2Event.delta = evt.wheelDelta ? evt.wheelDelta * -1 : evt.detail * 10;
-    mainLoop.appContoller.mouseWheel(bg2Event);
+    mainLoop.appController.mouseWheel(bg2Event);
     return bg2Event;
 }
 
@@ -195,13 +203,13 @@ function onTouchStart(evt,mainLoop) {
 
 function onTouchMove(evt,mainLoop) {
     const bgEvent = createTouchEvent(evt,mainLoop);
-    mainLoop.appContoller.touchMove(bgEvent);
+    mainLoop.appController.touchMove(bgEvent);
     return bgEvent;
 }
 
 function onTouchEnd(evt,mainLoop) {
     const bgEvent = createTouchEvent(evt,mainLoop);
-    mainLoop.appContoller.touchEnd(bgEvent);
+    mainLoop.appController.touchEnd(bgEvent);
     return bgEvent;
 }
 
@@ -213,6 +221,6 @@ function onKeyDown(evt,mainLoop) {
 
 function onKeyUp(evt,mainLoop) {
     const bgEvent = createKeyboardEvent(evt);
-    mainLoop.appContoller.keyUp(bgEvent);
+    mainLoop.appController.keyUp(bgEvent);
     return bgEvent;
 }

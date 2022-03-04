@@ -26,16 +26,13 @@ export const getEventTouches = (evt,canvas) => {
 export default class Canvas {
     constructor(domElement,renderer) {
         this._renderer = renderer;
-
         this._domElement = domElement;
-        this._domElement.style.pointerEvents = 'none';
-
         // Initialized in mainLoop constructor
         this._mainLoop = null;
     }
 
     async init() {
-        await this._renderer.init(this._domElement);
+        await this._renderer.init(this);
     }
 
     get mainLoop() { return this._mainLoop; }
