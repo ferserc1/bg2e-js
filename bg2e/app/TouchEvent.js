@@ -1,8 +1,9 @@
-import { getMouseEventOffset } from "./Canvas";
+import { getEventTouches } from "./Canvas";
 
 
 export const createTouchEvent = (evt,mainLoop) => {
-    
+    const touches = getEventTouches(evt,mainLoop);
+    return new TouchEvent(touches, evt);
 }
 
 export default class TouchEvent extends EventBase  {

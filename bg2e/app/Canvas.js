@@ -7,6 +7,22 @@ export const getMouseEventOffset = (evt,canvas) => {
     };
 }
 
+export const getEventTouches = (evt,canvas) => {
+    const offset = canvas.domElement.getBoundingClientRect();
+    const touches = Array.from(evt.touches).map(touch => {
+        return {
+            identifier: touch.identifier,
+            x: touch.clientX - offset.left,
+            y: touch.clientY - offset.top,
+            force: touch.force,
+            rotationAngle: touch.rotationAngle,
+            radiusX: touch.radiusX,
+            radiusY: touch.radiusY
+        };
+    });
+    return touches;
+}
+
 export default class Canvas {
     constructor(domElement,renderer) {
         this._renderer = renderer;

@@ -1,5 +1,6 @@
 
 import MouseEvent, { MouseButton, MouseButtonEventType, createMouseEvent } from "./MouseEvent";
+import { createTouchEvent } from "./TouchEvent";
 
 export const FrameUpdate = {
     AUTO: 0,
@@ -181,13 +182,20 @@ function onMouseWheel(evt,mainLoop) {
 }
 
 function onTouchStart(evt,mainLoop) {
-
+    const bgEvent = createTouchEvent(evt,mainLoop);
+    mainLoop.appController.touchStart(bgEvent);
+    return bgEvent;
 }
 
 function onTouchMove(evt,mainLoop) {
-
+    const bgEvent = createTouchEvent(evt,mainLoop);
+    mainLoop.appContoller.touchMove(bgEvent);
+    return bgEvent;
 }
 
 function onTouchEnd(evt,mainLoop) {
-
+    const bgEvent = createTouchEvent(evt,mainLoop);
+    mainLoop.appContoller.touchEnd(bgEvent);
+    return bgEvent;
 }
+
