@@ -26,6 +26,11 @@ export const SpecialKey = {
     DELETE: "Delete"
 };
 
+export const createKeyboardEvent = (evt) => {
+    const code = SpecialKey[evt.code] != null ? evt.keyCode : evt.code;
+    return new KeyboardEvent(code, evt);
+}
+
 export default class KeyboardEvent {
     static IsSpecialKey(event) {
         return SpecialKey[event.code]!=null;

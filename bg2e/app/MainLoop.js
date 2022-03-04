@@ -1,6 +1,7 @@
 
-import MouseEvent, { MouseButton, MouseButtonEventType, createMouseEvent } from "./MouseEvent";
+import { MouseButtonEventType, createMouseEvent } from "./MouseEvent";
 import { createTouchEvent } from "./TouchEvent";
+import { createKeyboardEvent } from "./KeyboardEvent";
 
 export const FrameUpdate = {
     AUTO: 0,
@@ -124,6 +125,11 @@ function initEvents(mainLoop) {
         onMouseWheel(evt, evt.target.__mainLoop);
         evt.stopPropagation()
     });
+
+    window.addEventListener("keydown", evt => onKeyDown(evt));
+    window.addEventListener("keyup", evt => onKeyUp(evt));
+
+    c.oncontextmenu = evt => false;
 }
 
 function onResize(mainLoop) {
@@ -199,3 +205,14 @@ function onTouchEnd(evt,mainLoop) {
     return bgEvent;
 }
 
+function onKeyDown(evt,mainLoop) {
+    const bgEvent = createKeyboardEvent(evt);
+    mainLoop.appController.keyDown(bgEvent);
+    return bgEvent;
+}
+
+function onKeyUp(evt,mainLoop) {
+    const bgEvent = createKeyboardEvent(evt);
+    mainLoop.appContoller.keyUp(bgEvent);
+    return bgEvent;
+}
