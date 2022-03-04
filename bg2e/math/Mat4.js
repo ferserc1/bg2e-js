@@ -1,4 +1,4 @@
-import { NumericArray } from "./constants";
+import { NumericArray, PI } from "./constants";
 import Vec from "./Vec";
 import Mat3 from "./Mat3";
 import { equals, isZero } from "./functions";
@@ -111,7 +111,7 @@ export default class Mat4 extends NumericArray {
 	}
 
     perspective(fovy, aspect, nearPlane, farPlane) {
-		let fovy2 = tan(fovy * PI / 360.0) * nearPlane;
+		let fovy2 = Math.tan(fovy * PI / 360.0) * nearPlane;
 		let fovy2aspect = fovy2 * aspect;
 		this.frustum(-fovy2aspect,fovy2aspect,-fovy2,fovy2,nearPlane,farPlane);
         return this;
@@ -147,30 +147,30 @@ export default class Mat4 extends NumericArray {
         this.identity();
 
 		const y = new Vec(p_up);
-		const z = Vec3.Sub(p_eye,p_center);
+		const z = Vec.Sub(p_eye,p_center);
 		z.normalize();
-		const x = Vec3.Cross(y,z);
+		const x = Vec.Cross(y,z);
 		x.normalize();
 		y.normalize();
 
 		this.m00 = x.x;
 		this.m10 = x.y;
 		this.m20 = x.z;
-		this.m30 = -Vec3.Dot(x, p_eye);
+		this.m30 = -Vec.Dot(x, p_eye);
 		this.m01 = y.x;
 		this.m11 = y.y;
 		this.m21 = y.z;
-		this.m31 = -Vec3.Dot(y, p_eye);
+		this.m31 = -Vec.Dot(y, p_eye);
 		this.m02 = z.x;
 		this.m12 = z.y;
 		this.m22 = z.z;
-		this.m32 = -Vec3.Dot(z, p_eye);
+		this.m32 = -Vec.Dot(z, p_eye);
 		this.m03 = 0;
 		this.m13 = 0;
 		this.m23 = 0;
 		this.m33 = 1;
 	
-		return result;
+		return this;
 	}
 
 
@@ -547,7 +547,7 @@ export default class Mat4 extends NumericArray {
 	}
 
 	static MakeLookAt(origin, target, up) {
-		return (new Mat4()).LookAt(origin,target,up);
+		return (new Mat4()).lookAt(origin,target,up);
 	}
 
     static Unproject(x, y, depth, mvMat, pMat, viewport) {

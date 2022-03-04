@@ -37,3 +37,8 @@ npm install
 npm run build
 cd -
 
+cd examples/webgl
+npm install
+npm run build
+cd -
+
