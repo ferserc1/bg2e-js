@@ -24,7 +24,7 @@ function animationLoop(totalTime) {
 }
 
 export default class MainLoop {
-    constructor({ canvas, appController }) {
+    constructor(canvas, appController) {
         this._canvas = canvas;
         this._canvas._mainLoop = this;
         this._appController = appController;

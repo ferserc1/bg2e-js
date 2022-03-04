@@ -74,7 +74,7 @@ class MyAppController extends AppController {
 window.onload = async () => {
     const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
     const appController = new MyAppController();
-    const mainLoop = new MainLoop({ canvas, appController });
+    const mainLoop = new MainLoop(canvas, appController);
     mainLoop.updateMode = FrameUpdate.MANUAL;
     await mainLoop.run();
 }
