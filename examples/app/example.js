@@ -9,13 +9,13 @@ class MyAppController extends AppController {
     }
 
     reshape(width,height) {
-        console.log("reshape");
+        console.log(`reshape - width:${width}, height:${height}`);
         const { gl } = this.renderer;
         gl.viewport(0, 0, width, height);
     }
 
     frame(delta) {
-        console.log("frame");
+        console.log(`frame - elapsed time: ${ delta }`);
     }
 
     display() {
@@ -51,6 +51,7 @@ class MyAppController extends AppController {
 
     mouseDrag(evt) {
         console.log(`mouseDrag - mouse location: ${evt.x}, ${evt.y}`);
+        this.mainLoop.postRedisplay();
     }
 
     mouseWheel(evt) {

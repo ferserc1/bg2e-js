@@ -23,6 +23,17 @@ function animationLoop(totalTime) {
     });
 }
 
+class MouseStatus {
+    constructor() {
+        this.pos = {x: 0, y: 0};
+        this.leftButton = false;
+        this.middleButton = false;
+        this.rightButton = false;
+    }
+
+    get anyButton() { return this.leftButton || this.middleButton || this.rightButton; }
+}
+
 export default class MainLoop {
     constructor(canvas, appController) {
         this._canvas = canvas;
@@ -32,16 +43,7 @@ export default class MainLoop {
         this._updateMode = FrameUpdate.AUTO;
         this._redisplayFrames = 1;
 
-        this._mouseStatus = {
-            pos: {x: 0, y: 0},
-            leftButton: false,
-            middleButton: false,
-            rightButton: false
-        };
-
-        Object.defineProperty(this._mouseStatus, "anyButton", {
-            get: () => this.leftButton || this.middleButton || this.rightButton
-        });
+        this._mouseStatus = new MouseStatus();
     }
 
     get canvas() { return this._canvas; }
@@ -166,7 +168,7 @@ function onMouseDown(evt,mainLoop) {
 function onMouseMove(evt,mainLoop) {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.NONE);
     mainLoop.appController.mouseMove(bg2Event);
-    if (mainLoop._mouseStatus.anyButton) {
+    if (mainLoop.mouseStatus.anyButton) {
         mainLoop.appController.mouseDrag(bg2Event);
     }
     return bg2Event;
