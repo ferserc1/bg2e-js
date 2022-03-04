@@ -44,7 +44,7 @@ export default class KeyboardEvent extends EventBase {
         this.event = event;
     }
     
-    isSpecialKey() {
+    get isSpecialKey() {
         return KeyboardEvent.IsSpecialKey(this.event);
     }
 }
