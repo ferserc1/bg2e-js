@@ -8,6 +8,8 @@ export default class ShaderProgram {
     constructor(gl) {
         this._gl = gl;
         this._program = gl.createProgram();
+        this._attribLocations = {};
+        this._uniformLocations = {};
     }
 
     get program() {
@@ -57,10 +59,22 @@ export default class ShaderProgram {
     }
 
     getAttribLocation(name) {
-        return this._gl.getAttribLocation(this._program, name);
+        this._attribLocations[name] = this._gl.getAttribLocation(this._program, name);
+        return this._attribLocations[name];
     }
 
     getUniformLocation(name) {
-        return this._gl.getUniformLocation(this._program, name);
+        this._uniformLocations[name] = this._gl.getUniformLocation(this._program, name);
+        return this._uniformLocations[name];
+    }
+
+    vertexAttribPointer(name,size,format,normalize,stride,offset) {
+        const location = this._attribLocations[name] || this.getAttribLocation(name);
+        this._gl.vertexAttribPointer(location, size, format, normalize, stride, offset);
+    }
+
+    enableVertexAttribArray(name) {
+        const location = this._attribLocations[name] || this.getAttribLocation(name);
+        this._gl.enableVertexAttribArray(location);
     }
 }

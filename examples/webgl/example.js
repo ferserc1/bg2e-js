@@ -122,36 +122,31 @@ class MyAppController extends AppController {
             index: boxIndexBufferObject
         };
 
-        this._attribLocations = {
-            position: this._program.getAttribLocation('vertPosition'),
-            color: this._program.getAttribLocation('vertColor')
-        }
-
         this._uniformLocations = {
             mWorld: this._program.getUniformLocation('mWorld'),
             mView: this._program.getUniformLocation('mView'),
             mProj: this._program.getUniformLocation('mProj')
         }
 
-        gl.vertexAttribPointer(
-            this._attribLocations.position,
+        this._program.vertexAttribPointer(
+            'vertPosition',
             3,
             gl.FLOAT,
             false,
             6 * Float32Array.BYTES_PER_ELEMENT,
             0
         );
-        gl.enableVertexAttribArray(this._attribLocations.position);
+        this._program.enableVertexAttribArray('vertPosition');
 
-        gl.vertexAttribPointer(
-            this._attribLocations.color,
+        this._program.vertexAttribPointer(
+            'vertColor',
             3,
             gl.FLOAT,
             false,
             6 * Float32Array.BYTES_PER_ELEMENT,
             3 * Float32Array.BYTES_PER_ELEMENT
         );
-        gl.enableVertexAttribArray(this._attribLocations.color);
+        this._program.enableVertexAttribArray('vertColor');
     }
 
     reshape(width,height) {
