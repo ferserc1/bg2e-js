@@ -28,17 +28,19 @@ precision mediump float;
 
 varying vec3 fragColor;
 
+uniform vec3 uFixedColor;
+
 void main() {
-    gl_FragColor = vec4(fragColor, 1.0);
+    gl_FragColor = vec4(fragColor * uFixedColor, 1.0);
 }
 `;
 
 const boxVertices = [
     //top
-    -1.0, 1.0, -1.0,   0.5, 0.5, 0.5,
-    -1.0, 1.0, 1.0,    0.5, 0.5, 0.5,
-    1.0, 1.0, 1.0,     0.5, 0.5, 0.5,
-    1.0, 1.0, -1.0,    0.5, 0.5, 0.5,
+    -1.0, 1.0, -1.0,   0.5, 0.8, 0.5,
+    -1.0, 1.0, 1.0,    0.5, 0.8, 0.5,
+    1.0, 1.0, 1.0,     0.5, 0.8, 0.5,
+    1.0, 1.0, -1.0,    0.5, 0.8, 0.5,
     //left
     -1.0, 1.0, 1.0,    0.75, 0.25, 0.5,
     -1.0, -1.0, 1.0,   0.75, 0.25, 0.5,
@@ -122,14 +124,9 @@ class MyAppController extends AppController {
             index: boxIndexBufferObject
         };
 
-        this._uniformLocations = {
-            mWorld: this._program.getUniformLocation('mWorld'),
-            mView: this._program.getUniformLocation('mView'),
-            mProj: this._program.getUniformLocation('mProj')
-        }
-
         this._program.positionAttribPointer({ name: 'vertPosition', stride: 6, enable: true });
         this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
+        this._program.uniform3fv('uFixedColor', [ 0.9, 1.0, 0.2 ]);
     }
 
     reshape(width,height) {
@@ -154,9 +151,9 @@ class MyAppController extends AppController {
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
  
-        gl.uniformMatrix4fv(this._uniformLocations.mWorld, false, this._worldMatrix);
-        gl.uniformMatrix4fv(this._uniformLocations.mView, false, this._viewMatrix);
-        gl.uniformMatrix4fv(this._uniformLocations.mProj, false, this._projMatrix);
+        this._program.uniformMatrix4fv('mWorld', false, this._worldMatrix);
+        this._program.uniformMatrix4fv('mView', false, this._viewMatrix);
+        this._program.uniformMatrix4fv('mProj', false, this._projMatrix);
 
         gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
     }

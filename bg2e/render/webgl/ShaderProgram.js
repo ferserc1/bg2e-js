@@ -105,4 +105,99 @@ export default class ShaderProgram {
             this.enableVertexAttribArray(name);
         }
     }
+
+    uniformMatrix2fv(name, transpose, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniformMatrix2fv(location, transpose, value);
+    }
+
+    uniformMatrix3fv(name, transpose, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniformMatrix3fv(location, transpose, value);
+    }
+
+    uniformMatrix4fv(name, transpose, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniformMatrix4fv(location, transpose, value);
+    }
+
+    uniform1f(name, v0) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform1f(location, v0);
+    }
+
+    uniform1fv(name, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform1fv(location, value);
+    }
+
+    uniform1i(name, v0) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform1i(location, v0);
+    }
+
+    uniform1iv(name, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform1iv(location, value);
+    }
+
+    uniform2f(name, v0, v1) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform2f(location, v0, v1);
+    }
+
+    uniform2fv(name, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform2fv(location, value);
+    }
+
+    uniform2i(name, v0, v1) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform2i(location, v0, v1);
+    }
+
+    uniform2iv(name, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform2iv(location, value);
+    }
+
+    uniform3f(name, v0, v1, v2) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform3f(location, v0, v1, v2);
+    }
+
+    uniform3fv(name, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform3fv(location, value);
+    }
+
+    uniform3i(name, v0, v1, v2) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform3i(location, v0, v1, v2);
+    }
+
+    uniform3iv(name, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform3iv(location, value);
+    }
+
+    uniform4f(name, v0, v1, v2, v3) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform4f(location, v0, v1, v2, v3);
+    }
+
+    uniform4fv(name, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform4fv(location, value);
+    }
+
+    uniform4i(name, v0, v1, v2, v3) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform4i(location, v0, v1, v2, v3);
+    }
+
+    uniform4iv(name, value) {
+        const location = this._uniformLocations[name] || this.getUniformLocation(name);
+        this._gl.uniform4iv(location, value);
+    }
 }
