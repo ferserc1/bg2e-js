@@ -128,25 +128,8 @@ class MyAppController extends AppController {
             mProj: this._program.getUniformLocation('mProj')
         }
 
-        this._program.vertexAttribPointer(
-            'vertPosition',
-            3,
-            gl.FLOAT,
-            false,
-            6 * Float32Array.BYTES_PER_ELEMENT,
-            0
-        );
-        this._program.enableVertexAttribArray('vertPosition');
-
-        this._program.vertexAttribPointer(
-            'vertColor',
-            3,
-            gl.FLOAT,
-            false,
-            6 * Float32Array.BYTES_PER_ELEMENT,
-            3 * Float32Array.BYTES_PER_ELEMENT
-        );
-        this._program.enableVertexAttribArray('vertColor');
+        this._program.positionAttribPointer({ name: 'vertPosition', stride: 6, enable: true });
+        this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
     }
 
     reshape(width,height) {

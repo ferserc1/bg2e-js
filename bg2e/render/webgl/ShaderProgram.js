@@ -77,4 +77,32 @@ export default class ShaderProgram {
         const location = this._attribLocations[name] || this.getAttribLocation(name);
         this._gl.enableVertexAttribArray(location);
     }
+
+    positionAttribPointer({ name, stride, size = 3, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+        this.vertexAttribPointer(name, size, this._gl.FLOAT, false, stride * bytesPerElement, offset * bytesPerElement);
+        if (enable) {
+            this.enableVertexAttribArray(name);
+        }
+    }
+
+    normalAttribPointer({ name, size = 3, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+        this.vertexAttribPointer(name, size, this._gl.FLOAT, true, stride * bytesPerElement, offset * bytesPerElement);
+        if (enable) {
+            this.enableVertexAttribArray(name);
+        }
+    }
+
+    texCoordAttribPointer({ name, stride, offset, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+        this.vertexAttribPointer(name, 2, this._gl.FLOAT, false, stride * bytesPerElement, offset * bytesPerElement);
+        if (enable) {
+            this.enableVertexAttribArray(name);
+        }
+    }
+
+    colorAttribPointer({ name, size = 4, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+        this.vertexAttribPointer(name, size, this._gl.FLOAT, false, stride * bytesPerElement, offset * bytesPerElement);
+        if (enable) {
+            this.enableVertexAttribArray(name);
+        }
+    }
 }
