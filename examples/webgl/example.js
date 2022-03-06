@@ -3,6 +3,7 @@ import Canvas from "bg2e/app/Canvas";
 import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
 import Mat4 from "bg2e/math/Mat4";
+import ShaderProgram from "bg2e/render/webgl/ShaderProgram";
 
 const vertexShaderCode = 
 `precision mediump float;
@@ -103,33 +104,11 @@ class MyAppController extends AppController {
         gl.frontFace(gl.CCW);
         gl.cullFace(gl.BACK);
 
-        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-        gl.shaderSource(vertexShader, vertexShaderCode);
-        gl.compileShader(vertexShader);
-        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-            throw new Error(`Error compiling vertex shader: \n${gl.getShaderInfoLog(vertexShader)}`);
-        }
-
-        gl.shaderSource(fragmentShader, fragmentShaderCode);
-        gl.compileShader(fragmentShader);
-        if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-            throw new Error(`Error compiling fragment shader: \n${gl.getShaderInfoLog(fragmentShader)}`);
-        }
-
-        const program = gl.createProgram();
-        gl.attachShader(program, vertexShader);
-        gl.attachShader(program, fragmentShader);
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            throw new Error(`Error linking program: \n${gl.getProgramInfoLog(program)}`);
-        }
-        gl.validateProgram(program);
-        if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
-            throw new Error(`Error validating program:\n${gl.getProgramInfoLog(program)}`);
-        }
-        this._program = program;
+        this._program = new ShaderProgram(gl);
+        this._program.attachVertexSource(vertexShaderCode);
+        this._program.attachFragmentSource(fragmentShaderCode);
+        this._program.link();
+        this._program.useProgram();
 
         const boxVertexBufferObject = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, boxVertexBufferObject);
@@ -144,14 +123,14 @@ class MyAppController extends AppController {
         };
 
         this._attribLocations = {
-            position: gl.getAttribLocation(program, 'vertPosition'),
-            color: gl.getAttribLocation(program, 'vertColor')
+            position: this._program.getAttribLocation('vertPosition'),
+            color: this._program.getAttribLocation('vertColor')
         }
 
         this._uniformLocations = {
-            mWorld: gl.getUniformLocation(program, 'mWorld'),
-            mView: gl.getUniformLocation(program, 'mView'),
-            mProj: gl.getUniformLocation(program, 'mProj')
+            mWorld: this._program.getUniformLocation('mWorld'),
+            mView: this._program.getUniformLocation('mView'),
+            mProj: this._program.getUniformLocation('mProj')
         }
 
         gl.vertexAttribPointer(
@@ -173,8 +152,6 @@ class MyAppController extends AppController {
             3 * Float32Array.BYTES_PER_ELEMENT
         );
         gl.enableVertexAttribArray(this._attribLocations.color);
-
-        gl.useProgram(this._program);
     }
 
     reshape(width,height) {
