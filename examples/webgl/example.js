@@ -118,7 +118,9 @@ class MyAppController extends AppController {
         
         this._program.positionAttribPointer({ name: 'vertPosition', stride: 6, enable: true });
         this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
-        this._program.uniform3fv('uFixedColor', [ 0.9, 1.0, 0.2 ]);
+        
+        this._color = [ 0.9, 1.0, 0.2 ];
+        this._r = 1; this._g = 1; this._b = 1;
     }
 
     reshape(width,height) {
@@ -135,6 +137,30 @@ class MyAppController extends AppController {
         this._angle += (delta / 1000) * Math.PI / 2;
         this._worldMatrix.rotate(this._angle, 1, 0, 0);
         this._worldMatrix.rotate(this._angle / 4, 0, 1, 0);
+
+        if (this._color[0] > 1) {
+            this._r = -1;
+        }
+        else if (this._color[0] < 0) {
+            this._r = 1;
+        }
+        if (this._color[1] > 1) {
+            this._g = -1;
+        }
+        else if (this._color[1] < 0) {
+            this._g = 1;
+        }
+        if (this._color[2] > 1) {
+            this._b = -1;
+        }
+        else if (this._color[2] < 0) {
+            this._b = 1;
+        }
+        this._color = [
+            this._color[0] += delta * this._r * 0.0002,
+            this._color[1] += delta * this._g * 0.0003,
+            this._color[2] += delta * this._b * 0.00012
+        ]
     }
 
     display() {
@@ -146,6 +172,7 @@ class MyAppController extends AppController {
         this._program.uniformMatrix4fv('mWorld', false, this._worldMatrix);
         this._program.uniformMatrix4fv('mView', false, this._viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, this._projMatrix);
+        this._program.uniform3fv('uFixedColor', this._color);
 
         gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
     }
