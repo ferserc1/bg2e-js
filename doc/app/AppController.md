@@ -12,6 +12,7 @@ They are overwritten in the `AppController` derived class to handle the event as
 - `reshape(width,height)`
 - `frame(delta)`
 - `display()`
+- `destroy()`
 - `keyDown(evt)`
 - `keyUp(evt)`
 - `mouseUp(evt)`

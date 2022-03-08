@@ -17,6 +17,7 @@ export default class AppController {
     reshape(width,height) {}
     frame(delta) {}
     display() {}
+    destroy() {}
     keyDown(evt) {}
     keyUp(evt) {}
     mouseUp(evt) {}

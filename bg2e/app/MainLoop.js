@@ -66,6 +66,7 @@ export default class MainLoop {
     }
 
     exit() {
+        this.appController.destroy();
         const i = g_animationLoop.mainLoop.indexOf(this);
         if (i!==-1) {
             g_animationLoop.mainLoop.splice(i,1);

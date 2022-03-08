@@ -4,6 +4,7 @@ import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
 import Mat4 from "bg2e/math/Mat4";
 import ShaderProgram from "bg2e/render/webgl/ShaderProgram";
+import VertexBuffer, { BufferTarget, BufferUsage } from "bg2e/render/webgl/VertexBuffer";
 
 const vertexShaderCode = 
 `precision mediump float;
@@ -112,18 +113,9 @@ class MyAppController extends AppController {
         this._program.link();
         this._program.useProgram();
 
-        const boxVertexBufferObject = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, boxVertexBufferObject);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(boxVertices), gl.STATIC_DRAW);
-
-        const boxIndexBufferObject = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, boxIndexBufferObject);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(boxIndices), gl.STATIC_DRAW);
-        this._buffers = {
-            vertex: boxVertexBufferObject,
-            index: boxIndexBufferObject
-        };
-
+        this._vertex = VertexBuffer.CreateArrayBuffer(gl, new Float32Array(boxVertices));
+        this._index = VertexBuffer.CreateElementArrayBuffer(gl, new Uint16Array(boxIndices));
+        
         this._program.positionAttribPointer({ name: 'vertPosition', stride: 6, enable: true });
         this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
         this._program.uniform3fv('uFixedColor', [ 0.9, 1.0, 0.2 ]);
@@ -156,6 +148,11 @@ class MyAppController extends AppController {
         this._program.uniformMatrix4fv('mProj', false, this._projMatrix);
 
         gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
+    }
+
+    destroy() {
+        VertexBuffer.Delete(this._vertex);
+        VertexBuffer.Delete(this._index);
     }
 }
 
