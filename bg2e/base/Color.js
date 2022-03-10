@@ -1,5 +1,11 @@
 import Vec from '../math/Vec';
 
+const checkLength = (v1,v2 = null) => {
+    if (v1.length < 4 || (v2 !== null && v2.length < 4)) {
+        throw new Error(`Invalid color component length`);
+    }
+}
+
 export default class Color extends Vec {
     constructor() {
         if (arguments.length === 1 && arguments[0].length === 4) {
@@ -62,6 +68,64 @@ export default class Color extends Vec {
         }
         else {
             throw new Error("Invalid parameter settings rgb values in Color");
+        }
+    }
+
+    static Max(v1,v2) {
+        checkLength(v1, v2);
+        return new Color([
+            v1[0]>v2[0] ? v1[0] : v2[0],
+            v1[1]>v2[1] ? v1[1] : v2[1],
+            v1[2]>v2[2] ? v1[2] : v2[2],
+            v1[3]>v2[3] ? v1[3] : v2[3]
+        ]);
+    }
+
+    static Min(v1,v2) {
+        checkLength(v1, v2);
+        return new Color([
+            v1[0]<v2[0] ? v1[0] : v2[0],
+            v1[1]<v2[1] ? v1[1] : v2[1],
+            v1[2]<v2[2] ? v1[2] : v2[2],
+            v1[3]<v2[3] ? v1[3] : v2[3]
+        ]);
+    }
+
+    static Add(v1,v2) {
+        checkLength(v1, v2);
+        return new Color([
+            v1[0] + v2[0],
+            v1[1] + v2[1],
+            v1[2] + v2[2],
+            v1[3] + v2[3]
+        ]);
+    }
+
+    static Sub(v1,v2) {
+        checkLength(v1, v2);
+        return new Color([
+            v1[0] - v2[0],
+            v1[1] - v2[1],
+            v1[2] - v2[2],
+            v1[3] - v2[3]
+        ]);
+    }
+
+    static Mult(v,s) {
+        checkLength(v);
+        new Color([ v[0] * s, v[1] * s, v[2] * s, v[3] * s ]);
+    }
+
+    static Div(v,s) {
+        switch (v.length) {
+        case 2:
+            return new Vec([ v[0] / s, v[1] / s ]);
+        case 3:
+            return new Vec([ v[0] / s, v[1] / s, v[2] / s ]);
+        case 4:
+            return new Vec([ v[0] / s, v[1] / s, v[2] / s, v[3] / s ]);
+        default:
+            throw new Error(`Invalid vector size: ${ v.length }`);
         }
     }
 }

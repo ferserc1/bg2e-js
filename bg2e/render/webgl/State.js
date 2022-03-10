@@ -2,6 +2,13 @@
 import Vec from "../../math/Vec";
 
 export default class State {
+
+    get CW() { return this.gl.CW; }
+    get CCW() { return this.gl.CCW; }
+    get FRONT() { return this.gl.FRONT; }
+    get BACK() { return this.gl.BACK; }
+    get FRONT_AND_BACK() { return this.gl.FRONT_AND_BACK; }
+
     constructor(renderer) {
         this._renderer = renderer;
     }
@@ -67,5 +74,39 @@ export default class State {
                             (depth ? this.gl.DEPTH_BUFFER_BIT : 0) |
                             (stencil ? this.gl.STENCIL_BUFFER_BIT : 0);
         this.gl.clear(clearValues);
+    }
+
+    set frontFace(ff) {
+        this.gl.frontFace(ff);
+    }
+
+    get frontFace() {
+        return this.gl.getParameter(this.gl.FRONT_FACE);
+    }
+
+    set cullFace(cf) {
+        this.gl.cullFace(cf);
+    }
+
+    get cullFace() {
+        return this.gl.getParameter(this.gl.CULL_FACE_MODE);
+    }
+
+    set depthTestEnabled(e) {
+        e ? this.gl.enable(this.gl.DEPTH_TEST) :
+            this.gl.disable(this.gl.DEPTH_TEST);
+    }
+
+    get depthTestEnabled() {
+        return this.gl.getParameter(this.gl.DEPTH_TEST);
+    }
+
+    set cullFaceEnabled(e) {
+        e ? this.gl.enable(this.gl.CULL_FACE) :
+            this.gl.disable(this.gl.CULL_FACE);
+    }
+
+    get cullFaceEnabled() {
+        return this.gl.getParameter(this.gl.CULL_FACE);
     }
 }

@@ -100,17 +100,17 @@ class MyAppController extends AppController {
             throw new Error("This example works only with WebGL Renderer");
         }
 
-        const { gl } = this.renderer;
+        const { gl, state } = this.renderer;
 
         const extensions = gl.getSupportedExtensions();
         console.log("WebGL Extensions:");
         console.log(extensions);
 
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
-        gl.frontFace(gl.CCW);
-        gl.cullFace(gl.BACK);
-
+        state.depthTestEnabled = true;
+        state.cullFaceEnabled = true;
+        state.cullFace = state.BACK;
+        state.frontFace = state.CCW;
+        
         this._program = new ShaderProgram(gl);
         this._program.attachVertexSource(vertexShaderCode);
         this._program.attachFragmentSource(fragmentShaderCode);
@@ -133,7 +133,6 @@ class MyAppController extends AppController {
     }
 
     frame(delta) {
-        const { gl } = this.renderer;
         this._elapsed = this._elapsed || 0;
         this._elapsed += delta / 1000;
         this._angle = this._angle || 0;
@@ -145,29 +144,31 @@ class MyAppController extends AppController {
         this._worldMatrix.rotate(this._angle, 1, 0, 0);
         this._worldMatrix.rotate(this._angle / 4, 0, 1, 0);
 
-        this._color = [
+        this._color = new Color([
             this._color[0] = math.sin(this._elapsed) + 0.3,
             this._color[1] = math.cos(this._elapsed) + 0.22,
-            this._color[2] = math.sin(this._elapsed + 1) + 0.18
-        ]
+            this._color[2] = math.sin(this._elapsed + 1) + 0.18,
+            1
+        ]);
     }
 
     display() {
         const { gl, state } = this.renderer;
         state.viewport = new Vec(this.canvas.width, this.canvas.height);
-        state.clearColor = Color.Brown();
+        const clearColor = Color.Sub(Color.White(), this._color);
+        clearColor.a = 1;
+        state.clearColor = clearColor;
         state.clear();
  
+        this._program.uniformMatrix4fv('mWorld', false, this._worldMatrix);
+        this._program.uniformMatrix4fv('mView', false, this._viewMatrix);
+        this._program.uniformMatrix4fv('mProj', false, this._projMatrix);
+        this._program.uniform3fv('uFixedColor', this._color.rgb);
+        
         this._vertex.bind(BufferTarget.ARRAY_BUFFER);
         this._program.positionAttribPointer({ name: 'vertPosition', stride: 6, enable: true });
         this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
         this._index.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);
-
-        this._program.uniformMatrix4fv('mWorld', false, this._worldMatrix);
-        this._program.uniformMatrix4fv('mView', false, this._viewMatrix);
-        this._program.uniformMatrix4fv('mProj', false, this._projMatrix);
-        this._program.uniform3fv('uFixedColor', this._color);
-
         gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
     }
 
