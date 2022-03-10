@@ -145,9 +145,9 @@ class MyAppController extends AppController {
         this._worldMatrix.rotate(this._angle / 4, 0, 1, 0);
 
         this._color = new Color([
-            this._color[0] = math.sin(this._elapsed) + 0.3,
-            this._color[1] = math.cos(this._elapsed) + 0.22,
-            this._color[2] = math.sin(this._elapsed + 1) + 0.18,
+            this._color[0] = math.sin(this._elapsed) * 0.5 - 0.5,
+            this._color[1] = math.cos(this._elapsed) * 0.5 - 0.5,
+            this._color[2] = math.sin(this._elapsed + 1) * 0.5 - 0.5,
             1
         ]);
     }
