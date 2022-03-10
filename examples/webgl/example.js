@@ -120,7 +120,7 @@ class MyAppController extends AppController {
         this._vertex = VertexBuffer.CreateArrayBuffer(gl, new Float32Array(boxVertices));
         this._index = VertexBuffer.CreateElementArrayBuffer(gl, new Uint16Array(boxIndices));
         
-        this._color = [ 0.9, 1.0, 0.2 ];
+        this._color = Color.Black();
 
         // To get the current binded buffers
         // const ab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ARRAY_BUFFER);
