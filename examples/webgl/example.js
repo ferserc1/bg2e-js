@@ -1,10 +1,12 @@
 import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
+import * as math from "bg2e/math/functions";
 import Canvas from "bg2e/app/Canvas";
 import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
 import Mat4 from "bg2e/math/Mat4";
 import ShaderProgram from "bg2e/render/webgl/ShaderProgram";
-import VertexBuffer, { BufferTarget, BufferUsage } from "bg2e/render/webgl/VertexBuffer";
+import VertexBuffer, { BufferTarget } from "bg2e/render/webgl/VertexBuffer";
+import { SpecialKey } from "bg2e/app/KeyboardEvent";
 
 const vertexShaderCode = 
 `precision mediump float;
@@ -120,7 +122,9 @@ class MyAppController extends AppController {
         this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
         
         this._color = [ 0.9, 1.0, 0.2 ];
-        this._r = 1; this._g = 1; this._b = 1;
+
+        const ab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ARRAY_BUFFER);
+        const eab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ELEMENT_ARRAY_BUFFER);
     }
 
     reshape(width,height) {
@@ -129,6 +133,9 @@ class MyAppController extends AppController {
     }
 
     frame(delta) {
+        const { gl } = this.renderer;
+        this._elapsed = this._elapsed || 0;
+        this._elapsed += delta / 1000;
         this._angle = this._angle || 0;
         this._worldMatrix = Mat4.MakeIdentity();
         this._viewMatrix = Mat4.MakeLookAt([0, 0, -8], [0, 0, 0], [0, 1, 0]);
@@ -138,28 +145,10 @@ class MyAppController extends AppController {
         this._worldMatrix.rotate(this._angle, 1, 0, 0);
         this._worldMatrix.rotate(this._angle / 4, 0, 1, 0);
 
-        if (this._color[0] > 1) {
-            this._r = -1;
-        }
-        else if (this._color[0] < 0) {
-            this._r = 1;
-        }
-        if (this._color[1] > 1) {
-            this._g = -1;
-        }
-        else if (this._color[1] < 0) {
-            this._g = 1;
-        }
-        if (this._color[2] > 1) {
-            this._b = -1;
-        }
-        else if (this._color[2] < 0) {
-            this._b = 1;
-        }
         this._color = [
-            this._color[0] += delta * this._r * 0.0002,
-            this._color[1] += delta * this._g * 0.0003,
-            this._color[2] += delta * this._b * 0.00012
+            this._color[0] = math.sin(this._elapsed) + 0.3,
+            this._color[1] = math.cos(this._elapsed) + 0.22,
+            this._color[2] = math.sin(this._elapsed + 1) + 0.18
         ]
     }
 
@@ -180,6 +169,13 @@ class MyAppController extends AppController {
     destroy() {
         VertexBuffer.Delete(this._vertex);
         VertexBuffer.Delete(this._index);
+    }
+
+    keyUp(evt) {
+        console.log(evt);
+        if (evt.key === SpecialKey.ESCAPE) {
+            this.mainLoop.exit();
+        }
     }
 }
 
