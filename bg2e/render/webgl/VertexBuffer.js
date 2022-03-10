@@ -56,11 +56,7 @@ export default class VertexBuffer {
         buffer.bufferData(BufferTarget.ELEMENT_ARRAY_BUFFER, data, usage);
         return buffer;
     }
-
-    static Unbind(gl, target) {
-        gl.bindBuffer(g_bufferTargetConversion[target], 0);
-    }
-
+    
     static CurrentBuffer(gl, target) {
         if (target === BufferTarget.ARRAY_BUFFER) {
             target = gl.ARRAY_BUFFER_BINDING;

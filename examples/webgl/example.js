@@ -7,6 +7,8 @@ import Mat4 from "bg2e/math/Mat4";
 import ShaderProgram from "bg2e/render/webgl/ShaderProgram";
 import VertexBuffer, { BufferTarget } from "bg2e/render/webgl/VertexBuffer";
 import { SpecialKey } from "bg2e/app/KeyboardEvent";
+import Vec from "bg2e/math/Vec";
+import Color from "bg2e/base/Color";
 
 const vertexShaderCode = 
 `precision mediump float;
@@ -118,18 +120,16 @@ class MyAppController extends AppController {
         this._vertex = VertexBuffer.CreateArrayBuffer(gl, new Float32Array(boxVertices));
         this._index = VertexBuffer.CreateElementArrayBuffer(gl, new Uint16Array(boxIndices));
         
-        this._program.positionAttribPointer({ name: 'vertPosition', stride: 6, enable: true });
-        this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
-        
         this._color = [ 0.9, 1.0, 0.2 ];
 
-        const ab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ARRAY_BUFFER);
-        const eab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ELEMENT_ARRAY_BUFFER);
+        // To get the current binded buffers
+        // const ab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ARRAY_BUFFER);
+        // const eab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ELEMENT_ARRAY_BUFFER);
     }
 
     reshape(width,height) {
-        const { gl } = this.renderer;
-        gl.viewport(0, 0, width, height);
+        const { state } = this.renderer;
+        state.viewport = new Vec(width, height);
     }
 
     frame(delta) {
@@ -153,11 +153,16 @@ class MyAppController extends AppController {
     }
 
     display() {
-        const { gl } = this.renderer;
-        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-        gl.clearColor(0, 0, 0, 1);
-        gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+        const { gl, state } = this.renderer;
+        state.viewport = new Vec(this.canvas.width, this.canvas.height);
+        state.clearColor = Color.Brown();
+        state.clear();
  
+        this._vertex.bind(BufferTarget.ARRAY_BUFFER);
+        this._program.positionAttribPointer({ name: 'vertPosition', stride: 6, enable: true });
+        this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
+        this._index.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);
+
         this._program.uniformMatrix4fv('mWorld', false, this._worldMatrix);
         this._program.uniformMatrix4fv('mView', false, this._viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, this._projMatrix);
@@ -172,9 +177,16 @@ class MyAppController extends AppController {
     }
 
     keyUp(evt) {
-        console.log(evt);
+        const { gl } = this.renderer;
         if (evt.key === SpecialKey.ESCAPE) {
             this.mainLoop.exit();
+        }
+
+        if (evt.key === "KeyS") {
+            const clearColor = this.renderer.state.clearColor;
+            const viewport = this.renderer.state.viewport;
+            console.log(`Clear color: ${clearColor.toString()}`);
+            console.log(`Viewport: ${viewport.toString()}`);
         }
     }
 }
