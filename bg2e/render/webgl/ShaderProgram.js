@@ -4,16 +4,37 @@ export const ShaderType = {
     FRAGMENT: 1
 };
 
+function destroy() {
+    delete this._program.__shaderProgram__;
+    this._gl.deleteProgram(this._program);
+    this._program = null;
+}
+
 export default class ShaderProgram {
-    constructor(gl) {
+    static GetShaderProgram(glProgram) {
+        return glProgram.__shaderProgram__;
+    }
+
+    static Delete(shaderProgram) {
+        destroy.apply(shaderProgram);
+    }
+
+    constructor(gl, name = "") {
         this._gl = gl;
+        this._name = name;
         this._program = gl.createProgram();
+        this._program.__id__ = Symbol(this._program);
+        this._program.__shaderProgram__ = this;
         this._attribLocations = {};
         this._uniformLocations = {};
     }
 
     get program() {
         return this._program;
+    }
+
+    get name() {
+        return this._name;
     }
 
     attachSource(src,type) {
@@ -28,7 +49,7 @@ export default class ShaderProgram {
         gl.shaderSource(shader, src);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            throw new Error(`Error compiling vertex: \n${gl.getShaderInfoLog(shader)}`);
+            throw new Error(`Error compiling shader: \n${gl.getShaderInfoLog(shader)}`);
         }
         gl.attachShader(this._program, shader);
     }

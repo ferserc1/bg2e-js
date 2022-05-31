@@ -47,6 +47,12 @@ export default class Canvas {
 
     get viewport() { return { width: this.width, height: this.height, aspectRatio: this.width / this.height }; }
 
+    updateViewportSize() {
+        const sizeInPx = { w: this.domElement.clientWidth, h: this.domElement.clientHeight };
+        this.domElement.width = sizeInPx.w;
+        this.domElement.height = sizeInPx.h;
+    }
+
     screenshot(format, width, height) {
         let canvasStyle = "";
         const prevSize = {};

@@ -111,11 +111,12 @@ class MyAppController extends AppController {
         state.cullFace = state.BACK;
         state.frontFace = state.CCW;
         
-        this._program = new ShaderProgram(gl);
+        this._program = new ShaderProgram(gl, "SimpleColorCombination");
         this._program.attachVertexSource(vertexShaderCode);
         this._program.attachFragmentSource(fragmentShaderCode);
         this._program.link();
-        this._program.useProgram();
+
+        state.shaderProgram = this._program;
 
         this._vertex = VertexBuffer.CreateArrayBuffer(gl, new Float32Array(boxVertices));
         this._index = VertexBuffer.CreateElementArrayBuffer(gl, new Uint16Array(boxIndices));
@@ -130,6 +131,7 @@ class MyAppController extends AppController {
     reshape(width,height) {
         const { state } = this.renderer;
         state.viewport = new Vec(width, height);
+        this.renderer.canvas.updateViewportSize();
     }
 
     frame(delta) {
@@ -154,7 +156,7 @@ class MyAppController extends AppController {
 
     display() {
         const { gl, state } = this.renderer;
-        state.viewport = new Vec(this.canvas.width, this.canvas.height);
+        //state.viewport = new Vec(this.canvas.width, this.canvas.height);
         const clearColor = Color.Sub(Color.White(), this._color);
         clearColor.a = 1;
         state.clearColor = clearColor;
@@ -175,6 +177,7 @@ class MyAppController extends AppController {
     destroy() {
         VertexBuffer.Delete(this._vertex);
         VertexBuffer.Delete(this._index);
+        ShaderProgram.Delete(this._program);
     }
 
     keyUp(evt) {
@@ -189,11 +192,18 @@ class MyAppController extends AppController {
             console.log(`Clear color: ${clearColor.toString()}`);
             console.log(`Viewport: ${viewport.toString()}`);
         }
+
+        if (evt.key === "KeyP") {
+            const shaderProgram = this.renderer.state.shaderProgram;
+            console.log(shaderProgram.name);
+        }
     }
 }
 
 window.onload = async () => {
     const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    canvas.domElement.style.width = "100vw";
+    canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();
     const mainLoop = new MainLoop(canvas, appController);
     mainLoop.updateMode = FrameUpdate.AUTO;

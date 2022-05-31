@@ -1,5 +1,6 @@
 
 import Vec from "../../math/Vec";
+import ShaderProgram from "./ShaderProgram";
 
 export default class State {
 
@@ -69,13 +70,6 @@ export default class State {
         return gl.getParameter(gl.STENCIL_CLEAR_VALUE);
     }
 
-    clear({ color = true, depth = true, stencil = false} = {}) {
-        const clearValues = (color ? this.gl.COLOR_BUFFER_BIT : 0) |
-                            (depth ? this.gl.DEPTH_BUFFER_BIT : 0) |
-                            (stencil ? this.gl.STENCIL_BUFFER_BIT : 0);
-        this.gl.clear(clearValues);
-    }
-
     set frontFace(ff) {
         this.gl.frontFace(ff);
     }
@@ -109,4 +103,23 @@ export default class State {
     get cullFaceEnabled() {
         return this.gl.getParameter(this.gl.CULL_FACE);
     }
+
+    set shaderProgram(program) {
+        program.useProgram();
+    }
+
+    get shaderProgram() {
+        const glProgram = this.gl.getParameter(this.gl.CURRENT_PROGRAM);
+        return ShaderProgram.GetShaderProgram(glProgram);
+    }
+
+    clear({ color = true, depth = true, stencil = false} = {}) {
+        const clearValues = (color ? this.gl.COLOR_BUFFER_BIT : 0) |
+                            (depth ? this.gl.DEPTH_BUFFER_BIT : 0) |
+                            (stencil ? this.gl.STENCIL_BUFFER_BIT : 0);
+        this.gl.clear(clearValues);
+    }
+
+
+    
 }

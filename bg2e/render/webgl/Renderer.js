@@ -23,7 +23,7 @@ export default class WebGLRenderer extends Renderer {
         return this._state;
     }
 
-    postReshape() {
+    postReshape(width, height) {
 
     }
 
