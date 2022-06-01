@@ -43,8 +43,7 @@ varying vec2 fragT0Pos;
 uniform vec3 uFixedColor;
 
 void main() {
-    //gl_FragColor = vec4(fragNormal * uFixedColor, 1.0);
-    gl_FragColor = vec4(fragT0Pos, 0.0, 1.0);
+    gl_FragColor = vec4(vec3(fragT0Pos, fragNormal.x) * uFixedColor, 1.0);
 }
 `;
 
