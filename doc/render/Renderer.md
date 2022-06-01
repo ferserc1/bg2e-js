@@ -42,6 +42,57 @@ if (myRenderer instanceof WebGLRenderer) {
 }
 ```
 
+## Object factory
+
+The `Renderer` object is also in charge of creating the object factories of the high-level APIs. For example, to render a [`base.PolyList`](../base/poly-list.md) we will use a [`PolyListRenderer`](PolyListRenderer.md). These objects are created through a factory that manages the `Renderer`.
+
+The `Renderer` base class contains a number of factory methods that are overridden by the concrete renderers of each graphics API.
+
+```js
+const plists = await loader.loadPolyList("../resources/cubes.bg2");
+const plistRenderers = plists.map(plist => {
+    return renderer.factory.polyList(plist)
+});
+
+...
+
+plistRenderers.forEach(plRenderer => plRenderer.draw());
+```
+
+**Note:** see [loader API documentation](../db/loader.md).
+
+The implementation pattern of the Renderer factories is as follows:
+
+- The child class overwrites the factory method of the base class, which receives as a parameter the data needed for the factory. In the case of a polyList, that data would be a `base.PolyList` object.
+- The child function calls the parent function passing the specific factory, instead of the original object. In the case of a polyList, the child function will pass a polyListRenderer to the parent function.
+- The parent factory function initializes the object created by the child function, and returns the object.
+
+**Example: polyList factory**
+
+```js
+// render/Renderer.js
+export default class Renderer {
+    ...
+    // plist is a PolyListFactory instance
+    polyListFactory(plist) {
+        plist.init();
+        plist.refresh();
+        return plist;
+    }
+    ...
+}
+
+// render/webgl/Renderer.js
+export default class WebGLRenderer extends Renderer {
+    ...
+    // plist is a base.PolyList instance
+    polyListFactory(plist) {
+        return super.polyListFactory(new PolyListRenderer(this, plist));
+    }
+    ...
+}
+
+
 ## Reference
 
 ### Methods
@@ -55,6 +106,8 @@ if (myRenderer instanceof WebGLRenderer) {
 ### Attributes
 
 **`canvas` (read):** Returns the canvas associated with the renderer.
+
+**`factory` (read):** Returns the object factory of the renderer.
 
 ## Specific Renderer classes
 

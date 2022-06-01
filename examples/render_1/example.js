@@ -9,21 +9,27 @@ import VertexBuffer, { BufferTarget } from "bg2e/render/webgl/VertexBuffer";
 import { SpecialKey } from "bg2e/app/KeyboardEvent";
 import Vec from "bg2e/math/Vec";
 import Color from "bg2e/base/Color";
+import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
+import Bg2LoaderPlugin from "bg2e/db/Bg2LoaderPlugin";
+import { registerComponents } from "bg2e/scene";
 
 const vertexShaderCode = 
 `precision mediump float;
 
 attribute vec3 vertPosition;
-attribute vec3 vertColor;
+attribute vec3 normPosition;
+attribute vec2 t0Position;
 
-varying vec3 fragColor;
+varying vec3 fragNormal;
+varying vec2 fragT0Pos;
 
 uniform mat4 mWorld;
 uniform mat4 mView;
 uniform mat4 mProj;
 
 void main() {
-    fragColor = vertColor;
+    fragNormal = normPosition * 0.5 + 0.5;
+    fragT0Pos = t0Position;
     gl_Position = mProj * mView * mWorld * vec4(vertPosition, 1.0);
 }
 `;
@@ -31,71 +37,19 @@ void main() {
 const fragmentShaderCode = `
 precision mediump float;
 
-varying vec3 fragColor;
+varying vec3 fragNormal;
+varying vec2 fragT0Pos;
 
 uniform vec3 uFixedColor;
 
 void main() {
-    gl_FragColor = vec4(fragColor * uFixedColor, 1.0);
+    //gl_FragColor = vec4(fragNormal * uFixedColor, 1.0);
+    gl_FragColor = vec4(fragT0Pos, 0.0, 1.0);
 }
 `;
 
-const boxVertices = [
-    //top
-    -1.0, 1.0, -1.0,   0.5, 0.8, 0.5,
-    -1.0, 1.0, 1.0,    0.5, 0.8, 0.5,
-    1.0, 1.0, 1.0,     0.5, 0.8, 0.5,
-    1.0, 1.0, -1.0,    0.5, 0.8, 0.5,
-    //left
-    -1.0, 1.0, 1.0,    0.75, 0.25, 0.5,
-    -1.0, -1.0, 1.0,   0.75, 0.25, 0.5,
-    -1.0, -1.0, -1.0,  0.75, 0.25, 0.5,
-    -1.0, 1.0, -1.0,   0.75, 0.25, 0.5,
-    //right
-    1.0, 1.0, 1.0,    0.25, 0.25, 0.75,
-    1.0, -1.0, 1.0,   0.25, 0.25, 0.75,
-    1.0, -1.0, -1.0,  0.25, 0.25, 0.75,
-    1.0, 1.0, -1.0,   0.25, 0.25, 0.75,
-    //front
-    1.0, 1.0, 1.0,    1.0, 0.0, 0.15,
-    1.0, -1.0, 1.0,    1.0, 0.0, 0.15,
-    -1.0, -1.0, 1.0,    1.0, 0.0, 0.15,
-    -1.0, 1.0, 1.0,    1.0, 0.0, 0.15,
-    //back
-    1.0, 1.0, -1.0,    0.0, 1.0, 0.15,
-    1.0, -1.0, -1.0,    0.0, 1.0, 0.15,
-    -1.0, -1.0, -1.0,    0.0, 1.0, 0.15,
-    -1.0, 1.0, -1.0,    0.0, 1.0, 0.15,
-    //bottom
-    -1.0, -1.0, -1.0,   0.5, 0.5, 1.0,
-    -1.0, -1.0, 1.0,    0.5, 0.5, 1.0,
-    1.0, -1.0, 1.0,     0.5, 0.5, 1.0,
-    1.0, -1.0, -1.0,    0.5, 0.5, 1.0,
-    ];
-    
-const boxIndices = [
-    //top
-    0, 1, 2,
-    0, 2, 3,
-    //left
-    5, 4, 6,
-    6, 4, 7,
-    // right
-    8, 9, 10,
-    8, 10, 11,
-    //front
-    13, 12, 14,
-    15, 14, 12,
-    //back
-    16, 17, 18,
-    16, 18, 19,
-    //bottom
-    21, 20, 22,
-    22, 20, 23
-];
-
 class MyAppController extends AppController {
-    init() {
+    async init() {
         if (!this.renderer instanceof WebGLRenderer) {
             throw new Error("This example works only with WebGL Renderer");
         }
@@ -118,8 +72,13 @@ class MyAppController extends AppController {
 
         state.shaderProgram = this._program;
 
-        this._vertex = VertexBuffer.CreateArrayBuffer(gl, new Float32Array(boxVertices));
-        this._index = VertexBuffer.CreateElementArrayBuffer(gl, new Uint16Array(boxIndices));
+        registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist" }));
+        registerComponents();
+        const loader = new Loader();
+        const plists = await loader.loadPolyList("../resources/cubes.bg2");
+        this._plistRenderers = plists.map(plist => {
+            return this.renderer.factory.polyList(plist);
+        });
         
         this._color = Color.Black();
 
@@ -167,11 +126,12 @@ class MyAppController extends AppController {
         this._program.uniformMatrix4fv('mProj', false, this._projMatrix);
         this._program.uniform3fv('uFixedColor', this._color.rgb);
         
-        this._vertex.bind(BufferTarget.ARRAY_BUFFER);
-        this._program.positionAttribPointer({ name: 'vertPosition', stride: 6, enable: true });
-        this._program.colorAttribPointer({ name: 'vertColor', size: 3, stride: 6, offset: 3, enable: true});
-        this._index.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);
-        gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
+        this._plistRenderers.forEach(plRenderer => {
+            this._program.positionAttribPointer(plRenderer.positionAttribParams("vertPosition"));
+            this._program.normalAttribPointer(plRenderer.normalAttribParams("vertNormal"));
+            this._program.texCoordAttribPointer(plRenderer.texCoord0AttribParams("t0Position"));
+            plRenderer.draw();
+        })
     }
 
     destroy() {

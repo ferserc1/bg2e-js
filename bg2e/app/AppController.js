@@ -13,7 +13,7 @@ export default class AppController {
 
     get viewport() { return this.canvas?.viewport || { width: 0, height: 0, aspectRatio: 0 }; }
 
-    init() {}
+    async init() {}
     reshape(width,height) {}
     frame(delta) {}
     display() {}

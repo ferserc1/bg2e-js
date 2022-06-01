@@ -14,6 +14,7 @@ export const BufferType = {
 };
 
 export const DrawMode = {
+    POINTS: 0,
     TRIANGLES: 1,
     TRIANGLE_FAN: 2,
     TRIANGLE_STRIP: 3,
@@ -22,9 +23,10 @@ export const DrawMode = {
 };
 
 function buildTangents(plist) {
-    if (!plist.texCoord0 || !plist.vertex) return;
-
     plist._tangent = [];
+
+    if (!plist.texCoord0 || !plist.texCoord0.length || !plist.vertex || !plist.vertex.length) return;
+
     
     const result = [];
     const generatedIndexes = {};

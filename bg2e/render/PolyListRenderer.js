@@ -27,4 +27,8 @@ export default class PolyListRenderer {
     draw() {
 
     }
+
+    destroy() {
+        
+    }
 }

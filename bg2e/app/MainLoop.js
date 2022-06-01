@@ -59,7 +59,7 @@ export default class MainLoop {
 
     async run() {
         await this.canvas.init();
-        this.appController.init();
+        await this.appController.init();
         initEvents(this);
         g_animationLoop.mainLoop.push(this);
         animationLoop();
