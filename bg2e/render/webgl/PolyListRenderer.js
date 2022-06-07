@@ -9,7 +9,13 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
     }
 
     init() {
+        this._vertexBuffer = null;
+        this._indexBuffer = null;
+        this._indexArrayFormat = null;
+    }
 
+    get valid() {
+        return this._vertexBuffer !== null && this._indexArrayFormat !== null && this._indexBuffer !== null;
     }
 
     refresh() {
@@ -181,6 +187,7 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
     }
 
     destroy() {
-
+        VertexBuffer.Delete(this._vertexBuffer);
+        VertexBuffer.Delete(this._indexBuffer);
     }
 }

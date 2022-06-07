@@ -12,40 +12,82 @@ import Color from "bg2e/base/Color";
 import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
 import Bg2LoaderPlugin from "bg2e/db/Bg2LoaderPlugin";
 import { registerComponents } from "bg2e/scene";
+import Shader from "bg2e/render/Shader";
+import Material from "bg2e/base/Material";
+import RenderState from "bg2e/render/RenderState";
 
-const vertexShaderCode = 
-`precision mediump float;
+class MyWebGLShader extends Shader {
+    constructor(renderer) {
+        super(renderer);
 
-attribute vec3 vertPosition;
-attribute vec3 normPosition;
-attribute vec2 t0Position;
+        const vertexShaderCode = 
+            `precision mediump float;
 
-varying vec3 fragNormal;
-varying vec2 fragT0Pos;
+            attribute vec3 vertPosition;
+            attribute vec3 normPosition;
+            attribute vec2 t0Position;
 
-uniform mat4 mWorld;
-uniform mat4 mView;
-uniform mat4 mProj;
+            varying vec3 fragNormal;
+            varying vec2 fragT0Pos;
 
-void main() {
-    fragNormal = normPosition * 0.5 + 0.5;
-    fragT0Pos = t0Position;
-    gl_Position = mProj * mView * mWorld * vec4(vertPosition, 1.0);
+            uniform mat4 mWorld;
+            uniform mat4 mView;
+            uniform mat4 mProj;
+
+            void main() {
+                fragNormal = normPosition * 0.5 + 0.5;
+                fragT0Pos = t0Position;
+                gl_Position = mProj * mView * mWorld * vec4(vertPosition, 1.0);
+            }`;
+
+        const fragmentShaderCode = `
+            precision mediump float;
+
+            varying vec3 fragNormal;
+            varying vec2 fragT0Pos;
+
+            uniform vec3 uFixedColor;
+
+            void main() {
+                gl_FragColor = vec4(vec3(fragT0Pos, fragNormal.x) * uFixedColor, 1.0);
+            }`;
+        
+        const { gl } = renderer;
+        this._program = new ShaderProgram(gl, "SimpleColorCombination");
+        this._program.attachVertexSource(vertexShaderCode);
+        this._program.attachFragmentSource(fragmentShaderCode);
+        this._program.link();
+    }
+
+    setup(plistRenderer, material, modelMatrix, viewMatrix, projectionMatrix) {
+        this.renderer.state.shaderProgram = this._program;
+
+        this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
+        this._program.uniformMatrix4fv('mView', false, viewMatrix);
+        this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
+
+        if (material.diffuse instanceof Vec) {
+            this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
+        }
+
+        this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));
+        this._program.normalAttribPointer(plistRenderer.normalAttribParams("normPosition"));
+        this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("t0Position"));
+
+        if (!this._checked) {
+            this._checked = true;
+            if (!this._program.checkInvalidLocations()) {
+                console.error("Invalid attrib location names found. This error should produce a lot of WebGL errors. Check that the attribute names match with the attrib location names in your shader.")
+            }
+        }
+    }
+
+    destroy() {
+        ShaderProgram.Delete(this._program);
+    }
 }
-`;
 
-const fragmentShaderCode = `
-precision mediump float;
 
-varying vec3 fragNormal;
-varying vec2 fragT0Pos;
-
-uniform vec3 uFixedColor;
-
-void main() {
-    gl_FragColor = vec4(vec3(fragT0Pos, fragNormal.x) * uFixedColor, 1.0);
-}
-`;
 
 class MyAppController extends AppController {
     async init() {
@@ -63,13 +105,9 @@ class MyAppController extends AppController {
         state.cullFaceEnabled = true;
         state.cullFace = state.BACK;
         state.frontFace = state.CCW;
-        
-        this._program = new ShaderProgram(gl, "SimpleColorCombination");
-        this._program.attachVertexSource(vertexShaderCode);
-        this._program.attachFragmentSource(fragmentShaderCode);
-        this._program.link();
 
-        state.shaderProgram = this._program;
+        this._shader = new MyWebGLShader(this.renderer);
+        this._material = new Material();
 
         registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist" }));
         registerComponents();
@@ -78,12 +116,13 @@ class MyAppController extends AppController {
         this._plistRenderers = plists.map(plist => {
             return this.renderer.factory.polyList(plist);
         });
+
+        this._renderState = new RenderState({
+            shader: this._shader,
+            material: this._material
+        });
         
         this._color = Color.Black();
-
-        // To get the current binded buffers
-        // const ab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ARRAY_BUFFER);
-        // const eab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ELEMENT_ARRAY_BUFFER);
     }
 
     reshape(width,height) {
@@ -110,6 +149,21 @@ class MyAppController extends AppController {
             this._color[2] = math.abs(math.sin(this._elapsed + 1) * 0.5 - 0.5),
             1
         ]);
+
+        this._material.diffuse = this._color;
+
+        this._renderStates = [];
+
+        this._plistRenderers.forEach(plRenderer => {
+            this._renderStates.push(new RenderState({
+                shader: this._shader,
+                material: this._material,
+                modelMatrix: this._worldMatrix,
+                viewMatrix: this._viewMatrix,
+                projectionMatrix: this._projMatrix,
+                polyListRenderer: plRenderer
+            }))
+        });
     }
 
     display() {
@@ -119,24 +173,14 @@ class MyAppController extends AppController {
         clearColor.a = 1;
         state.clearColor = clearColor;
         state.clear();
- 
-        this._program.uniformMatrix4fv('mWorld', false, this._worldMatrix);
-        this._program.uniformMatrix4fv('mView', false, this._viewMatrix);
-        this._program.uniformMatrix4fv('mProj', false, this._projMatrix);
-        this._program.uniform3fv('uFixedColor', this._color.rgb);
-        
-        this._plistRenderers.forEach(plRenderer => {
-            this._program.positionAttribPointer(plRenderer.positionAttribParams("vertPosition"));
-            this._program.normalAttribPointer(plRenderer.normalAttribParams("vertNormal"));
-            this._program.texCoordAttribPointer(plRenderer.texCoord0AttribParams("t0Position"));
-            plRenderer.draw();
-        })
+
+        this._renderStates.forEach(rs => rs.draw());
     }
 
     destroy() {
-        VertexBuffer.Delete(this._vertex);
-        VertexBuffer.Delete(this._index);
-        ShaderProgram.Delete(this._program);
+        this._plistRenderers.forEach(plRenderer => plRenderer.destroy());
+        this._plistRenderers = [];
+        this._shader.destroy();
     }
 
     keyUp(evt) {

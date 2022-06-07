@@ -80,8 +80,19 @@ export default class ShaderProgram {
     }
 
     getAttribLocation(name) {
-        this._attribLocations[name] = this._gl.getAttribLocation(this._program, name);
+        this._attribLocations[name] = this._attribLocations[name] || this._gl.getAttribLocation(this._program, name);
         return this._attribLocations[name];
+    }
+
+    checkInvalidLocations() {
+        let status = true;
+        for (const name in this._attribLocations) {
+            if (this._attribLocations[name] == -1) {
+                console.warn(`Invalid attrib location for name '${name}'`);
+                status = false;
+            }
+        }
+        return status;
     }
 
     getUniformLocation(name) {
