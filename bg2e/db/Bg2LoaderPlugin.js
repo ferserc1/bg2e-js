@@ -1,5 +1,5 @@
 import LoaderPlugin from "./LoaderPlugin";
-import { ResourceType, getFileName, removeExtension } from "./../tools/Resource";
+import { ResourceType, getFileName, removeExtension, removeFileName } from "./../tools/Resource";
 import Resource from "../tools/Resource";
 import PolyList from "../base/PolyList";
 import Drawable from "../scene/Drawable";
@@ -42,10 +42,11 @@ const createPolyList = (jsonData,loader) => {
 
 const createDrawable = (jsonData,filePath,loader) => {
     const name = removeExtension(getFileName(filePath));
+    const relativePath = removeFileName(filePath);
     const drawable = new Drawable(name);
     createPolyList(jsonData).forEach(item => {
         const mat = new Material();
-        mat.deserialize(item.materialData);
+        mat.deserialize(item.materialData, relativePath);
         drawable.addPolyList(item.plist, mat);
     });
     return drawable;

@@ -253,6 +253,44 @@ export default class Vec extends NumericArray {
         return this;
     }
 
+    get rgb() {
+        if (this.length < 3) {
+            throw new Error(`Invalid vector size: ${this.length}, but at least 3 required`);
+        }
+        return new Vec(this[0],this[1],this[2]);
+    }
+
+    set rgb(v) {
+        if (v.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        this[0] = v[0];
+        this[1] = v[1];
+        this[2] = v[2];
+        return this;
+    }
+
+    get rg() {
+        if (v.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        return new Vec(this[0], this[1]);
+    }
+
+    get gb() {
+        if (v.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        return new Vec(this[1], this[2]);
+    }
+
+    get rb() {
+        if (v.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        return new Vec(this[0], this[2]);
+    }
+
     static CheckEqualLength(v1,v2) {
         checkEqualLength(v1,v2);
     }

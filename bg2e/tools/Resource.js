@@ -42,6 +42,14 @@ export const removeExtension = (url) => {
     }
 }
 
+export const removeFileName = (url) => {
+    const i = url.lastIndexOf('/');
+    if (i != -1) {
+        return url.substring(0,i + 1);
+    }
+    return url;
+}
+
 export const isFormat = (url,formats) => formats.some(fmt => (new RegExp(`\.${fmt}`,'i')).test(url));
 
 export const addFormats = (fmts, dst) => {

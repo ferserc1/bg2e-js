@@ -154,15 +154,17 @@ const serializeColorTexture = (obj) => {
     return result;
 }
 
-const deserializeColorTexture = (obj) => {
+
+const deserializeColorTexture = async (obj,relativePath = "") => {
     if (!obj) {
         return null;
     }
     else if (typeof(obj) === "string") {
         // bg2e v1 texture compatibility
         const tex = new Texture();
-        tex.fileName = obj;
+        tex.fileName = relativePath + obj;
         tex.dataType = TextureDataType.IMAGE;
+        await tex.loadImageData();
         return tex;
     }
     else if (Array.isArray(obj) && (obj.length === 3 || obj.length === 4)) {
@@ -180,6 +182,7 @@ const deserializeColorTexture = (obj) => {
     else if (obj.type === "Texture") {
         const tex = new Texture();
         tex.deserialize(obj.data);
+        await tex.loadImageData();
         return tex;
     }
     else {
@@ -215,14 +218,15 @@ const serializeValueTexture = (obj) => {
     return result;
 }
 
-const deserializeValueTexture = (obj) => {
+const deserializeValueTexture = async (obj,relativePath) => {
     if (!obj) {
         return null;
     }
     else if (typeof(obj) === "string") {
         const tex = new Texture();
-        tex.fileName = obj;
+        tex.fileName = relativePath + obj;
         tex.dataType = TextureDataType.IMAGE;
+        await loadTextureImage(tex);
         return tex;
     }
     else if (typeof(obj) === "number") {
@@ -231,6 +235,7 @@ const deserializeValueTexture = (obj) => {
     else if (obj.type === "Texture") {
         const tex = new Texture();
         tex.deserialize(obj.data);
+        await loadTextureImage(tex);
         return tex;
     }
     else if (obj.type === "number") {
@@ -259,12 +264,12 @@ const serializeAttribute = (att,mat) => {
     }
 }
 
-const deserializeAttribute = (att,obj) => {
+const deserializeAttribute = async (att,obj, relativePath) => {
     if (ColorTextureAttributes.indexOf(att) !== -1) {
-        return deserializeColorTexture(obj[att]);
+        return await deserializeColorTexture(obj[att],relativePath);
     }
     else if (ValueTextureAttributes.indexOf(att) !== -1) {
-        return deserializeValueTexture(obj[att]);
+        return await deserializeValueTexture(obj[att],relativePath);
     }
     else if (VectorAttribures.indexOf(att) !== -1) {
         return deserializeVector(obj[att]);
@@ -446,11 +451,12 @@ export default class Material {
         });
     }
 
-    async deserialize(sceneData) {
-        MaterialAttributeNames.forEach(att => {
-            let value = deserializeAttribute(att, sceneData);
+    async deserialize(sceneData, relativePath) {
+        for (const i in MaterialAttributeNames) {
+            const att = MaterialAttributeNames[i];
+            let value = await deserializeAttribute(att, sceneData, relativePath);
             if (att === "type" && !value) {
-                value = deserializeAttribute("class", sceneData);
+                value = await deserializeAttribute("class", sceneData, relativePath);
             }
             if (value) {
                 if (this[att] === undefined) {
@@ -460,6 +466,6 @@ export default class Material {
                     this[att] = value;
                 }
             }
-        })
+        }
     }
 }

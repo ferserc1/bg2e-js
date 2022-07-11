@@ -1,5 +1,9 @@
 #!/bin/sh
 
+cd bg2e
+npm ci
+cd -
+
 ./clean.sh
 
 cd examples/base

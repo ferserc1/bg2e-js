@@ -17,6 +17,14 @@ export default class Drawable extends Component {
         this._name = n;
     }
 
+    get valid() {
+        return this._items.length>0 && this._items.every(item => item.polyList !== null && item.material !== null);
+    }
+
+    get items() {
+        return this._items;
+    }
+
     clone() {
         const result = new Drawable();
         result.assign(this);

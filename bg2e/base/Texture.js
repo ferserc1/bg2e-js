@@ -1,5 +1,6 @@
 
 import Vec from '../math/Vec';
+import Resource from '../tools/Resource';
 
 export const TextureDataType = {
     NONE: 0,
@@ -84,6 +85,14 @@ export const ProceduralTextureFunctionName = {
     1: "RANDOM_NOISE"
 };
 
+const g_loadedImages = {};
+let g_resource = null;
+const loadImageFromFile = async fileUrl => {
+    if (!g_resource) {
+        g_resource = new Resource();
+    }
+    return await g_resource.load(fileUrl);
+}
 export default class Texture {
     constructor() {
         this._dataType = TextureDataType.NONE;
@@ -96,6 +105,10 @@ export default class Texture {
         this._fileName = "";
         this._proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
         this._proceduralParameters = {};
+
+        // This attribute is generated from the previous attributes, for example,
+        // calling loadImageData() after setting the fileName attribute
+        this._imageData = null;
     }
 
     clone() {
@@ -115,6 +128,7 @@ export default class Texture {
         this._fileName = other._fileName;
         this._proceduralFunction = other._proceduralFunction;
         this._proceduralParameters = other._proceduralParameters;
+        this._imageData = other._imageData;
     }
 
     get dataType() { return this._dataType; }
@@ -176,5 +190,27 @@ export default class Texture {
         sceneData.fileName = this.fileName;
         sceneData.proceduralFunction = ProceduralTextureFunctionName[this.proceduralFunction];
         sceneData.proceduralParameters = this.proceduralParameters;
+    }
+
+    async loadImageData(refresh = false) {
+        if (this.fileName) {
+            if (g_loadedImages[this.fileName] && refresh) {
+                delete g_loadedImages[this.fileName];
+            }
+
+            if (g_loadedImages[this.fileName]) {
+                this._imageData = g_loadedImages[this.fileName];
+            }
+            else {
+                this._imageData = await loadImageFromFile(this.fileName);
+                g_loadedImages[this.fileName] = this._imageData;
+                this._size = new Vec(this._imageData.width, this._imageData.height);
+            }
+        }
+        else {
+            // TODO: load other classes of procedural image data
+            throw new Error("Texture: loadImageData(): not implemented");
+        }
+
     }
 };

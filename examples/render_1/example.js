@@ -26,7 +26,7 @@ class MyWebGLShader extends Shader {
             attribute vec3 vertPosition;
             attribute vec3 normPosition;
             attribute vec2 t0Position;
-
+            
             varying vec3 fragNormal;
             varying vec2 fragT0Pos;
 
@@ -69,6 +69,9 @@ class MyWebGLShader extends Shader {
         if (material.diffuse instanceof Vec) {
             this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
         }
+        else {
+            console.log(`TODO: Diffuse texture: ${material.diffuse}`);
+        }
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));
         this._program.normalAttribPointer(plistRenderer.normalAttribParams("normPosition"));
@@ -97,10 +100,6 @@ class MyAppController extends AppController {
 
         const { gl, state } = this.renderer;
 
-        const extensions = gl.getSupportedExtensions();
-        console.log("WebGL Extensions:");
-        console.log(extensions);
-
         state.depthTestEnabled = true;
         state.cullFaceEnabled = true;
         state.cullFace = state.BACK;
@@ -112,14 +111,18 @@ class MyAppController extends AppController {
         registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist" }));
         registerComponents();
         const loader = new Loader();
-        const plists = await loader.loadPolyList("../resources/cubes.bg2");
-        this._plistRenderers = plists.map(plist => {
-            return this.renderer.factory.polyList(plist);
+        const drawable = await loader.loadDrawable("../resources/cubes.bg2");
+        this._plistRenderers = drawable.items.map(({ polyList, material, transform }) => {
+            const plistRenderer = this.renderer.factory.polyList(polyList);
+            return {
+                plistRenderer,
+                material,
+                transform
+            }
         });
 
         this._renderState = new RenderState({
-            shader: this._shader,
-            material: this._material
+            shader: this._shader
         });
         
         this._color = Color.Black();
@@ -154,14 +157,14 @@ class MyAppController extends AppController {
 
         this._renderStates = [];
 
-        this._plistRenderers.forEach(plRenderer => {
+        this._plistRenderers.forEach(({ plistRenderer, material, transform }) => {
             this._renderStates.push(new RenderState({
                 shader: this._shader,
-                material: this._material,
-                modelMatrix: this._worldMatrix,
+                material: material,
+                modelMatrix: transform ? new Mat4(transform).mult(this._worldMatrix) : this._worldMatrix,
                 viewMatrix: this._viewMatrix,
                 projectionMatrix: this._projMatrix,
-                polyListRenderer: plRenderer
+                polyListRenderer: plistRenderer
             }))
         });
     }
