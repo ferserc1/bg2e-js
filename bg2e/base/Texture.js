@@ -96,6 +96,11 @@ const loadImageFromFile = async fileUrl => {
 }
 export default class Texture {
     constructor() {
+        // This flag allows to the renderer to know if the texture object
+        // has been updated. In this case, the renderer texture must to
+        // be regenerated.
+        this._dirty = true;
+
         this._dataType = TextureDataType.NONE;
         this._wrapModeX = TextureWrap.REPEAT;
         this._wrapModeY = TextureWrap.REPEAT;
@@ -130,41 +135,65 @@ export default class Texture {
         this._proceduralFunction = other._proceduralFunction;
         this._proceduralParameters = other._proceduralParameters;
         this._imageData = other._imageData;
+        
+        this._dirty = true;
+    }
+
+    get dirty() {
+        return true;
+    }
+
+    setUpdated(updated = true) {
+        this._dirty = !updated;
     }
 
     get dataType() { return this._dataType; }
-    set dataType(v) { this._dataType = v; }
+    set dataType(v) { this._dataType = v; this._dirty = true; }
     get wrapModeX() { return this._wrapModeX; }
-    set wrapModeX(v) { this._wrapModeX = v; }
+    set wrapModeX(v) { this._wrapModeX = v; this._dirty = true; }
     get wrapModeY() { return this._wrapModeY; }
-    set wrapModeY(v) { this._wrapModeY = v; }
+    set wrapModeY(v) { this._wrapModeY = v; this._dirty = true; }
     set wrapModeXY(xy) {
         this.wrapModeX = xy;
         this.wrapModeY = xy;
+        this._dirty = true; 
     }
     get magFilter() { return this._magFilter; }
-    set magFilter(v) { this._magFilter = v; }
+    set magFilter(v) { this._magFilter = v; this._dirty = true; }
     get minFilter() { return this._minFilter; }
-    set minFilter(v) { this._minFilter = v; }
+    set minFilter(v) { this._minFilter = v; this._dirty = true; }
     get target() { return this._target; }
-    set target(v) { this._target = v; }
+    set target(v) { this._target = v; this._dirty = true; }
     get size() { return this._size; }
     set size(v) {
         if (!v.length) {
             throw new Error("Invalid parameter specified setting texture size.");
         }
         this._size = new Vec(v[0],v[1]);
+        this._dirty = true; 
     }
     get fileName() { return this._fileName; }
-    set fileName(v) { this._fileName = v; }
+    set fileName(v) { this._fileName = v; this._dirty = true; this._imageData = null; }
     get proceduralFunction() { return this._proceduralFunction; }
-    set proceduralFunction(v) { this._proceduralFunction = v; }
+    set proceduralFunction(v) { this._proceduralFunction = v; this._dirty = true; }
     get proceduralParameters() { return this._proceduralParameters; }
     set proceduralParameters(v) {
         if (typeof(v) !== 'object' || !v) {
             throw new Error("Invalid parameter specified setting procedural texture parameters.");
         }
         this._proceduralParameters = v;
+        this._dirty = true; 
+    }
+
+    get mipmapRequired() {
+        return  this._minFilter === TextureFilter.NEAREST_MIPMAP_NEAREST ||
+                this._minFilter === TextureFilter.LINEAR_MIPMAP_NEAREST ||
+                this._minFilter === TextureFilter.NEAREST_MIPMAP_LINEAR ||
+                this._minFilter === TextureFilter.LINEAR_MIPMAP_LINEAR ||
+                this._magFilter === TextureFilter.NEAREST_MIPMAP_NEAREST ||
+                this._magFilter === TextureFilter.LINEAR_MIPMAP_NEAREST ||
+                this._magFilter === TextureFilter.NEAREST_MIPMAP_LINEAR ||
+                this._magFilter === TextureFilter.LINEAR_MIPMAP_LINEAR;
     }
 
     async deserialize(sceneData) {
@@ -178,6 +207,7 @@ export default class Texture {
         this._fileName = sceneData.fileName !== undefined ? sceneData.fileName : "";
         this._proceduralFunction = sceneData.proceduralFunction !== undefined ? ProceduralTextureFunction[sceneData.proceduralFunction] : ProceduralTextureFunction.PLAIN_COLOR;
         this._proceduralParameters = sceneData.proceduralParameters !== undefined ? sceneData.proceduralParameters : {};
+        this._dirty = true; 
     }
 
     async serialize(sceneData) {
@@ -210,6 +240,7 @@ export default class Texture {
 
             // Generate a symbol to use as unique identifier of the image
             this._imageData._hash = generateImageHash(this._imageData);
+            this._dirty = true; 
         }
         else {
             // TODO: load other classes of procedural image data

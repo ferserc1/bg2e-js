@@ -59,7 +59,8 @@ class MyWebGLShader extends Shader {
         this._program.link();
     }
 
-    setup(plistRenderer, material, modelMatrix, viewMatrix, projectionMatrix) {
+    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
+        const material = materialRenderer.material;
         this.renderer.state.shaderProgram = this._program;
 
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
@@ -70,6 +71,8 @@ class MyWebGLShader extends Shader {
             this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
         }
         else {
+            const webglTexture = materialRenderer.getTexture();
+            // TODO: Set texture
             console.log(`TODO: Diffuse texture: ${material.diffuse}`);
         }
 
@@ -114,9 +117,10 @@ class MyAppController extends AppController {
         const drawable = await loader.loadDrawable("../resources/cubes.bg2");
         this._plistRenderers = drawable.items.map(({ polyList, material, transform }) => {
             const plistRenderer = this.renderer.factory.polyList(polyList);
+            const materialRenderer = this.renderer.factory.material(material);
             return {
                 plistRenderer,
-                material,
+                materialRenderer,
                 transform
             }
         });
@@ -157,10 +161,10 @@ class MyAppController extends AppController {
 
         this._renderStates = [];
 
-        this._plistRenderers.forEach(({ plistRenderer, material, transform }) => {
+        this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
             this._renderStates.push(new RenderState({
                 shader: this._shader,
-                material: material,
+                materialRenderer: materialRenderer,
                 modelMatrix: transform ? new Mat4(transform).mult(this._worldMatrix) : this._worldMatrix,
                 viewMatrix: this._viewMatrix,
                 projectionMatrix: this._projMatrix,

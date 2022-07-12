@@ -31,11 +31,18 @@ export default class Renderer {
         return plist;
     }
 
+    materialFactory(material) {
+        return material;
+    }
+
     get factory() {
         const renderer = this;
         return {
             polyList(plist) {
                 return renderer.polyListFactory(plist);
+            },
+            material(material) {
+                return renderer.materialFactory(material);
             }
         }
     }

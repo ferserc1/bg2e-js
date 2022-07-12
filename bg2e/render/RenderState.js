@@ -5,29 +5,29 @@ export default class RenderState {
     constructor({
         shader = null,
         polyListRenderer = null,
-        material = null,
+        materialRenderer = null,
         modelMatrix = Mat4.MakeIdentity(),
         viewMatrix = Mat4.MakeIdentity(),
         projectionMatrix = Mat4.MakeIdentity()
     }) {
         this._shader = shader;
         this._polyListRenderer = polyListRenderer;
-        this._material = material;
+        this._materialRenderer = materialRenderer;
         this._modelMatrix = modelMatrix;
         this._viewMatrix = viewMatrix;
         this._projectionMatrix = projectionMatrix;
     }
 
     get valid() {
-        return this._shader && this._plistRenderer && this._material;
+        return this._shader && this._plistRenderer && this._materialRenderer;
     }
 
     set shader(shader) { this._shader = shader; }
     get shader() { return this._shader; }
     set polyListRenderer(polyListRenderer) { this._polyListRenderer = polyListRenderer; }
     get polyListRenderer() { return this._polyListRenderer; }
-    set material(material) { this._material = material; }
-    get material() { return this._material; }
+    set materialRenderer(materialRenderer) { this._materialRenderer = materialRenderer; }
+    get materialRenderer() { return this._materialRenderer; }
     set modelMatrix(model) { this._modelMatrix = model; }
     get modelMatrix() { return this._modelMatrix; }
     set viewMatrix(view) { this._viewMatrix = view; }
@@ -38,7 +38,7 @@ export default class RenderState {
     draw() {
         this.shader.setup(
             this.polyListRenderer,
-            this.material,
+            this.materialRenderer,
             this.modelMatrix,
             this.viewMatrix,
             this.projectionMatrix
