@@ -27,5 +27,8 @@ export default class MaterialRenderer {
             return element;
         }
     }
+
+    deleteTextures() {
+    }
 }
 

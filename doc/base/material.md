@@ -143,3 +143,5 @@ What does not change is the data that is stored in the material. Each attribute 
 **`material.serialize(sceneData)`**: see the [serialization/deserialization protocol](serialization.md)
 
 **`material.deserialize(sceneData)`**: see the [serialization/deserialization protocol](serialization.md)
+
+**`material.destroy()`**: Decrements the references of all Texture objects contained in the material.

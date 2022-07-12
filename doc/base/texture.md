@@ -31,6 +31,18 @@ The `bg2e-base.Texture` implements the [serialization/deserialization protocol](
 
 ## Reference
 
+### Reference count
+
+Textures can be used in more than one place, that is why texture objects contain a reference counter. Whenever we use a texture object, we must keep the counter updated to make sure that the textures in the graphical API are deleted correctly.
+
+**`texture.references` (read):** Returns the current number of references of the texture.
+
+**`incReferences()`:** Increases the references by one unit.
+
+**`decReferences()`:** Decrements the references in one unit.
+
+The object responsible for counting the references is the one containing the texture, for example, the [material](material.md).
+
 ### Objects
 
 ```js
@@ -111,6 +123,8 @@ console.log("Mag filter: ", TextureFilterName[t2.magFilter]);
 
 ### Properties
 
+**`texture.dirty`** (read) if true, some attributes of the texture has changed. This flag is used by the renderer system to determine if the API texture object must to be updated.
+
 **`texture.dataType`** (read/write) sets or gets the texture data type.
 
 **`texture.wrapModeX`** (read/write) sets or gets the texture wrap mode for the horizontal axis.
@@ -139,6 +153,10 @@ console.log("Mag filter: ", TextureFilterName[t2.magFilter]);
 
 **`texture.assign(t2)`**: assign the properties of `t2` to `texture`.
 
+**`texture.setUpdated(updated=true)`** Used to mark a texture as updated. This attribute is used to update the `dirty` attribute. In normal circumstances, you shouldn't use this function.
+
 **`serialize(sceneData)`**: see [serialization/deserialization protocol](serialization.md).
 
 **`deserialize(sceneData)`**: see [serialization/deserialization protocol](serialization.md).
+
+**`loadImageData(refresh = true)`**: It's used to load the native browser image object from the texture data (a file path, URL or procedural texture). This function is called automatically by the [`MaterialRenderer`](../render/MaterialRenderer.md) object. You can call it explicitly if you want to reload the image data for any reason.

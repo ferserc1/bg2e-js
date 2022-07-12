@@ -71,7 +71,7 @@ class MyWebGLShader extends Shader {
             this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
         }
         else {
-            const webglTexture = materialRenderer.getTexture();
+            const webglTexture = materialRenderer.getTexture('diffuse');
             // TODO: Set texture
             console.log(`TODO: Diffuse texture: ${material.diffuse}`);
         }

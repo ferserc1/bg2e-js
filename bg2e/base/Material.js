@@ -380,7 +380,17 @@ export default class Material {
 
 
     get diffuse() { return this._diffuse; }
-    set diffuse(v) { assertColorTexture(v, "diffuse"); this._diffuse = v; }
+    set diffuse(v) { 
+        assertColorTexture(v, "diffuse");
+        if (this._diffuse instanceof Texture) {
+            this._diffuse.decReferences();
+        }
+        this._diffuse = v;
+        if (this._diffuse instanceof Texture) {
+            this._diffuse.incRefecences();
+        }
+    }
+
     get diffuseScale() { return this._diffuseScale; }
     set diffuseScale(v) { assertScale(v, "diffuseScale"); this._diffuseScale = new Vec(v); }
     get diffuseUV() { return this._diffuseUV; }
@@ -389,16 +399,38 @@ export default class Material {
     set alphaCutoff(v) { this._alphaCutoff = v; }
     get isTransparent() { return this._isTransparent; }
     set isTransparent(v) { this._isTransparent = v; }
+    
     get metallic() { return this._metallic; }
-    set metallic(v) { assertValueTexture(v, "metallic"); this._metallic = v; }
+    set metallic(v) {
+        assertValueTexture(v, "metallic");
+        if (this._metallic instanceof Texture) {
+            this._metallic.decReferences();
+        }
+        this._metallic = v;
+        if (this._metallic instanceof Texture) {
+            this._metallic.incRefecences();
+        }
+    }
+    
     get metallicChannel() { return this._metallicChannel; }
     set metallicChannel(v) { this._metallicChannel = v; }
     get metallicScale() { return this._metallicScale; }
     set metallicScale(v) { assertScale(v, "metallicScale"); this._metallicScale = new Vec(v); }
     get metallicUV() { return this._metallicUV; }
     set metallicUV(v) { this._metallicUV = v; }
+
     get roughness() { return this._roughness; }
-    set roughness(v) { assertValueTexture(v, "roughness"); this._roughness = v; }
+    set roughness(v) {
+        assertValueTexture(v, "roughness");
+        if (this._roughness instanceof Texture) {
+            this._roughness.decReferences();
+        }
+        this._roughness = v;
+        if (this._roughness instanceof Texture) {
+            this._roughness.incReferences();
+        }
+    }
+    
     get roughnessChannel() { return this._roughnessChannel; }
     set roughnessChannel(v) { this._roughnessChannel = v; }
     get roughnessScale() { return this._roughnessScale; }
@@ -407,22 +439,55 @@ export default class Material {
     set roughnessUV(v) { this._roughnessUV = v; }
     get fresnel() { return this._fresnel; }
     set fresnel(v) { assertColor(v, "fresnel"); this._fresnel = v; }
+    
     get lightEmission() { return this._lightEmission; }
-    set lightEmission(v) { assertColorTexture(v, 'lightEmission'); this._lightEmission = v; }
+    set lightEmission(v) {
+        assertColorTexture(v, 'lightEmission'); 
+        if (this._lightEmission instanceof Texture) {
+            this._lightEmission.decReferences();
+        }
+        this._lightEmission = v;
+        if (this._lightEmission instanceof Texture) {
+            this._lightEmission.incReferences();
+        }
+    }
+    
     get lightEmissionChannel() { return this._lightEmissionChannel; }
     set lightEmissionChannel(v) { this._lightEmissionChannel = v; }
     get lightEmissionScale() { return this._lightEmissionScale; }
     set lightEmissionScale(v) { assertScale(v, "lightEmissionScale"); this._lightEmissionScale = new Vec(v); }
     get lightEmissionUV() { return this._lightEmissionUV; }
     set lightEmissionUV(v) { this._lightEmissionUV = v; }
+
     get ambientOcclussion() { return this._ambientOcclussion; }
-    set ambientOcclussion(v) { assertColorTexture(v, "ambientOcclussion"); this._ambientOcclussion = v; }
+    set ambientOcclussion(v) {
+        assertColorTexture(v, "ambientOcclussion");
+        if (this._ambientOcclussion instanceof Texture) {
+            this._ambientOcclussion.decReferences();
+        }
+        this._ambientOcclussion = v;
+        if (this._ambientOcclussion instanceof Texture) {
+            this._ambientOcclussion.incReferences();
+        }
+    }
+
     get ambientOcclussionChannel() { return this._ambientOcclussionChannel; }
     set ambientOcclussionChannel(v) { this._ambientOcclussionChannel = v; }
     get ambientOcclussionUV() { return this._ambientOcclussionUV; }
     set ambientOcclussionUV(v) { this._ambientOcclussionUV = v; }
+
     get normal() { return this._normal; }
-    set normal(v) { assertColorTexture(v, "normal"); this._normal = v; }
+    set normal(v) {
+        assertColorTexture(v, "normal");
+        if (this._normal instanceof Texture) {
+            this._normal.decReferences();
+        }
+        this._normal = v;
+        if (this._normal instanceof Texture) {
+            this._normal.incReferences();
+        }
+    }
+    
     get normalScale() { return this._normalScale; }
     set normalScale(v) { assertScale(v, "normalScale"); this._normalScale = new Vec(v); }
     get normalUV() { return this._normalUV; }
@@ -467,5 +532,16 @@ export default class Material {
                 }
             }
         }
+    }
+
+    destroy() {
+        const decReferences = (attrib) => {
+            if (this[attrib] instanceof Texture) {
+                this[attrib].decReferences();
+            }
+        }
+
+        ColorTextureAttributes.forEach(decReferences);
+        ValueTextureAttributes.forEach(decReferences);
     }
 }

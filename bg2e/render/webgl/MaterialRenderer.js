@@ -1,5 +1,13 @@
 import MaterialRenderer from '../MaterialRenderer'
-import { TextureWrapName, TextureFilterName, TextureTargetName } from '../../base/Texture';
+import Texture, { 
+    TextureWrapName, 
+    TextureFilterName, 
+    TextureTargetName
+} from '../../base/Texture';
+import {
+    ColorTextureAttributes, 
+    ValueTextureAttributes 
+} from '../../base/Material';
 
 const getTarget = (gl, tex) => {
     const name = TextureTargetName[tex.target];
@@ -17,6 +25,10 @@ const getTextureFilter = (gl, filter) => {
 }
 
 const getWebGLTexture = (gl, textureData) => {
+    if (!textureData._imageData) {
+        throw new Error("Error loading WebGL texture: image data not loaded");
+    }
+
     if (textureData._apiObject) {
         gl.deleteTexture(textureData._apiObject);
     }
@@ -42,8 +54,6 @@ const getWebGLTexture = (gl, textureData) => {
 export default class WebGLMaterialRenderer extends MaterialRenderer {
     constructor(renderer, material) {
         super(renderer, material);
-
-        this._textures = [];
     }
 
     getTexture(materialAttribute) {
@@ -51,12 +61,25 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
         if (texture) {
             if (texture.dirty) {
                 getWebGLTexture(this.renderer.gl,texture);
-                this._textures.push(texture);
             }
             return texture._apiObject;
         }
         else {
             return null;
         }
+    }
+
+    deleteTextures() {
+        const { gl } = this.renderer;
+        const deleteTexture = attribute => {
+            const tex = this.material[attribute];
+            if (tex instanceof Texture && tex._apiObject) {
+                gl.deleteTexture(tex._apiObject);
+                tex._apiObject = null;
+            }
+        }
+
+        ColorTextureAttributes.forEach(deleteTexture);
+        ValueTextureAttributes.forEach(deleteTexture);
     }
 }

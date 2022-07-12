@@ -115,6 +115,21 @@ export default class Texture {
         // This attribute is generated from the previous attributes, for example,
         // calling loadImageData() after setting the fileName attribute
         this._imageData = null;
+
+        // Reference counter, to know if a texture can be purged
+        this._references = 0;
+    }
+
+    get references() {
+        return this._references;
+    }
+
+    incRefecences() {
+        this._references++;
+    }
+
+    decReferences() {
+        this._references--;
     }
 
     clone() {
@@ -235,8 +250,9 @@ export default class Texture {
             else {
                 this._imageData = await loadImageFromFile(this.fileName);
                 g_loadedImages[this.fileName] = this._imageData;
-                this._size = new Vec(this._imageData.width, this._imageData.height);
             }
+
+            this._size = new Vec(this._imageData.width, this._imageData.height);
 
             // Generate a symbol to use as unique identifier of the image
             this._imageData._hash = generateImageHash(this._imageData);
@@ -246,6 +262,6 @@ export default class Texture {
             // TODO: load other classes of procedural image data
             throw new Error("Texture: loadImageData(): not implemented");
         }
-
     }
+
 };
