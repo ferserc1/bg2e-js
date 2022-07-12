@@ -1,6 +1,7 @@
 
 import Vec from '../math/Vec';
 import Resource from '../tools/Resource';
+import { generateMD5 } from '../tools/crypto';
 
 export const TextureDataType = {
     NONE: 0,
@@ -94,6 +95,20 @@ const loadImageFromFile = async fileUrl => {
     return await g_resource.load(fileUrl);
 }
 export default class Texture {
+    static ImageToBase64(image, format="image/jpeg") {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.height = image.naturalHeight;
+        canvas.width = image.naturalWidth;
+        ctx.drawImage(image, 0, 0);
+        return canvas.toDataURL(format);
+    }
+
+    static GenImageHash(image) {
+        const base64 = Texture.ImageToBase64(image);
+        return generateMD5(base64);
+    }
+
     constructor() {
         this._dataType = TextureDataType.NONE;
         this._wrapModeX = TextureWrap.REPEAT;
@@ -206,6 +221,9 @@ export default class Texture {
                 g_loadedImages[this.fileName] = this._imageData;
                 this._size = new Vec(this._imageData.width, this._imageData.height);
             }
+
+            // Generate a symbol to use as unique identifier of the image
+            this._imageData._hash = Texture.GenImageHash(this._imageData);
         }
         else {
             // TODO: load other classes of procedural image data
