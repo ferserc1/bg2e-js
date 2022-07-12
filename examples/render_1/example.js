@@ -15,6 +15,7 @@ import { registerComponents } from "bg2e/scene";
 import Shader from "bg2e/render/Shader";
 import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
+import Texture, { TextureTargetName, ProceduralTextureFunction } from "bg2e/base/Texture";
 
 class MyWebGLShader extends Shader {
     constructor(renderer) {
@@ -24,10 +25,8 @@ class MyWebGLShader extends Shader {
             `precision mediump float;
 
             attribute vec3 vertPosition;
-            attribute vec3 normPosition;
             attribute vec2 t0Position;
             
-            varying vec3 fragNormal;
             varying vec2 fragT0Pos;
 
             uniform mat4 mWorld;
@@ -35,7 +34,6 @@ class MyWebGLShader extends Shader {
             uniform mat4 mProj;
 
             void main() {
-                fragNormal = normPosition * 0.5 + 0.5;
                 fragT0Pos = t0Position;
                 gl_Position = mProj * mView * mWorld * vec4(vertPosition, 1.0);
             }`;
@@ -43,13 +41,14 @@ class MyWebGLShader extends Shader {
         const fragmentShaderCode = `
             precision mediump float;
 
-            varying vec3 fragNormal;
             varying vec2 fragT0Pos;
 
             uniform vec3 uFixedColor;
+            uniform sampler2D uTexture;
 
             void main() {
-                gl_FragColor = vec4(vec3(fragT0Pos, fragNormal.x) * uFixedColor, 1.0);
+                vec4 texColor = texture2D(uTexture, fragT0Pos);
+                gl_FragColor = vec4(texColor.rgb * uFixedColor, 1.0);
             }`;
         
         const { gl } = renderer;
@@ -57,27 +56,36 @@ class MyWebGLShader extends Shader {
         this._program.attachVertexSource(vertexShaderCode);
         this._program.attachFragmentSource(fragmentShaderCode);
         this._program.link();
+
+        this._whiteTexture = new Texture();
+        this._whiteTexture.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
+        this._whiteTexture.proceduralParameters = [1,1,1,1];
+        this._whiteTexture.size = new Vec(4,4);
     }
 
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
         const material = materialRenderer.material;
+        const { gl } = this.renderer;
         this.renderer.state.shaderProgram = this._program;
 
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
 
+        gl.activeTexture(gl.TEXTURE0);
         if (material.diffuse instanceof Vec) {
             this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
+            // TODO: White texture
         }
         else {
             const webglTexture = materialRenderer.getTexture('diffuse');
-            // TODO: Set texture
-            console.log(`TODO: Diffuse texture: ${material.diffuse}`);
+            const target = TextureTargetName[material.diffuse.target];
+            gl.bindTexture(gl[target], webglTexture);
+            this._program.uniform1i("uTexture", 0);
+            this._program.uniform3fv('uFixedColor', new Vec(1,1,1));
         }
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));
-        this._program.normalAttribPointer(plistRenderer.normalAttribParams("normPosition"));
         this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("t0Position"));
 
         if (!this._checked) {

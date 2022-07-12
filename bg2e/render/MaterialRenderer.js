@@ -1,5 +1,6 @@
 import Texture from "../base/Texture";
 
+// TODO: Create a generic implementation using TextureRenderer factory
 export default class MaterialRenderer {
     constructor(renderer, material) {
         this._renderer = renderer;
@@ -20,12 +21,10 @@ export default class MaterialRenderer {
     // object is dirty, the API texture must to be regenerated.
     getTexture(materialAttribute) {
         const element = this.material[materialAttribute];
-        if (!element instanceof Texture) {
-            return null;
+        if (element instanceof Texture) {
+            // TODO: Use TextureRenderer to get a valid API texture object
         }
-        else {
-            return element;
-        }
+        return null;
     }
 
     deleteTextures() {

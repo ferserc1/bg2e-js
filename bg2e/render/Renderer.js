@@ -1,5 +1,5 @@
 
-
+import MaterialRenderer from "./MaterialRenderer";
 export default class Renderer {
 
     constructor(identifier) {
@@ -32,7 +32,11 @@ export default class Renderer {
     }
 
     materialFactory(material) {
-        return material;
+        return new MaterialRenderer(this, material);
+    }
+
+    textureFactory(texture) {
+        throw new Error("Calling base implementation of Renderer.textureFactory()")
     }
 
     get factory() {
@@ -43,6 +47,9 @@ export default class Renderer {
             },
             material(material) {
                 return renderer.materialFactory(material);
+            },
+            texture(texture) {
+                return renderer.textureFactory(texture);
             }
         }
     }

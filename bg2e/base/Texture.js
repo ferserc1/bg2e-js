@@ -258,6 +258,26 @@ export default class Texture {
             this._imageData._hash = generateImageHash(this._imageData);
             this._dirty = true; 
         }
+        else if (this.proceduralFunction === ProceduralTextureFunction.PLAIN_COLOR) {
+            if (this._imageData && refresh === false) {
+                return;
+            }
+
+            if (!Array.isArray(this.proceduralParameters) || this.proceduralParameters.length<3) {
+                throw new Error("Error generating procedural plain color texture. invalid 'proceduralParameters' set.")
+            }
+            const color = new Vec(this.proceduralParameters);
+            const canvas = document.createElement('canvas');
+            canvas.width = this.size.x;
+            canvas.height = this.size.h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = color.hexColor;
+            ctx.fillRect(0, 0, this.size.x, this.size.y);
+            this._imageData = new Image();
+            this._imageData.src = canvas.toDataURL("image/png");
+
+            this._dirty = true;
+        }
         else {
             // TODO: load other classes of procedural image data
             throw new Error("Texture: loadImageData(): not implemented");

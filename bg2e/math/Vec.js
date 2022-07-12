@@ -291,6 +291,18 @@ export default class Vec extends NumericArray {
         return new Vec(this[0], this[2]);
     }
 
+    get hexColor() {
+        const r = this.r * 255;
+        const g = this.g * 255;
+        const b = this.b * 255;
+        const hex = (color) => color.toString(16).toUpperCase();
+        return `#${ hex(r) }${ hex(g) }${ hex(b) }`;
+    }
+
+    get cssColor() {
+        // Return rgb(x,y,z) or rgba(x,y,z,w);
+    }
+
     static CheckEqualLength(v1,v2) {
         checkEqualLength(v1,v2);
     }

@@ -1,7 +1,7 @@
 import Renderer from "../Renderer";
 import State from "./State";
 import PolyListRenderer from "./PolyListRenderer";
-import MaterialRenderer from "./MaterialRenderer";
+import TextureRenderer from "./TextureRenderer";
 
 export default class WebGLRenderer extends Renderer {
     constructor() {
@@ -37,7 +37,7 @@ export default class WebGLRenderer extends Renderer {
         return super.polyListFactory(new PolyListRenderer(this, plist));
     }
 
-    materialFactory(material) {
-        return super.materialFactory(new MaterialRenderer(this, material));
+    textureFactory(texture) {
+        return new TextureRenderer(this, texture);
     }
 }
