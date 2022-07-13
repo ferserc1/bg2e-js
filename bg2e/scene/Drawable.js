@@ -1,6 +1,8 @@
 
 import Component from "./Component";
 import Mat4 from "../math/Mat4";
+import PolyList from "../base/PolyList";
+import Material from "../base/Material";
 
 export default class Drawable extends Component {
     constructor(name) {
@@ -38,12 +40,21 @@ export default class Drawable extends Component {
         other._items.forEach(item => {
             const pl = item.polyList.clone();
             const mat = item.material.clone();
-            const trx = item.tranform ? new Mat4(item.transform) : null
+            const trx = new Mat4(item.transform);
             this.addPolyList(pl,mat,trx);
         });
     }
 
-    addPolyList(polyList,material,transform = null) {
+    addPolyList(polyList,material,transform = Mat4.MakeIdentity()) {
+        if (!polyList instanceof PolyList) {
+            throw new Error("Error adding polyList to drawable object: polyList is not an instance of PolyList");
+        }
+        if (!material instanceof Material) {
+            throw new Error("Error adding polyList to drawable object: material is not an instance of Material");
+        }
+        if (!transform instanceof Mat4) {
+            throw new Error("Error adding polyList to drawable object: transform is not an instance of Mat4");
+        }
         this._items.push({ polyList, material, transform });
     }
 

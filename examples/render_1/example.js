@@ -17,6 +17,9 @@ import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import Texture, { TextureTargetName, ProceduralTextureFunction } from "bg2e/base/Texture";
 
+window.Mat4 = Mat4;
+window.Vec = Vec;
+
 class MyWebGLShader extends Shader {
     constructor(renderer) {
         super(renderer);
@@ -120,7 +123,6 @@ class MyAppController extends AppController {
         state.frontFace = state.CCW;
 
         this._shader = new MyWebGLShader(this.renderer);
-        this._material = new Material();
 
         registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist" }));
         registerComponents();
@@ -170,15 +172,13 @@ class MyAppController extends AppController {
             1
         ]);
 
-        this._material.diffuse = this._color;
 
         this._renderStates = [];
-
         this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
             this._renderStates.push(new RenderState({
                 shader: this._shader,
                 materialRenderer: materialRenderer,
-                modelMatrix: transform ? new Mat4(transform).mult(this._worldMatrix) : this._worldMatrix,
+                modelMatrix: (new Mat4(transform)).mult(this._worldMatrix),
                 viewMatrix: this._viewMatrix,
                 projectionMatrix: this._projMatrix,
                 polyListRenderer: plistRenderer
@@ -187,8 +187,7 @@ class MyAppController extends AppController {
     }
 
     display() {
-        const { gl, state } = this.renderer;
-        //state.viewport = new Vec(this.canvas.width, this.canvas.height);
+        const { state } = this.renderer;
         const clearColor = Color.Sub(Color.White(), this._color);
         clearColor.a = 1;
         state.clearColor = clearColor;
