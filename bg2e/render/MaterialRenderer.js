@@ -17,7 +17,7 @@ export default class MaterialRenderer {
         return this._material;
     }
 
-    getTexture(materialAttribute) {
+    getTextureRenderer(materialAttribute) {
         const element = this.material[materialAttribute];
         if (element instanceof Texture) {
             this._textureRenderers[materialAttribute] = this._textureRenderers[materialAttribute] || 
@@ -28,6 +28,9 @@ export default class MaterialRenderer {
     }
 
     deleteTextures() {
+        for (const key in this._textureRenderers) {
+            this._textureRenderers[key].deleteTexture();
+        }
     }
 }
 

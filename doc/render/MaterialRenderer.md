@@ -44,21 +44,7 @@ renderStates.forEach(rs => rs.draw());
 
 ## Functions
 
-**`getTexture(attribName)`**: Returns the texture object of the concrete graphics API to be used in a shader. For example, in WebGL, this function must return a texture object. The `attribName` parameter is the name of the parameter in the material that contains the texture. 
-
-It is important to note that the requested attribute may not contain a texture. For example, in a material, if the `diffuse` attribute is requested, it may contain a texture, but also a color. If the attribute doesn't contains a texture object, this function should return `null`. This behavior is implemented in the `getTexture()` base class, so you can use it to determine if the attribute is a texture.
-
-```js
-getTexture(materialAttribute) {
-    const texture = super.getTexture(materialAttribute);
-    if (texture) {
-        if (texture.dirty) {
-            getWebGLTexture(this.renderer.gl,texture);
-        }
-        return texture._apiObject;
-    }
-}
-```
+**`getTextureRenderer(attribName)`**: Returns the [`TextureRenderer`](TextureRenderer.md) object associated with the attribute described by `attribName`, assuming it contains a texture. For example, the `diffuse` and `normal` attributes may contain a texture or a color (math.Vec[4]), and the `metallic`, `roughness`, `lightEmission` and `ambientOcclusion` attributes may contain a texture or a numeric value. If the requested attribute does not contain a texture, the `getTextureRenderer()` function will return `null`.
 
 **`deleteTextures()`**: is invoked when it is necessary to delete all the textures contained in the material.
 

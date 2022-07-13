@@ -59,11 +59,11 @@ export default class WebGLTextureRenderer extends TextureRenderer {
         return this.texture._apiObject;
     }
     
-    deleteTexture(texture) {
-        if (super.deleteTexture(texture)) {
-            if (texture instanceof Texture && texture._apiObject) {
-                gl.deleteTexture(texture._apiObject);
-                texture._apiObject = null;
+    deleteTexture() {
+        if (super.deleteTexture()) {
+            if (this.texture instanceof Texture && this.texture._apiObject) {
+                gl.deleteTexture(this.texture._apiObject);
+                this.texture._apiObject = null;
             }
             return true;
         }

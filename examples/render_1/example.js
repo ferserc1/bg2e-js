@@ -82,7 +82,7 @@ class MyWebGLShader extends Shader {
             this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
         }
         else {
-            const webglTexture = materialRenderer.getTexture('diffuse').getApiObject();
+            const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
             const target = TextureTargetName[material.diffuse.target];
             gl.bindTexture(gl[target], webglTexture);
             this._program.uniform3fv('uFixedColor', new Vec(1,1,1));
