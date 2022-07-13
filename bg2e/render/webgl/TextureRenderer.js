@@ -1,12 +1,6 @@
 
 
 import TextureRenderer from '../TextureRenderer';
-
-
-
-
-
-
 import Texture, { 
     TextureWrapName, 
     TextureFilterName, 
@@ -55,20 +49,14 @@ const getWebGLTexture = (gl, textureData) => {
     if (textureData.mipmapRequired) {
         gl.generateMipmap(target);
     }
-
-    textureData.setUpdated();
 }
-
-
-
-
-
-
-
 export default class WebGLTextureRenderer extends TextureRenderer {
-    getApiObject(texture) {
-        // Return the specific texture identifier for renderer type
-        throw new Error("TextureRenderer: Not implemented");
+    getApiObject() {
+        if (this.texture.dirty) {
+            getWebGLTexture(this.renderer.gl, this.texture);
+            this.texture.setUpdated();
+        }
+        return this.texture._apiObject;
     }
     
     deleteTexture(texture) {

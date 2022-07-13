@@ -158,6 +158,60 @@ export default class Vec extends NumericArray {
         return this;
     }
 
+    get r() {
+        return this[0];
+    }
+
+    get g() {
+        return this[1];
+    }
+
+    get b() {
+        return this[2];
+    }
+
+    get a() {
+        return this[3];
+    }
+
+    set r(v) {
+        this[0] = v;
+        return this;
+    }
+
+    set g(v) {
+        this[1] = v;
+        return this;
+    }
+
+    set b(v) {
+        this[2] = v;
+        return this;
+    }
+
+    set a(v) {
+        this[3] = v;
+        return this;
+    }
+
+    get width() {
+        return this[0];
+    }
+
+    get height() {
+        return this[1];
+    }
+
+    set width(w) {
+        this[0] = w;
+        return this;
+    }
+
+    set height(h) {
+        this[1] = h;
+        return this;
+    }
+    
     get xy() {
         switch (this.length) {
         case 2:

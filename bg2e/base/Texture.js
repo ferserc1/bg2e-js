@@ -155,7 +155,7 @@ export default class Texture {
     }
 
     get dirty() {
-        return true;
+        return this._dirty;
     }
 
     setUpdated(updated = true) {
@@ -269,12 +269,13 @@ export default class Texture {
             const color = new Vec(this.proceduralParameters);
             const canvas = document.createElement('canvas');
             canvas.width = this.size.x;
-            canvas.height = this.size.h;
+            canvas.height = this.size.y;
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = color.hexColor;
             ctx.fillRect(0, 0, this.size.x, this.size.y);
             this._imageData = new Image();
             this._imageData.src = canvas.toDataURL("image/png");
+            document.body.appendChild(canvas);
 
             this._dirty = true;
         }

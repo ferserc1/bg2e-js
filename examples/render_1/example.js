@@ -61,6 +61,8 @@ class MyWebGLShader extends Shader {
         this._whiteTexture.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
         this._whiteTexture.proceduralParameters = [1,1,1,1];
         this._whiteTexture.size = new Vec(4,4);
+        this._whiteTexture.loadImageData();
+        this._whiteTextureRenderer = renderer.factory.texture(this._whiteTexture);
     }
 
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
@@ -73,15 +75,16 @@ class MyWebGLShader extends Shader {
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
 
         gl.activeTexture(gl.TEXTURE0);
+        this._program.uniform1i('uTexture', 0);
         if (material.diffuse instanceof Vec) {
+            const target = TextureTargetName[this._whiteTexture.target];
+            gl.bindTexture(gl[target], this._whiteTextureRenderer.getApiObject());
             this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
-            // TODO: White texture
         }
         else {
-            const webglTexture = materialRenderer.getTexture('diffuse');
+            const webglTexture = materialRenderer.getTexture('diffuse').getApiObject();
             const target = TextureTargetName[material.diffuse.target];
             gl.bindTexture(gl[target], webglTexture);
-            this._program.uniform1i("uTexture", 0);
             this._program.uniform3fv('uFixedColor', new Vec(1,1,1));
         }
 
@@ -138,6 +141,8 @@ class MyAppController extends AppController {
         });
         
         this._color = Color.Black();
+
+        window.cubes = drawable;
     }
 
     reshape(width,height) {
