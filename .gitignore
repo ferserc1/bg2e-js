@@ -12,3 +12,5 @@ bg2e-base/debug
 bg2e-tools/package-lock.json
 bg2e-math/package-lock.json
 bg2e-base/package-lock.json
+
+.DS_Store
