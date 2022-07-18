@@ -137,10 +137,6 @@ class MyAppController extends AppController {
                 transform
             }
         });
-
-        this._renderState = new RenderState({
-            shader: this._shader
-        });
         
         this._color = Color.Black();
 
