@@ -19,7 +19,7 @@ export const registerPluginInDatabase = (pluginInstance, pluginDatabase) => {
     });
 }
 
-export const getPluginFromDatabase = (path, type, pluginDatabase) => {
+export const getPluginFromDatabase = function(path, type, pluginDatabase) {
     const ext = getExtension(path);
     const extCheck = new RegExp(ext, "i");
     const errMsg = `Could not find a plugin to ${pluginDatabase.operationType} file '${path}' of type '${type}'.`;
@@ -29,13 +29,12 @@ export const getPluginFromDatabase = (path, type, pluginDatabase) => {
         throw new Error(errMsg);
     }
     else {
-        const plugin = plugins.find(p => {
-            return p.supportedExtensions.find(e => extCheck.test(e)) !== null
-        });
-        if (!plugin) {
-            throw new Error(errMsg);
+        for (const plugin of plugins) {
+            if (plugin.supportedExtensions.find(e => extCheck.test(e))) {
+                return plugin;
+            }
         }
-        return plugin;
+        throw new Error(errMsg);
     }
 }
 

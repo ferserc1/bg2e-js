@@ -133,7 +133,7 @@ function checkAddPlist() {
     }
 }
 
-function loadDrawable() {
+function loadObjData() {
     let lines = this._textData.split('\n');
     let multiLine = "";
     lines.forEach(line => {
@@ -223,7 +223,7 @@ export default class ObjParser {
 
         this._addPlist = true;
 
-        loadDrawable.apply(this);
+        loadObjData.apply(this);
     }
 
 
