@@ -16,6 +16,7 @@ import Shader from "bg2e/render/Shader";
 import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import Texture, { TextureTargetName, ProceduralTextureFunction } from "bg2e/base/Texture";
+import { RenderLayer } from "bg2e/base/PolyList";
 
 window.Mat4 = Mat4;
 window.Vec = Vec;
@@ -141,6 +142,15 @@ class MyAppController extends AppController {
         this._color = Color.Black();
 
         window.cubes = drawable;
+        console.log(RenderLayer);
+
+        const layer = RenderLayer.LAYER_31 | RenderLayer.LAYER_0;
+        console.log(layer & RenderLayer.LAYER_31);
+        console.log(layer & RenderLayer.LAYER_0);
+        console.log(layer & RenderLayer.LAYER_11);
+
+        const layer2 = RenderLayer.ALL & ~RenderLayer.LAYER_2;
+        console.log((layer2 >>> 0).toString(2));
     }
 
     reshape(width,height) {

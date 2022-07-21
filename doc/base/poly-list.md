@@ -124,3 +124,36 @@ However, it may be the case that texture coordinates or vertices are changed, bu
 **`PolyList.ApplyTransform(plist, trx)`**: Modify the vertex, normal and tangent arrays of the `plist` mesh with the transformation matrix `trx`.
 
 
+## Render layers
+
+Render layers are used internally by the graphics engine to decide when a PolyList has to be rendered or not. It is an internal tool that is not handled by the serialization and deserialization functions.
+
+For example, internally the graphics engine will use these layers to configure if a polyList has to be rendered in a certain render pass, depending on other properties, and on the specific render pass. If a polyList has material properties that make it transparent, then internally the render layer will be configured to only be drawn when objects are rendered in the transparency render pass.
+
+The render layers are a 32-bit mask, so there are 32 possible render layers.
+
+The `renderLayers` default value is `RenderLayer.ALL`, so by default, a poly list are always rendererd.
+
+**`polyList.renderLayers` (read/write):** Sets the active rendering layers for the polyList:
+
+```js
+import { RenderLayer } from 'bg2e/base/PolyList';
+...
+myPolyList.renderLayers = RenderLayer.LAYER_0 | RenderLayer.LAYER_1;
+```
+
+**`polyList.enableLayer(layer)`:** activa una o varias capas de render mediante una operación OR sobre el valor actual de renderLayer.
+
+```js
+// myPolyList.renderLayers == 0b00000000000000000000000000000000
+myPolyList.enableLayer(RenderLayer.LAYER_0 | RenderLayer.LAYER_1);
+// myPolyList.renderLayers == 0b00000000000000000000000000000011
+```
+
+**`polyList.disableLayer(layer)`:** disables one or more render layers by means of a 1's complement AND operation on the current value of renderLayer.
+
+```js
+// myPolyList.renderLayers == 0b11111111111111111111111111111111
+myPolyList.disableLayer(RenderLayer.LAYER_0 | RenderLayer.LAYER_1);
+// myPolyList.renderLayers == 0b11111111111111111111111111111100
+```

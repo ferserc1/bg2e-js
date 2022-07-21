@@ -22,6 +22,43 @@ export const DrawMode = {
     LINE_STRIP: 5
 };
 
+export const RenderLayer = {
+    LAYER_0:  0x1 << 0,
+    LAYER_1:  0x1 << 1,
+    LAYER_2:  0x1 << 2,
+    LAYER_3:  0x1 << 3,
+    LAYER_4:  0x1 << 4,
+    LAYER_5:  0x1 << 5,
+    LAYER_6:  0x1 << 6,
+    LAYER_7:  0x1 << 7,
+    LAYER_8:  0x1 << 8,
+    LAYER_9:  0x1 << 9,
+    LAYER_10: 0x1 << 10,
+    LAYER_11: 0x1 << 11,
+    LAYER_12: 0x1 << 12,
+    LAYER_13: 0x1 << 13,
+    LAYER_14: 0x1 << 14,
+    LAYER_15: 0x1 << 15,
+    LAYER_16: 0x1 << 16,
+    LAYER_17: 0x1 << 17,
+    LAYER_18: 0x1 << 18,
+    LAYER_19: 0x1 << 19,
+    LAYER_20: 0x1 << 20,
+    LAYER_21: 0x1 << 21,
+    LAYER_22: 0x1 << 22,
+    LAYER_23: 0x1 << 23,
+    LAYER_24: 0x1 << 24,
+    LAYER_25: 0x1 << 25,
+    LAYER_26: 0x1 << 26,
+    LAYER_27: 0x1 << 27,
+    LAYER_28: 0x1 << 28,
+    LAYER_29: 0x1 << 29,
+    LAYER_30: 0x1 << 30,
+    LAYER_31: 0x1 << 31,
+
+    ALL: 0xFFFFFFFF
+};
+
 function buildTangents(plist) {
     plist._tangent = [];
 
@@ -115,6 +152,8 @@ function buildTangents(plist) {
 
 export default class PolyList {
     constructor() {
+        this._renderLayers = RenderLayer.ALL;
+
         this._drawMode = DrawMode.TRIANGLES;
 
         this._name = "";
@@ -153,6 +192,12 @@ export default class PolyList {
         this.index = [...other.index];
         this.rebuildTangents();
     }
+
+    // render layers aren't serialized/deserialized, they are used only by the graphics engine
+    get renderLayers() { this._renderLayers; }
+    set renderLayers(layers) { this._renderLayers = layers; }
+    enableLayer(layer) { this._renderLayers = this._renderLayers | layer; }
+    disableLayer(layer) { this._renderLayers = this._renderLayers & ~layer; }
 
     get drawMode() { return this._drawMode; }
     set drawMode(m) { this._drawMode = m; }

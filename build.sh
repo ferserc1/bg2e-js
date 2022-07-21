@@ -46,3 +46,8 @@ npm install
 npm run build
 cd -
 
+cd examples/render_1
+npm install
+npm run build
+cd -
+
