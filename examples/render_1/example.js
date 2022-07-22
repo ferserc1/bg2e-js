@@ -17,7 +17,7 @@ import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import Texture, { TextureTargetName, ProceduralTextureFunction } from "bg2e/base/Texture";
 import { RenderLayer } from "bg2e/base/PolyList";
-import { createCube, createSphere } from 'bg2e/primitives';
+import { createCube, createSphere, createCylinder } from 'bg2e/primitives';
 
 window.Mat4 = Mat4;
 window.Vec = Vec;
@@ -150,6 +150,12 @@ class MyAppController extends AppController {
             plistRenderer: this.renderer.factory.polyList(createSphere(0.5)),
             materialRenderer: this.renderer.factory.material(new Material()),
             transform: Mat4.MakeTranslation(2, 0, 0)
+        });
+
+        this._plistRenderers.push({
+            plistRenderer: this.renderer.factory.polyList(createCylinder(1,1)),
+            materialRenderer: this.renderer.factory.material(new Material()),
+            transform: Mat4.MakeTranslation(-2,0,0)
         });
         
         this._color = Color.Black();
