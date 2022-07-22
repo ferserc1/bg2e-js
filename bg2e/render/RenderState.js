@@ -36,6 +36,7 @@ export default class RenderState {
     get projectionMatrix() { return this._projectionMatrix; }
 
     draw() {
+        this.polyListRenderer.bindBuffers();
         this.shader.setup(
             this.polyListRenderer,
             this.materialRenderer,

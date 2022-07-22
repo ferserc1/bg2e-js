@@ -157,10 +157,15 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
         return { name, stride: this._stride, size: 3, offset: this._offsets.tangent, enable: true }
     }
 
+    bindBuffers() {
+        this._vertexBuffer.bind(BufferTarget.ARRAY_BUFFER);
+        this._indexBuffer.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);        
+    }
+    
     draw() {
         const { gl } = this.renderer;
-        this._vertexBuffer.bind(BufferTarget.ARRAY_BUFFER);
-        this._indexBuffer.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);
+        //this._vertexBuffer.bind(BufferTarget.ARRAY_BUFFER);
+        //this._indexBuffer.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);
 
         let mode = 0;
         switch (this._polyList.drawMode) {

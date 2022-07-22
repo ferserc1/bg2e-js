@@ -40,21 +40,26 @@ const createPolyList = (jsonData,loader) => {
     return result;
 }
 
-const createDrawable = (jsonData,filePath,loader) => {
+const createDrawable = async (jsonData,filePath,loader) => {
     const name = removeExtension(getFileName(filePath));
     const relativePath = removeFileName(filePath);
     const drawable = new Drawable(name);
-    createPolyList(jsonData).forEach(item => {
+    for (const item of createPolyList(jsonData)) {
         const mat = new Material();
-        mat.deserialize(item.materialData, relativePath);
+        await mat.deserialize(item.materialData, relativePath);
         drawable.addPolyList(item.plist, mat);
-    });
+    }
+    //createPolyList(jsonData).forEach(item => {
+    //    const mat = new Material();
+    //    mat.deserialize(item.materialData, relativePath);
+    //    drawable.addPolyList(item.plist, mat);
+    //});
     return drawable;
 }
 
 const createNode = async (jsonData,filePath,loader) => {
     const name = removeExtension(getFileName(filePath));
-    const drawable = createDrawable(jsonData,filePath);
+    const drawable = await createDrawable(jsonData,filePath);
     const node = new Node(name);
     node.addChild(drawable);
     for (const compData of jsonData.components) {

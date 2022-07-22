@@ -17,6 +17,7 @@ import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import Texture, { TextureTargetName, ProceduralTextureFunction } from "bg2e/base/Texture";
 import { RenderLayer } from "bg2e/base/PolyList";
+import { createCube } from 'bg2e/primitives';
 
 window.Mat4 = Mat4;
 window.Vec = Vec;
@@ -138,6 +139,12 @@ class MyAppController extends AppController {
                 transform
             }
         });
+
+        this._plistRenderers.push({
+            plistRenderer: this.renderer.factory.polyList(createCube(5,0.5,2)),
+            materialRenderer: this.renderer.factory.material(new Material()),
+            transform: Mat4.MakeRotation(45,0,1,0)
+        });
         
         this._color = Color.Black();
 
@@ -181,6 +188,9 @@ class MyAppController extends AppController {
 
         this._renderStates = [];
         this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
+            const plist = plistRenderer.polyList;
+            const mat = materialRenderer.material;
+            console.log(`Add object to render queue: '${plist.name}'. Diffuse: ${mat.diffuse instanceof Texture ? mat.diffuse.fileName : mat.diffuse }`);
             this._renderStates.push(new RenderState({
                 shader: this._shader,
                 materialRenderer: materialRenderer,

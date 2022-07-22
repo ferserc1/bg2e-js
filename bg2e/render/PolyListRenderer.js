@@ -24,6 +24,10 @@ export default class PolyListRenderer {
 
     }
 
+    bindBuffers() {
+
+    }
+
     draw() {
 
     }
