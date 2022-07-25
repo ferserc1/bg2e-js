@@ -53,4 +53,9 @@ export default class Renderer {
             }
         }
     }
+
+    presentTexture(texture) {
+        
+    }
+
 }

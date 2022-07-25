@@ -51,3 +51,7 @@ npm install
 npm run build
 cd -
 
+cd examples/present_texture
+npm install
+npm run build
+cd -

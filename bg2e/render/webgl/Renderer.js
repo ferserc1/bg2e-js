@@ -40,4 +40,8 @@ export default class WebGLRenderer extends Renderer {
     textureFactory(texture) {
         return new TextureRenderer(this, texture);
     }
+
+    presentTexture(texture) {
+        throw new Error("webgl.Renderer.presentTexture(): not implemneted");
+    }
 }
