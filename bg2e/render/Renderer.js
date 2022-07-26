@@ -1,7 +1,9 @@
 
 import MaterialRenderer from "./MaterialRenderer";
+import PresentTextureShader from "../shaders/PresentTextureShader";
+import Material from "../base/Material";
+import PolyList from "../base/PolyList";
 export default class Renderer {
-
     constructor(identifier) {
         this._identifier = identifier;
     }
@@ -12,6 +14,44 @@ export default class Renderer {
 
     get canvas() {
         return this._canvas;
+    }
+
+    get presentTextureSurfaceRenderer() {
+        if (!this._presentTextureSurface) {
+            const plist = new PolyList();
+            plist.vertex = [
+                -1, -1, 0,
+                 1, -1, 0,
+                 1,  1, 0,
+                -1,  1, 0
+            ];
+            plist.texCoord0 = [
+                0, 1,
+                1, 1,
+                1, 0,
+                0, 0
+            ];
+            plist.index = [
+                0, 1, 2,
+                2, 3, 0
+            ];
+            this._presentTextureSurface = this.factory.polyList(plist);
+        }
+        return this._presentTextureSurface;
+    }
+
+    get presentTextureShader() {
+        if (!this._presentTextureShader) {
+            this._presentTextureShader = new PresentTextureShader(this);
+        }
+        return this._presentTextureShader;
+    }
+
+    get presentTextureMaterialRenderer() {
+        if (!this._presentTextureMaterial) {
+            this._presentTextureMaterial = this.factory.material(new Material());
+        }
+        return this._presentTextureMaterial;
     }
 
     postReshape(width,height) {
@@ -54,7 +94,7 @@ export default class Renderer {
         }
     }
 
-    presentTexture(texture) {
+    presentTexture(texture, params) {
         
     }
 

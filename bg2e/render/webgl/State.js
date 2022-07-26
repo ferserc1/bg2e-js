@@ -110,7 +110,12 @@ export default class State {
 
     get shaderProgram() {
         const glProgram = this.gl.getParameter(this.gl.CURRENT_PROGRAM);
-        return ShaderProgram.GetShaderProgram(glProgram);
+        if (glProgram) {
+            return ShaderProgram.GetShaderProgram(glProgram);
+        }
+        else {
+            return null;
+        }
     }
 
     clear({ color = true, depth = true, stencil = false} = {}) {

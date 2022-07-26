@@ -2,7 +2,6 @@ import Renderer from "../Renderer";
 import State from "./State";
 import PolyListRenderer from "./PolyListRenderer";
 import TextureRenderer from "./TextureRenderer";
-
 export default class WebGLRenderer extends Renderer {
     constructor() {
         super("webgl");
@@ -41,7 +40,20 @@ export default class WebGLRenderer extends Renderer {
         return new TextureRenderer(this, texture);
     }
 
-    presentTexture(texture) {
-        throw new Error("webgl.Renderer.presentTexture(): not implemneted");
+    presentTexture(texture, { clearBuffers = true, shader = null } = {}) {
+        // https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
+        
+        if (clearBuffers) {
+            this.state.clear();
+        }
+
+        if (!shader) {
+            shader = this.presentTextureShader;
+        }
+
+        this.presentTextureMaterialRenderer.material.diffuse = texture;
+        this.presentTextureSurfaceRenderer.bindBuffers();
+        shader.setup(this.presentTextureSurfaceRenderer,this.presentTextureMaterialRenderer);
+        this.presentTextureSurfaceRenderer.draw();
     }
 }
