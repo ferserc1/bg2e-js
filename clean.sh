@@ -20,3 +20,5 @@ rm -rf examples/render_1/dist
 rm -rf examples/render_1/node_modules
 rm -rf examples/present_texture/dist
 rm -rf examples/present_texture/node_modules
+rm -rf examples/render_to_texture/dist
+rm -rf examples/render_to_texture/node_modules

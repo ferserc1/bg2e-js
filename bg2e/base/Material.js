@@ -286,6 +286,12 @@ const deserializeAttribute = async (att,obj, relativePath) => {
 }
 
 export default class Material {
+    static async Deserialize(sceneData,relativePath = "") {
+        const result = new Material();
+        await result.deserialize(sceneData,relativePath);
+        return result;
+    }
+
     constructor() {
         this._type = MaterialType.PBR;
 
@@ -519,16 +525,18 @@ export default class Material {
     async deserialize(sceneData, relativePath) {
         for (const i in MaterialAttributeNames) {
             const att = MaterialAttributeNames[i];
-            let value = await deserializeAttribute(att, sceneData, relativePath);
-            if (att === "type" && !value) {
-                value = await deserializeAttribute("class", sceneData, relativePath);
-            }
-            if (value) {
-                if (this[att] === undefined) {
-                    console.warn(`Material.deserialize(): invalid material attribute found in JSON material definition: '${ att }`);
+            if (sceneData[att] !== undefined) {
+                let value = await deserializeAttribute(att, sceneData, relativePath);
+                if (att === "type" && !value) {
+                    value = await deserializeAttribute("class", sceneData, relativePath);
                 }
-                else {
-                    this[att] = value;
+                if (value) {
+                    if (this[att] === undefined) {
+                        console.warn(`Material.deserialize(): invalid material attribute found in JSON material definition: '${ att }`);
+                    }
+                    else {
+                        this[att] = value;
+                    }
                 }
             }
         }

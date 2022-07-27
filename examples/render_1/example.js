@@ -142,31 +142,41 @@ class MyAppController extends AppController {
 
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(createCube(5,0.5,2)),
-            materialRenderer: this.renderer.factory.material(new Material()),
+            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
+                diffuse: [0.8, 0.4, 0.1]
+            })),
             transform: Mat4.MakeRotation(45,0,1,0)
         });
 
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(createSphere(0.5)),
-            materialRenderer: this.renderer.factory.material(new Material()),
+            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
+                diffuse: [0.3,0.98,0.05]
+            })),
             transform: Mat4.MakeTranslation(2, 0, 0)
         });
 
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(createCylinder(1,1)),
-            materialRenderer: this.renderer.factory.material(new Material()),
+            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
+                diffuse: [0.3,0.28,0.95]
+            })),
             transform: Mat4.MakeTranslation(-2,0,0)
         });
 
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(createCone(1,0.5)),
-            materialRenderer: this.renderer.factory.material(new Material()),
+            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
+                diffuse: [0.3,0.98,0.85]
+            })),
             transform: Mat4.MakeTranslation(-2,0,-2)
         });
 
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(createPlane(5, 5)),
-            materialRenderer: this.renderer.factory.material(new Material()),
+            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
+                diffuse: [0.93,0.98,0.05]
+            })),
             transform: Mat4.MakeIdentity()
         });
         

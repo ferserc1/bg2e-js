@@ -55,3 +55,8 @@ cd examples/present_texture
 npm install
 npm run build
 cd -
+
+cd examples/render_to_texture
+npm install
+npm run build
+cd -

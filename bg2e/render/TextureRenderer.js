@@ -1,4 +1,3 @@
-// TODO: Extract texture creation from MaterialRenderer
 
 export default class TextureRenderer {
     constructor(renderer, texture) {
