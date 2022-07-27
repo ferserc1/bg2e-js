@@ -4,7 +4,8 @@ import TextureRenderer from '../TextureRenderer';
 import Texture, { 
     TextureWrapName, 
     TextureFilterName, 
-    TextureTargetName
+    TextureTargetName,
+    TextureDataType
 } from '../../base/Texture';
 import {
     ColorTextureAttributes, 
@@ -50,6 +51,23 @@ const getWebGLTexture = (gl, textureData) => {
         gl.generateMipmap(target);
     }
 }
+
+const beginUpdateRenderTargetTexture = (gl,textureData) => {
+    // TODO:
+    // 1) resize texture, if needed, set viewport, etc
+
+    // 2) bind/create framebuffers
+
+    // 3) Setup attachment
+    throw new Error("beginUpdateRenderTargetTexture() not implemented");
+}
+
+const endUpdateRenderTargetTexture = (gl,textureData) => {
+    // TODO;
+    // 1) set framebuffer to null
+    throw new Error("endUpdateRenderTargetTexture(): not implemented");
+}
+
 export default class WebGLTextureRenderer extends TextureRenderer {
     getApiObject() {
         if (this.texture.dirty) {
@@ -68,5 +86,31 @@ export default class WebGLTextureRenderer extends TextureRenderer {
             return true;
         }
         return false;
+    }
+
+    beginUpdate(target = TextureTarget.TEXTURE_2D) {
+        if (this.texture.dataType !== TextureDataType.RENDER_TARGET) {
+            throw new Error("Invalid use of `beginUpdate()` on non render target texture.");
+        }
+
+        this._beginUpdateTextureData = {
+            texture: this.texture
+        };
+
+        beginUpdateRenderTargetTexture(gl,this._beginUpdateTextureData);
+    }
+
+    endUpdate() {
+        if (this.texture.dataType !== TextureDataType.RENDER_TARGET) {
+            throw new Error("Invalid use of `endUpdate()` on non render target texture.");
+        }
+
+        if (!this._beginUpdateTextureData) {
+            throw new Error("Calling TextureRenderer.endUpdate() without previous call to beginUpdate()");
+        }
+
+        endUpdateRenderTargetTexture(gl, this._beginUpdateTextureData);
+
+        this._beginUpdateTextureData = null;
     }
 }

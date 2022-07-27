@@ -10,7 +10,8 @@ export const TextureDataType = {
     CUBEMAP: 3,
     CUBEMAP_DATA: 4,
     VIDEO: 5,
-    PROCEDURAL: 6
+    PROCEDURAL: 6,
+    RENDER_TARGET: 7
 };
 
 export const TextureWrap = {
@@ -45,6 +46,32 @@ export const ProceduralTextureFunction = {
     DYNAMIC_CUBEMAP: 2
 };
 
+export const TextureRenderTargetAttachment = {
+    COLOR_ATTACHMENT_0: 0,
+    COLOR_ATTACHMENT_1: 1,
+    COLOR_ATTACHMENT_2: 2,
+    COLOR_ATTACHMENT_3: 3,
+    COLOR_ATTACHMENT_4: 4,
+    COLOR_ATTACHMENT_5: 5,
+    COLOR_ATTACHMENT_6: 6,
+    COLOR_ATTACHMENT_7: 7,
+    COLOR_ATTACHMENT_8: 8,
+    COLOR_ATTACHMENT_9: 9,
+    COLOR_ATTACHMENT_10: 10,
+    COLOR_ATTACHMENT_11: 11,
+    COLOR_ATTACHMENT_12: 12,
+    COLOR_ATTACHMENT_13: 13,
+    COLOR_ATTACHMENT_14: 14,
+    COLOR_ATTACHMENT_15: 15,
+    DEPTH_ATTACHMENT: 100,
+    STENCIL_ATTACHMENT: 200
+};
+
+export const TextureComponentFormat = {
+    UNSIGNED_BYTE: 0,
+    FLOAT32: 1
+};
+
 export const TextureDataTypeName = {
     0: "NONE",
     1: "IMAGE",
@@ -52,7 +79,8 @@ export const TextureDataTypeName = {
     3: "CUBEMAP",
     4: "CUBEMAP_DATA",
     5: "VIDEO",
-    6: "PROCEDURAL"
+    6: "PROCEDURAL",
+    7: "RENDER_TARGET"
 };
 
 export const TextureWrapName = {
@@ -86,6 +114,32 @@ export const ProceduralTextureFunctionName = {
     1: "RANDOM_NOISE"
 };
 
+export const TextureRenderTargetAttachmentNames = {
+    0: "COLOR_ATTACHMENT_0",
+    1: "COLOR_ATTACHMENT_1",
+    2: "COLOR_ATTACHMENT_2",
+    3: "COLOR_ATTACHMENT_3",
+    4: "COLOR_ATTACHMENT_4",
+    5: "COLOR_ATTACHMENT_5",
+    6: "COLOR_ATTACHMENT_6",
+    7: "COLOR_ATTACHMENT_7",
+    8: "COLOR_ATTACHMENT_8",
+    9: "COLOR_ATTACHMENT_9",
+    10: "COLOR_ATTACHMENT_10",
+    11: "COLOR_ATTACHMENT_11",
+    12: "COLOR_ATTACHMENT_12",
+    13: "COLOR_ATTACHMENT_13",
+    14: "COLOR_ATTACHMENT_14",
+    15: "COLOR_ATTACHMENT_15",
+    100: "DEPTH_ATTACHMENT",
+    200: "STENCIL_ATTACHMENT"
+};
+
+export const TextureComponentFormatNames = {
+    0: "UNSIGNED_BYTE",
+    1: "FLOAT32"
+};
+
 const g_loadedImages = {};
 let g_resource = null;
 const loadImageFromFile = async fileUrl => {
@@ -111,6 +165,8 @@ export default class Texture {
         this._fileName = "";
         this._proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
         this._proceduralParameters = {};
+        this._renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
+        this._componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
 
         // This attribute is generated from the previous attributes, for example,
         // calling loadImageData() after setting the fileName attribute
@@ -150,7 +206,9 @@ export default class Texture {
         this._proceduralFunction = other._proceduralFunction;
         this._proceduralParameters = other._proceduralParameters;
         this._imageData = other._imageData;
-        
+        this._renderTargetAttachment = other._renderTargetAttachment;
+        this._componentFormat = other._componentFormat;
+
         this._dirty = true;
     }
 
@@ -163,7 +221,14 @@ export default class Texture {
     }
 
     get dataType() { return this._dataType; }
-    set dataType(v) { this._dataType = v; this._dirty = true; }
+    set dataType(v) {
+        this._dataType = v;
+        this.wrapModeXY = TextureWrap.CLAMP;
+        this.magFilter = TextureFilter.LINEAR;
+        this.minFilter = TextureFilter.LINEAR;
+        this._dirty = true;
+    }
+
     get wrapModeX() { return this._wrapModeX; }
     set wrapModeX(v) { this._wrapModeX = v; this._dirty = true; }
     get wrapModeY() { return this._wrapModeY; }
@@ -199,6 +264,10 @@ export default class Texture {
         this._proceduralParameters = v;
         this._dirty = true; 
     }
+    get renderTargetAttachment() { return this._renderTargetAttachment; }
+    set renderTargetAttachment(att) { this._renderTargetAttachment = att; this._dirty = true; }
+    get componentFormat() { return this._componentFormat; }
+    set componentFormat(fmt) { this._componentFormat = fmt; this._dirty = true; }
 
     get mipmapRequired() {
         return  this._minFilter === TextureFilter.NEAREST_MIPMAP_NEAREST ||
@@ -222,6 +291,8 @@ export default class Texture {
         this._fileName = sceneData.fileName !== undefined ? sceneData.fileName : "";
         this._proceduralFunction = sceneData.proceduralFunction !== undefined ? ProceduralTextureFunction[sceneData.proceduralFunction] : ProceduralTextureFunction.PLAIN_COLOR;
         this._proceduralParameters = sceneData.proceduralParameters !== undefined ? sceneData.proceduralParameters : {};
+        this._renderTargetAttachment = sceneData.renderTargetAttachment !== undefined ? sceneData.renderTargetAttachment : TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
+        this._componentFormat = sceneData.componentFormat !== undefined ? sceneData.componentFormat : TextureComponentFormat.UNSIGNED_BYTE;
         this._dirty = true; 
     }
 
@@ -236,6 +307,8 @@ export default class Texture {
         sceneData.fileName = this.fileName;
         sceneData.proceduralFunction = ProceduralTextureFunctionName[this.proceduralFunction];
         sceneData.proceduralParameters = this.proceduralParameters;
+        sceneData.renderTargetAttachment = TextureRenderTargetAttachmentNames[this.renderTargetAttachment];
+        sceneData.componentFormat = TextureComponentFormatNames[this.componentFormat];
     }
 
     async loadImageData(refresh = false) {

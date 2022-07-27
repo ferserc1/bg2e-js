@@ -1,4 +1,4 @@
-import Renderer from "../Renderer";
+import Renderer, { EngineFeatures } from "../Renderer";
 import State from "./State";
 import PolyListRenderer from "./PolyListRenderer";
 import TextureRenderer from "./TextureRenderer";
@@ -55,5 +55,38 @@ export default class WebGLRenderer extends Renderer {
         this.presentTextureSurfaceRenderer.bindBuffers();
         shader.setup(this.presentTextureSurfaceRenderer,this.presentTextureMaterialRenderer);
         this.presentTextureSurfaceRenderer.draw();
+    }
+
+     // Compatibility function
+     supportsFeatures(features) {
+        if (features & EngineFeatures.RENDER_TARGET_TEXTURES) {
+            if (!this.gl.getExtension("WEBGL_draw_buffers")) {
+                return false;
+            }
+        }
+
+        if (features & EngineFeatures.RENDER_TARGET_FLOAT) {
+            if (!this.gl.getExtension("WEBGL_color_buffer_float")) {
+                return false;
+            }
+        }
+
+        if (features & EngineFeatures.RENDER_TARGET_DEPTH) {
+            if (!this.gl.getExtension("WEBGL_depth_texture") || !this.gl.getExtension("WEBGL_draw_buffers")) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    getMaximumRenderTargets() {
+        const ext = this.gl.getExtension("WEBGL_draw_buffers");
+        if (ext) {
+            return this.gl.getParameter(ext.MAX_DRAW_BUFFERS_WEBGL);
+        }
+        else {
+            return 1;
+        }
     }
 }

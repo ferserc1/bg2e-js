@@ -3,6 +3,13 @@ import MaterialRenderer from "./MaterialRenderer";
 import PresentTextureShader from "../shaders/PresentTextureShader";
 import Material from "../base/Material";
 import PolyList from "../base/PolyList";
+
+export const EngineFeatures = {
+    RENDER_TARGET_TEXTURES:         0x1 << 0,
+    RENDER_TARGET_FLOAT:            0x1 << 1,
+    RENDER_TARGET_DEPTH:            0x1 << 2
+};
+
 export default class Renderer {
     constructor(identifier) {
         this._identifier = identifier;
@@ -98,4 +105,12 @@ export default class Renderer {
         
     }
 
+    // Compatibility function
+    supportsFeatures(feature) {
+        return false;
+    }
+
+    getMaximumRenderTargets() {
+        return 1;
+    }
 }

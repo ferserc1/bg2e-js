@@ -2,14 +2,14 @@ import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
 import Canvas from "bg2e/app/Canvas";
 import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
-import Texture from "bg2e/base/Texture";
+import Texture, { TextureComponentFormat, TextureDataType, TextureRenderTargetAttachment } from "bg2e/base/Texture";
 import Vec from "bg2e/math/Vec";
-import Color from "bg2e/base/Color";
 import BasicDiffuseColorShader from "bg2e/shaders/BasicDiffuseColorShader";
 import { createCube, createPlane, createSphere } from "bg2e/primitives";
 import Material from "bg2e/base/Material";
 import Mat4 from "bg2e/math/Mat4";
 import RenderState from "bg2e/render/RenderState";
+import { EngineFeatures } from "bg2e/render/Renderer";
 
 class MyAppController extends AppController {
     async init() {
@@ -17,10 +17,31 @@ class MyAppController extends AppController {
             throw new Error("This example works only with WebGL Renderer");
         }
 
+        if (!this.renderer.supportsFeatures(EngineFeatures.RENDER_TARGET_TEXTURES)) {
+            throw new Error("Unsupported features");
+        }
+
+        console.log(`Maximum render targets: ${ this.renderer.getMaximumRenderTargets()}`);
+
         // TODO: Example texture to present. Remove this code
         this._texture = new Texture();
         this._texture.fileName = '../resources/country_field_sun.jpg';
         await this._texture.loadImageData();
+
+        this._rttTarget = new Texture();
+        // When the texture data type is set to RENDER_TARGET, the wrapModeXY parameter
+        // is set to CLAMP, and the minFilter and magFilter are set to LINEAR.
+        this._rttTarget.dataType = TextureDataType.RENDER_TARGET;
+        this._rttTarget.size = [512, 512];  // Initial size, will be updated in reshape() function
+        // This is the default attachment, if any other is specified
+        this._rttTarget.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
+
+        // In this case we use an unsigned byte texture, but it also can be used a floating point texture,
+        // if the engine supports it
+        this._rttTarget.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
+
+        // Create the texture renderer for the render target texture
+        this._rttTextureRenderer = this.renderer.factory.texture(this._rttTarget);
 
         this.renderer.state.depthTestEnabled = true;
 
@@ -57,8 +78,12 @@ class MyAppController extends AppController {
 
     reshape(width,height) {
         const { state } = this.renderer;
-        state.viewport = new Vec(width, height);
+        const size = new Vec(width, height);
+        state.viewport = size;
         this.renderer.canvas.updateViewportSize();
+
+        // Update texture target
+        this._rttTarget.size = size; 
     }
 
     frame(delta) {
@@ -82,9 +107,13 @@ class MyAppController extends AppController {
 
     display() {
         const { state } = this.renderer;
+
+        this._rttTextureRenderer.beginUpdate();
         state.clear();
         this._renderStates.forEach(rs => rs.draw());
-        //this.renderer.presentTexture(this._texture);
+        this._rttTextureRenderer.endUpdate();
+
+        //this.renderer.presentTexture(this._rttTexture);
     }
 
     destroy() {
