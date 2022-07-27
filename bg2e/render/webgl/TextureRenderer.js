@@ -53,6 +53,7 @@ const getWebGLTexture = (gl, textureData) => {
 }
 
 const beginUpdateRenderTargetTexture = (gl,textureData) => {
+    ///  https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
     // TODO:
     // 1) resize texture, if needed, set viewport, etc
 
