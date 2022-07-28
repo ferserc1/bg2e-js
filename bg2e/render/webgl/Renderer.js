@@ -3,6 +3,7 @@ import State from "./State";
 import PolyListRenderer from "./PolyListRenderer";
 import TextureRenderer from "./TextureRenderer";
 import RenderBuffer from "./RenderBuffer";
+
 export default class WebGLRenderer extends Renderer {
     constructor() {
         super("webgl");
@@ -34,11 +35,24 @@ export default class WebGLRenderer extends Renderer {
     }
 
     polyListFactory(plist) {
-        return super.polyListFactory(new PolyListRenderer(this, plist));
+        if (plist.renderer) {
+            return plist.renderer;
+        }
+        else{
+            const plistRenderer = new PolyListRenderer(this, plist);
+            plistRenderer.init();
+            plistRenderer.refresh();
+            return plistRenderer;
+        }
     }
 
     textureFactory(texture) {
-        return new TextureRenderer(this, texture);
+        if (texture.renderer) {
+            return texture.renderer;
+        }
+        else {
+            return new TextureRenderer(this, texture);
+        }
     }
 
     renderBufferFactory() {

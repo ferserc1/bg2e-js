@@ -1,17 +1,6 @@
 import Texture, { TextureDataType, TextureRenderTargetAttachmentNames } from "../base/Texture";
 import Vec from "../math/Vec";
 
-const getTextureObjects = (textureRendererOrTexture) => {
-    const texture = textureRendererOrTexture instanceof Texture ?
-        textureRendererOrTexture : textureRendererOrTexture.texture;
-    const textureRenderer = textureRendererOrTexture instanceof Texture ?
-        this.renderer.factory.textureRenderer(texture) : textureRendererOrTexture;
-    return {
-        texture,
-        textureRenderer
-    }
-}
-
 export default class RenderBuffer {
     constructor(renderer, size = new Vec([512,512])) {
         this._renderer = renderer;
@@ -26,8 +15,9 @@ export default class RenderBuffer {
 
     set size(s) {
         this._size = new Vec(s); 
-        for (const att of this.attachments) {
-            const texture = att.texture;
+        for (const att in this.attachments) {
+            const textureRenderer = this.attachments[att];
+            const texture = textureRenderer.texture;
             if (!Vec.Equals(texture.size, this.size)) {
                 texture.size = this.size;
             }
@@ -58,7 +48,7 @@ export default class RenderBuffer {
         texture.dataType = TextureDataType.RENDER_TARGET;
         texture.size = this.size;
         await texture.loadImageData();
-        const textureRenderer = this.renderer.factory.textureRenderer(texture);
+        const textureRenderer = this.renderer.factory.texture(texture);
         this._attachments[texture.renderTargetAttachment] = textureRenderer;
     }
 

@@ -86,6 +86,10 @@ class MyAppController extends AppController {
     }
 
     frame(delta) {
+        this._rotation = this._rotation || delta;
+        this._rotation += delta * 0.001;
+        const worldMatrix = Mat4.MakeIdentity();
+        worldMatrix.rotate(this._rotation, 0, 1, 0);
 
         this._renderStates = this._objects.map(({
             materialRenderer,
@@ -96,7 +100,7 @@ class MyAppController extends AppController {
                 shader: this._shader,
                 materialRenderer,
                 polyListRenderer,
-                modelMatrix: transform,
+                modelMatrix: Mat4.Mult(transform, worldMatrix),
                 viewMatrix: this._viewMatrix,
                 projectionMatrix: this._projMatrix
             });
@@ -112,7 +116,7 @@ class MyAppController extends AppController {
         this._renderStates.forEach(rs => rs.draw());
         this._renderBuffer.endUpdate();
 
-        //this.renderer.presentTexture(this._rttTexture);
+        this.renderer.presentTexture(this._rttTarget);
     }
 
     destroy() {

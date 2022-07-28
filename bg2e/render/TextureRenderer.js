@@ -1,8 +1,13 @@
 import { TextureTarget } from "../base/Texture";
 export default class TextureRenderer {
     constructor(renderer, texture) {
+        if (texture.renderer) {
+            throw new Error("Invalid initialization of texture renderer: The texture object is already controlled by another texture renderer.");
+        }
+
         this._renderer = renderer;
         this._texture = texture;
+        this._texture._renderer = this;
     }
 
     get renderer() {

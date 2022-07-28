@@ -69,13 +69,8 @@ export default class Renderer {
 
     }
 
-    // The child function will call this function passing the specific
-    // polyListRenderer instance, so plist here will be a PolyListRenderer
-    // instance, instead of a PolyList
     polyListFactory(plist) {
-        plist.init();
-        plist.refresh();
-        return plist;
+        throw new Error("Calling base implementation of Renderer.polyListFactory()");
     }
 
     materialFactory(material) {

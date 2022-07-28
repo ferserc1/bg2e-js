@@ -1,12 +1,9 @@
 import Texture from "../base/Texture";
 
-// TODO: Create a generic implementation using TextureRenderer factory
 export default class MaterialRenderer {
     constructor(renderer, material) {
         this._renderer = renderer;
         this._material = material;
-
-        this._textureRenderers = {};
     }
 
     get renderer() {
@@ -20,17 +17,12 @@ export default class MaterialRenderer {
     getTextureRenderer(materialAttribute) {
         const element = this.material[materialAttribute];
         if (element instanceof Texture) {
-            this._textureRenderers[materialAttribute] = this._textureRenderers[materialAttribute] || 
-                                                        this.renderer.factory.texture(element);
-            return this._textureRenderers[materialAttribute];
+            // The texture renderer factory will create a texture renderer, or
+            // return the existing one
+            return this.renderer.factory.texture(element);
         }
         return null;
     }
 
-    deleteTextures() {
-        for (const key in this._textureRenderers) {
-            this._textureRenderers[key].deleteTexture();
-        }
-    }
 }
 

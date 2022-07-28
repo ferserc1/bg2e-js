@@ -1,8 +1,12 @@
 
 export default class PolyListRenderer {
     constructor(renderer,polyList) {
+        if (polyList.renderer) {
+            throw new Error("Invalid initialization of polyList renderer: the polyList is already controlled by another polyList renderer.")
+        }
         this._renderer = renderer;
         this._polyList = polyList;
+        this._polyList._renderer = this;
     }
 
     get polyList() {

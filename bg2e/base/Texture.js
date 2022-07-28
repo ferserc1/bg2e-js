@@ -285,6 +285,11 @@ export default class Texture {
         return this._imageData;
     }
 
+    // The this._textureRenderer variable is initialized by the texture renderer
+    get textureRenderer() {
+        return this._textureRenderer;
+    }
+
     async deserialize(sceneData) {
         this._dataType = sceneData.dataType !== undefined ? TextureDataType[sceneData.dataType] : TextureDataType.NONE;
         this._wrapModeX = sceneData.wrapModeX !== undefined ? TextureWrap[sceneData.wrapModeX] : TextureWrap.REPEAT;
@@ -336,6 +341,15 @@ export default class Texture {
             this._imageData._hash = generateImageHash(this._imageData);
             this._dirty = true; 
         }
+        else if (this.dataType === TextureDataType.RENDER_TARGET) {
+            // This object will store data to determine if the 
+            // texture must to be resized, and other information
+            // from the framebuffer
+            this._imageData = {
+                currentSize: new Vec(this.size)
+            };
+            this._dirty = true;
+        }
         else if (this.proceduralFunction === ProceduralTextureFunction.PLAIN_COLOR) {
             if (this._imageData && refresh === false) {
                 return;
@@ -355,15 +369,6 @@ export default class Texture {
             this._imageData.src = canvas.toDataURL("image/png");
             document.body.appendChild(canvas);
 
-            this._dirty = true;
-        }
-        else if (this.dataType === TextureDataType.RENDER_TARGET) {
-            // This object will store data to determine if the 
-            // texture must to be resized, and other information
-            // from the framebuffer
-            this._imageData = {
-                currentSize: new Vec(this.size)
-            };
             this._dirty = true;
         }
         else {

@@ -550,6 +550,12 @@ export default class Mat4 extends NumericArray {
 		return (new Mat4()).lookAt(origin,target,up);
 	}
 
+	// Other static methods
+	static Mult(A,B) {
+		const result = new Mat4(A);
+		return result.mult(B);
+	}
+
     static Unproject(x, y, depth, mvMat, pMat, viewport) {
 		let mvp = new Mat4(pMat);
 		mvp.mult(mvMat);

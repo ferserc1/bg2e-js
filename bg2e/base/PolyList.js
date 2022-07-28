@@ -226,6 +226,11 @@ export default class PolyList {
     get index() { return this._index; }
     set index(v) { this._index = v; }
 
+    // The this._renderer variable is initialized by the polyListRenderer factory
+    get renderer() {
+        return this._renderer
+    }
+
     rebuildTangents() {
         buildTangents(this);
     }
