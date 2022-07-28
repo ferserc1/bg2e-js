@@ -2,6 +2,7 @@ import Renderer, { EngineFeatures } from "../Renderer";
 import State from "./State";
 import PolyListRenderer from "./PolyListRenderer";
 import TextureRenderer from "./TextureRenderer";
+import RenderBuffer from "./RenderBuffer";
 export default class WebGLRenderer extends Renderer {
     constructor() {
         super("webgl");
@@ -38,6 +39,10 @@ export default class WebGLRenderer extends Renderer {
 
     textureFactory(texture) {
         return new TextureRenderer(this, texture);
+    }
+
+    renderBufferFactory() {
+        return new RenderBuffer(this);
     }
 
     presentTexture(texture, { clearBuffers = true, shader = null } = {}) {

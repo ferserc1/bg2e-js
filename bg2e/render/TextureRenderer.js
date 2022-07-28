@@ -26,13 +26,4 @@ export default class TextureRenderer {
         }
         return false;
     }
-
-    // The following functions works only with RENDER_TARGET textures
-    beginUpdate(target = TextureTarget.TEXTURE_2D) {
-        throw new Error("TextureRenderer: beginUpdate() invalid usage of generic implementation of TextureRenderer");
-    }
-
-    endUpdate() {
-        throw new Error("TextureRenderer: endUpdate() invalid usage of generic implementation of TextureRenderer");
-    }
 }

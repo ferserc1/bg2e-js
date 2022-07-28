@@ -5,12 +5,14 @@ import Texture, {
     TextureWrapName, 
     TextureFilterName, 
     TextureTargetName,
-    TextureDataType
+    TextureDataType,
+    TextureComponentFormat
 } from '../../base/Texture';
 import {
     ColorTextureAttributes, 
     ValueTextureAttributes 
 } from '../../base/Material';
+import Vec from '../../math/Vec';
 
 const getTarget = (gl, tex) => {
     const name = TextureTargetName[tex.target];
@@ -27,46 +29,56 @@ const getTextureFilter = (gl, filter) => {
     return gl[name];
 }
 
+const getDataFormat = (gl,componentFormat) => {
+    switch (componentFormat) {
+    case TextureComponentFormat.UNSIGNED_BYTE:
+        return gl.UNSIGNED_BYTE;
+    case TextureComponentFormat.FLOAT32:
+        return gl.FLOAT;
+    default:
+        throw new Error("Error creating webgl texture: invalid component data format");
+    }
+}
+
 const getWebGLTexture = (gl, textureData) => {
-    if (!textureData._imageData) {
+    if (!textureData.imageData) {
         throw new Error("Error loading WebGL texture: image data not loaded");
     }
 
     if (textureData._apiObject) {
         gl.deleteTexture(textureData._apiObject);
     }
-    const target = getTarget(gl, textureData);
     textureData._apiObject = gl.createTexture();
+    const target = getTarget(gl, textureData);
+    const dataFormat = getDataFormat(gl, textureData.componentFormat);
     gl.bindTexture(target, textureData._apiObject);
 
-    gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureData._imageData);
+    if (textureData.dataType ===TextureDataType.RENDER_TARGET) {
+        const { width, height } = textureData.size;
 
-    gl.texParameteri(target, gl.TEXTURE_WRAP_S, getClampMode(gl,textureData.wrapModeX));
-    gl.texParameteri(target, gl.TEXTURE_WRAP_T, getClampMode(gl,textureData.wrapModeY));
+        gl.texImage2D(target, 0, gl.RGBA, width, height, 0, gl.RGBA, dataFormat, null);
 
-    gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, getTextureFilter(gl, textureData.magFilter));
-    gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, getTextureFilter(gl, textureData.minFilter));
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    if (textureData.mipmapRequired) {
-        gl.generateMipmap(target);
+        textureData.imageData.currentSize = new Vec(textureData.size);
     }
-}
-
-const beginUpdateRenderTargetTexture = (gl,textureData) => {
-    ///  https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
-    // TODO:
-    // 1) resize texture, if needed, set viewport, etc
-
-    // 2) bind/create framebuffers
-
-    // 3) Setup attachment
-    throw new Error("beginUpdateRenderTargetTexture() not implemented");
-}
-
-const endUpdateRenderTargetTexture = (gl,textureData) => {
-    // TODO;
-    // 1) set framebuffer to null
-    throw new Error("endUpdateRenderTargetTexture(): not implemented");
+    else {
+    
+        gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, dataFormat, textureData._imageData);
+    
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, getClampMode(gl,textureData.wrapModeX));
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, getClampMode(gl,textureData.wrapModeY));
+    
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, getTextureFilter(gl, textureData.magFilter));
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, getTextureFilter(gl, textureData.minFilter));
+    
+        if (textureData.mipmapRequired) {
+            gl.generateMipmap(target);
+        }
+    }
 }
 
 export default class WebGLTextureRenderer extends TextureRenderer {
@@ -87,31 +99,5 @@ export default class WebGLTextureRenderer extends TextureRenderer {
             return true;
         }
         return false;
-    }
-
-    beginUpdate(target = TextureTarget.TEXTURE_2D) {
-        if (this.texture.dataType !== TextureDataType.RENDER_TARGET) {
-            throw new Error("Invalid use of `beginUpdate()` on non render target texture.");
-        }
-
-        this._beginUpdateTextureData = {
-            texture: this.texture
-        };
-
-        beginUpdateRenderTargetTexture(gl,this._beginUpdateTextureData);
-    }
-
-    endUpdate() {
-        if (this.texture.dataType !== TextureDataType.RENDER_TARGET) {
-            throw new Error("Invalid use of `endUpdate()` on non render target texture.");
-        }
-
-        if (!this._beginUpdateTextureData) {
-            throw new Error("Calling TextureRenderer.endUpdate() without previous call to beginUpdate()");
-        }
-
-        endUpdateRenderTargetTexture(gl, this._beginUpdateTextureData);
-
-        this._beginUpdateTextureData = null;
     }
 }

@@ -29,19 +29,18 @@ class MyAppController extends AppController {
         await this._texture.loadImageData();
 
         this._rttTarget = new Texture();
-        // When the texture data type is set to RENDER_TARGET, the wrapModeXY parameter
-        // is set to CLAMP, and the minFilter and magFilter are set to LINEAR.
-        this._rttTarget.dataType = TextureDataType.RENDER_TARGET;
-        this._rttTarget.size = [512, 512];  // Initial size, will be updated in reshape() function
         // This is the default attachment, if any other is specified
         this._rttTarget.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
-
         // In this case we use an unsigned byte texture, but it also can be used a floating point texture,
         // if the engine supports it
         this._rttTarget.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
 
-        // Create the texture renderer for the render target texture
-        this._rttTextureRenderer = this.renderer.factory.texture(this._rttTarget);
+        // Create a render buffer and attach the texture renderer
+        this._renderBuffer = this.renderer.factory.renderBuffer();
+        // This function will set the texture data type to RENDER_TARGET, will  create a
+        // TextureRenderer object and will attach the texture to the selected 
+        // texture.renderTargetAttachment
+        await this._renderBuffer.attachTexture(this._rttTarget);
 
         this.renderer.state.depthTestEnabled = true;
 
@@ -82,8 +81,8 @@ class MyAppController extends AppController {
         state.viewport = size;
         this.renderer.canvas.updateViewportSize();
 
-        // Update texture target
-        this._rttTarget.size = size; 
+        // Update the render buffer size
+        this._renderBuffer.size = size;
     }
 
     frame(delta) {
@@ -108,10 +107,10 @@ class MyAppController extends AppController {
     display() {
         const { state } = this.renderer;
 
-        this._rttTextureRenderer.beginUpdate();
+        this._renderBuffer.beginUpdate();
         state.clear();
         this._renderStates.forEach(rs => rs.draw());
-        this._rttTextureRenderer.endUpdate();
+        this._renderBuffer.endUpdate();
 
         //this.renderer.presentTexture(this._rttTexture);
     }

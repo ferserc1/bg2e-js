@@ -280,6 +280,11 @@ export default class Texture {
                 this._magFilter === TextureFilter.LINEAR_MIPMAP_LINEAR;
     }
 
+    // If imageData === undefined it's because the function loadImageData() has not been called
+    get imageData() {
+        return this._imageData;
+    }
+
     async deserialize(sceneData) {
         this._dataType = sceneData.dataType !== undefined ? TextureDataType[sceneData.dataType] : TextureDataType.NONE;
         this._wrapModeX = sceneData.wrapModeX !== undefined ? TextureWrap[sceneData.wrapModeX] : TextureWrap.REPEAT;
@@ -350,6 +355,15 @@ export default class Texture {
             this._imageData.src = canvas.toDataURL("image/png");
             document.body.appendChild(canvas);
 
+            this._dirty = true;
+        }
+        else if (this.dataType === TextureDataType.RENDER_TARGET) {
+            // This object will store data to determine if the 
+            // texture must to be resized, and other information
+            // from the framebuffer
+            this._imageData = {
+                currentSize: new Vec(this.size)
+            };
             this._dirty = true;
         }
         else {

@@ -83,7 +83,11 @@ export default class Renderer {
     }
 
     textureFactory(texture) {
-        throw new Error("Calling base implementation of Renderer.textureFactory()")
+        throw new Error("Calling base implementation of Renderer.textureFactory()");
+    }
+
+    renderBufferFactory() {
+        throw new Error("Calling base implementation of Renderer.renderBufferFactory()");
     }
 
     get factory() {
@@ -97,6 +101,9 @@ export default class Renderer {
             },
             texture(texture) {
                 return renderer.textureFactory(texture);
+            },
+            renderBuffer() {
+                return renderer.renderBufferFactory();
             }
         }
     }
