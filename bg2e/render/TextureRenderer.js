@@ -23,12 +23,7 @@ export default class TextureRenderer {
         throw new Error("TextureRenderer: getApiObject() invalid usage of generic implementation of TextureRenderer");
     }
 
-    // Call this function from child class to determine if the
-    // texture must to be deleted or not.
-    deleteTexture(texture) {
-        if (texture.references === 0) {
-            return true;
-        }
-        return false;
+    destroy() {
+        throw new Error("TextureRenderer: destroy() invalid usage of generic implementation of TextureRenderer");
     }
 }

@@ -10,6 +10,7 @@ import Material from "bg2e/base/Material";
 import Mat4 from "bg2e/math/Mat4";
 import RenderState from "bg2e/render/RenderState";
 import { EngineFeatures } from "bg2e/render/Renderer";
+import { SpecialKey } from "bg2e/app/KeyboardEvent";
 
 class MyAppController extends AppController {
     async init() {
@@ -22,11 +23,6 @@ class MyAppController extends AppController {
         }
 
         console.log(`Maximum render targets: ${ this.renderer.getMaximumRenderTargets()}`);
-
-        // TODO: Example texture to present. Remove this code
-        this._texture = new Texture();
-        this._texture.fileName = '../resources/country_field_sun.jpg';
-        await this._texture.loadImageData();
 
         this._rttTarget = new Texture();
         // This is the default attachment, if any other is specified
@@ -139,6 +135,18 @@ class MyAppController extends AppController {
 
     destroy() {
         this._shader.destroy();
+        this._renderBuffer.destroy();
+        this._rttTarget.destroy();
+        this._rttDepth.destroy();
+        this._objects.forEach(objData => {
+            objData.polyListRenderer.destroy();
+        })
+    }
+
+    keyUp(evt) {
+        if (evt.key === SpecialKey.ESCAPE) {
+            this.mainLoop.exit();
+        }
     }
 }
 

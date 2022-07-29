@@ -74,4 +74,8 @@ export default class RenderBuffer {
     endUpdate() {
         throw new Error("RenderBuffer.endUpdate(): calling base implementation.");
     }
+
+    destroy() {
+        throw new Error("RenderBuffer.destory(): calling base implementation.");
+    }
  }

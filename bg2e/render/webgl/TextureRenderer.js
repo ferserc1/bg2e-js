@@ -9,10 +9,6 @@ import Texture, {
     TextureComponentFormat,
     TextureRenderTargetAttachment
 } from '../../base/Texture';
-import {
-    ColorTextureAttributes, 
-    ValueTextureAttributes 
-} from '../../base/Material';
 import Vec from '../../math/Vec';
 
 const getTarget = (gl, tex) => {
@@ -97,14 +93,12 @@ export default class WebGLTextureRenderer extends TextureRenderer {
         return this.texture._apiObject;
     }
     
-    deleteTexture() {
-        if (super.deleteTexture()) {
-            if (this.texture instanceof Texture && this.texture._apiObject) {
-                gl.deleteTexture(this.texture._apiObject);
-                this.texture._apiObject = null;
-            }
-            return true;
+    destroy() {
+        const { gl } = this.renderer;
+        if (this.texture._apiObject) {
+            gl.deleteTexture(this.texture._apiObject);
+            this.texture._apiObject = null;
+            this.texture.setUpdated(false);
         }
-        return false;
     }
 }

@@ -285,9 +285,15 @@ export default class Texture {
         return this._imageData;
     }
 
-    // The this._textureRenderer variable is initialized by the texture renderer
-    get textureRenderer() {
-        return this._textureRenderer;
+    // The this._renderer variable is initialized by the texture renderer
+    get renderer() {
+        return this._renderer;
+    }
+
+    destroy() {
+        if (this.renderer) {
+            this.renderer.destroy();
+        }
     }
 
     async deserialize(sceneData) {

@@ -248,6 +248,12 @@ export default class PolyList {
             this._tangent.length / 3 === this._texCoord0.length / 3;
     }
 
+    destroy() {
+        if (this.renderer) {
+            this.renderer.destroy();
+        }
+    }
+
     static ApplyTransform(plist, trx) {
         const transform = new Mat4(trx);
         const rotation = new Mat4(trx.mat3);

@@ -102,5 +102,15 @@ export default class WebGLRenderBuffer extends RenderBuffer {
         this.renderer.state.viewport = this._screenViewport;
     }
 
-    // TODO: Destroy renderbuffers and framebuffers
+    destroy() {
+        const { gl }  = this.renderer;
+        if (this._framebuffer) {
+            gl.deleteFramebuffer(this._framebuffer);
+            this._framebuffer = null;
+        }
+        if (this._depthBuffer) {
+            gl.deleteRenderbuffer(this._depthBuffer);
+            this._depthBuffer = null;
+        }
+    }
 }
