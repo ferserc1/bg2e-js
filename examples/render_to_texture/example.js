@@ -83,6 +83,8 @@ class MyAppController extends AppController {
 
         // Update the render buffer size
         this._renderBuffer.size = size;
+
+        this._projMatrix = Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0);
     }
 
     frame(delta) {

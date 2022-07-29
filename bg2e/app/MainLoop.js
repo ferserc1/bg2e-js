@@ -140,6 +140,10 @@ function initEvents(mainLoop) {
         g_animationLoop.mainLoop.forEach(ml => onKeyUp(evt, ml));
     });
 
+    window.addEventListener("resize", evt => {
+        onResize(mainLoop);
+    });
+
     c.oncontextmenu = evt => false;
 }
 

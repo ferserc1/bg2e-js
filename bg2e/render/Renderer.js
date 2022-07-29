@@ -33,10 +33,10 @@ export default class Renderer {
                 -1,  1, 0
             ];
             plist.texCoord0 = [
-                0, 1,
-                1, 1,
+                0, 0,
                 1, 0,
-                0, 0
+                1, 1,
+                0, 1
             ];
             plist.index = [
                 0, 1, 2,

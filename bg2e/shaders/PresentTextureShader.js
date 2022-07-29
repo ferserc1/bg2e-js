@@ -51,7 +51,6 @@ export default class PresentTextureShader extends Shader {
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
         const { gl } = this.renderer;
 
-        const prevProgram = this.renderer.state.shaderProgram;
         this.renderer.state.shaderProgram = this._program;
 
         gl.activeTexture(gl.TEXTURE0);
@@ -70,10 +69,5 @@ export default class PresentTextureShader extends Shader {
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));
         this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("texCoord"));
-        
-        // Restore previus state shader
-        if (prevProgram) {
-            this.renderer.state.shaderProgram = prevProgram;
-        }
     }
 }
