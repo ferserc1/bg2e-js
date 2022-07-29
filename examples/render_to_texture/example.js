@@ -84,7 +84,9 @@ class MyAppController extends AppController {
         // Update the render buffer size
         this._renderBuffer.size = size;
 
-        this._projMatrix = Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0);
+        // The aspect ratio is set to viewport.aspectRatio / 2 because in display loop, the texture is
+        // presented twice side by side, so the aspect ratio is half the viewport aspect ratio 
+        this._projMatrix = Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio / 2, 0.1, 1000.0);
     }
 
     frame(delta) {
@@ -118,7 +120,14 @@ class MyAppController extends AppController {
         this._renderStates.forEach(rs => rs.draw());
         this._renderBuffer.endUpdate();
 
-        this.renderer.presentTexture(this._rttTarget);
+        this.renderer.presentTexture(this._rttTarget, {
+            viewport: [0, 0, window.innerWidth / 2, window.innerHeight]
+        });
+
+        this.renderer.presentTexture(this._rttTarget, {
+            clearBuffers: false,
+            viewport: [window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight]
+        });
     }
 
     destroy() {

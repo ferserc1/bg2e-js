@@ -103,7 +103,7 @@ export default class Renderer {
         }
     }
 
-    presentTexture(texture, params) {
+    presentTexture(texture, { clearBuffers = true, shader = null, viewport = null } = {}) {
         
     }
 

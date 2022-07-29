@@ -59,9 +59,7 @@ export default class WebGLRenderer extends Renderer {
         return new RenderBuffer(this);
     }
 
-    presentTexture(texture, { clearBuffers = true, shader = null } = {}) {
-        // https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
-        
+    presentTexture(texture, { clearBuffers = true, shader = null, viewport = null } = {}) {
         if (clearBuffers) {
             this.state.clear();
         }
@@ -70,10 +68,17 @@ export default class WebGLRenderer extends Renderer {
             shader = this.presentTextureShader;
         }
 
+        const prevViewport = this.state.viewport;
+        if (viewport) {
+            this.state.viewport = viewport;
+        }
+
         this.presentTextureMaterialRenderer.material.diffuse = texture;
         this.presentTextureSurfaceRenderer.bindBuffers();
         shader.setup(this.presentTextureSurfaceRenderer,this.presentTextureMaterialRenderer);
         this.presentTextureSurfaceRenderer.draw();
+
+        this.state.viewport = prevViewport;
     }
 
      // Compatibility function

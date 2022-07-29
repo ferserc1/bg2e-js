@@ -85,6 +85,10 @@ export default class WebGLRenderBuffer extends RenderBuffer {
             }
 
             this.setUpdated(true);
+
+            if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+                throw new Error("Error initializing render buffer: the framebuffer is not complete");
+            }
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
