@@ -6,7 +6,8 @@ import Texture, {
     TextureFilterName, 
     TextureTargetName,
     TextureDataType,
-    TextureComponentFormat
+    TextureComponentFormat,
+    TextureRenderTargetAttachment
 } from '../../base/Texture';
 import {
     ColorTextureAttributes, 
@@ -29,7 +30,8 @@ const getTextureFilter = (gl, filter) => {
     return gl[name];
 }
 
-const getDataFormat = (gl,componentFormat) => {
+const getDataFormat = (gl,texture) => {
+    const componentFormat = texture.componentFormat;
     switch (componentFormat) {
     case TextureComponentFormat.UNSIGNED_BYTE:
         return gl.UNSIGNED_BYTE;
@@ -50,13 +52,18 @@ const getWebGLTexture = (gl, textureData) => {
     }
     textureData._apiObject = gl.createTexture();
     const target = getTarget(gl, textureData);
-    const dataFormat = getDataFormat(gl, textureData.componentFormat);
+    const dataFormat = getDataFormat(gl, textureData);
     gl.bindTexture(target, textureData._apiObject);
 
     if (textureData.dataType ===TextureDataType.RENDER_TARGET) {
         const { width, height } = textureData.size;
 
-        gl.texImage2D(target, 0, gl.RGBA, width, height, 0, gl.RGBA, dataFormat, null);
+        const isDepthTexture = textureData.renderTargetAttachment === TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
+        const internalFormat = isDepthTexture ? gl.DEPTH_COMPONENT : gl.RGBA;
+        let format = isDepthTexture ? gl.DEPTH_COMPONENT : gl.RGBA;
+        const type = isDepthTexture ? gl.UNSIGNED_SHORT : dataFormat;
+
+        gl.texImage2D(target, 0, internalFormat, width, height, 0, format, type, null);
 
         gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);

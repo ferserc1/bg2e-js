@@ -42,6 +42,13 @@ class MyAppController extends AppController {
         // texture.renderTargetAttachment
         await this._renderBuffer.attachTexture(this._rttTarget);
 
+        // The following code is required only to get the depth buffer texture. By default, if no depth
+        // texture is attached, the render buffer will create a depth renderbuffer automatically
+        this._rttDepth = new Texture();
+        this._rttDepth.renderTargetAttachment = TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
+        this._rttDepth.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
+        await this._renderBuffer.attachTexture(this._rttDepth);
+
         this.renderer.state.depthTestEnabled = true;
 
         this._shader = new BasicDiffuseColorShader(this.renderer);
@@ -124,7 +131,7 @@ class MyAppController extends AppController {
             viewport: [0, 0, window.innerWidth / 2, window.innerHeight]
         });
 
-        this.renderer.presentTexture(this._rttTarget, {
+        this.renderer.presentTexture(this._rttDepth, {
             clearBuffers: false,
             viewport: [window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight]
         });

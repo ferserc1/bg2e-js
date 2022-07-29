@@ -4,6 +4,13 @@ import PolyListRenderer from "./PolyListRenderer";
 import TextureRenderer from "./TextureRenderer";
 import RenderBuffer from "./RenderBuffer";
 
+function enableExtensions(gl) {
+    // Enable all available extensions
+    gl.getSupportedExtensions().forEach(ext => {
+        gl.getExtension(ext);
+    });
+}
+
 export default class WebGLRenderer extends Renderer {
     constructor() {
         super("webgl");
@@ -16,6 +23,8 @@ export default class WebGLRenderer extends Renderer {
         this._gl = canvas.domElement.getContext("webgl", { preserveDrawingBuffer: true });
 
         this._state = new State(this);
+
+        enableExtensions.apply(this, [this.gl]);
     }
 
     get gl() { return this._gl; }

@@ -71,9 +71,8 @@ export default class WebGLRenderBuffer extends RenderBuffer {
                 const attachmentPoint = getAttachmentPoint(gl,attachment);
                 const textureTarget = getTextureTarget(gl,textureRenderer.texture);
                 const level = 0;
-                // TODO: Test depth buffer attachment
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, textureTarget, textureApi, level);
-                depthBufferPresent = depthBufferPresent || attachment === TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
+                depthBufferPresent = depthBufferPresent || Number(attachment) === TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
             }
 
             if (!depthBufferPresent) {
