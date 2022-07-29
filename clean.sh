@@ -22,3 +22,5 @@ rm -rf examples/present_texture/dist
 rm -rf examples/present_texture/node_modules
 rm -rf examples/render_to_texture/dist
 rm -rf examples/render_to_texture/node_modules
+rm -rf examples/sky_sphere/dist
+rm -rf examples/sky_sphere/node_modules

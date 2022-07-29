@@ -60,3 +60,8 @@ cd examples/render_to_texture
 npm install
 npm run build
 cd -
+
+cd examples/sky_sphere
+npm install
+npm run build
+cd -

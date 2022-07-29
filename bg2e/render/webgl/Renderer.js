@@ -3,6 +3,7 @@ import State from "./State";
 import PolyListRenderer from "./PolyListRenderer";
 import TextureRenderer from "./TextureRenderer";
 import RenderBuffer from "./RenderBuffer";
+import SkySphere from "./SkySphere";
 
 function enableExtensions(gl) {
     // Enable all available extensions
@@ -66,6 +67,10 @@ export default class WebGLRenderer extends Renderer {
 
     renderBufferFactory() {
         return new RenderBuffer(this);
+    }
+
+    skySphereFactory() {
+        return new SkySphere(this);
     }
 
     presentTexture(texture, { clearBuffers = true, shader = null, viewport = null } = {}) {
