@@ -3,6 +3,7 @@ import MaterialRenderer from "./MaterialRenderer";
 import PresentTextureShader from "../shaders/PresentTextureShader";
 import Material from "../base/Material";
 import PolyList from "../base/PolyList";
+import SkySphere from "./SkySphere";
 
 export const EngineFeatures = {
     RENDER_TARGET_TEXTURES:         0x1 << 0,
@@ -86,7 +87,7 @@ export default class Renderer {
     }
 
     skySphereFactory() {
-        throw new Error("Calling base implementation of Renderer.skySphereFactory()");
+        return new SkySphere(this);
     }
 
     get factory() {
