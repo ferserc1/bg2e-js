@@ -3,6 +3,7 @@ import SkySphereShader from "../shaders/SkySphereShder";
 import RenderState from "./RenderState";
 import Material from "../base/Material";
 import Texture from "../base/Texture";
+import Mat4 from "../math/Mat4";
 
 export default class SkySphere {
     constructor(renderer) {
@@ -23,26 +24,31 @@ export default class SkySphere {
         await this._shader.load();
     }
 
-    getRenderState({ viewMatrix, projectionMatrix }) {
+    updateRenderState({ viewMatrix, projectionMatrix }) {
+        const rotationMatrix = Mat4.GetRotation(viewMatrix);
         if (!this._renderState) {
             this._renderState = new RenderState({
                 shader: this._shader,
                 polyListRenderer: this.polyListRenderer,
                 materialRenderer: this.renderer.factory.material(this._material),
-                viewMatrix,
+                viewMatrix: rotationMatrix,
                 projectionMatrix
             });
         }
         else {
-            this._renderState.viewMatrix = viewMatrix;
+            this._renderState.viewMatrix = rotationMatrix;
             this._renderState.projectionMatrix = projectionMatrix;
         }
         return this._renderState;
     }
 
+    draw() {
+        throw new Error("SkySphere.draw(): Calling base implementation of SkySphere");
+    }
+
     get polyListRenderer() {
         if (!this._plistRenderer) {
-            this._plistRenderer = this.renderer.factory.polyList(createSphere(1));
+            this._plistRenderer = this.renderer.factory.polyList(createSphere(3.5));
         }
         return this._plistRenderer;
     }

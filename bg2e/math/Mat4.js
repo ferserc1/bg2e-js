@@ -581,15 +581,15 @@ export default class Mat4 extends NumericArray {
 	}
 
     static GetScale(m) {
-		return new Vec3(
-            new Vec(m[1], m[5], m[9]).magnitude(),
-			new Vec(m[0], m[4], m[8]).magnitude(),
-			new Vec(m[2], m[6], m[10]).magnitude()
+		return new Vec(
+            Vec.Magnitude([m[1], m[5], m[9]]),
+			Vec.Magnitude([m[0], m[4], m[8]]),
+			Vec.Magnitude([m[2], m[6], m[10]])
 		);
 	}
 
     static GetRotation(m) {
-		const scale = Mat4.GetScale();
+		const scale = Mat4.GetScale(m);
 		return new Mat4(
 				m[0] / scale.x, m[1] / scale.y, m[ 2] / scale.z, 0,
 				m[4] / scale.x, m[5] / scale.y, m[ 6] / scale.z, 0,

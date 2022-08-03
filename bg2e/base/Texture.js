@@ -146,7 +146,28 @@ const loadImageFromFile = async fileUrl => {
     if (!g_resource) {
         g_resource = new Resource();
     }
-    return await g_resource.load(fileUrl);
+    const image = await g_resource.load(fileUrl);
+    // Flip image Y coord
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+
+    const ctx = canvas.getContext('2d');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(1, -1);
+    ctx.drawImage(image, 0, 0, canvas.width, -canvas.height);
+    const flipImage = new Image();
+    const loadFlipImage = () => {
+        return new Promise(resolve => {
+            flipImage.onload = () => {
+                resolve();
+            }
+            flipImage.src = canvas.toDataURL("image/png");
+        })
+    } 
+    await loadFlipImage();    
+    
+    return flipImage;
 }
 export default class Texture {
     constructor() {
@@ -379,7 +400,7 @@ export default class Texture {
                         resolve();
                     }
                     this._imageData.src = canvas.toDataURL("image/png");
-                    document.body.appendChild(canvas);
+                    //document.body.appendChild(canvas);
                 })
             } 
             await loadProceduralImage();            

@@ -67,7 +67,15 @@ export default class State {
     }
 
     get clearStencil() {
-        return gl.getParameter(gl.STENCIL_CLEAR_VALUE);
+        return this.gl.getParameter(this.gl.STENCIL_CLEAR_VALUE);
+    }
+
+    get depthMask() {
+        return this.gl.getParameter(this.gl.DEPTH_WRITEMASK);
+    }
+
+    set depthMask(m) {
+        this.gl.depthMask(m);
     }
 
     set frontFace(ff) {
