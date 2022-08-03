@@ -79,20 +79,19 @@ class MyWebGLShader extends Shader {
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
 
-        gl.activeTexture(gl.TEXTURE0);
-        this._program.uniform1i('uTexture', 0);
+        let texRenderer = this._whiteTextureRenderer;
         if (material.diffuse instanceof Vec) {
-            const target = TextureTargetName[this._whiteTexture.target];
-            gl.bindTexture(gl[target], this._whiteTextureRenderer.getApiObject());
             this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
         }
         else {
-            const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
-            const target = TextureTargetName[material.diffuse.target];
-            gl.bindTexture(gl[target], webglTexture);
+            texRenderer = materialRenderer.getTextureRenderer('diffuse');
             this._program.uniform3fv('uFixedColor', new Vec(1,1,1));
         }
 
+        this._program.uniform1i('uTexture', 0);
+        texRenderer.activeTexture(0);
+        texRenderer.bindTexture();
+        
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));
         this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("t0Position"));
 

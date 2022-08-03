@@ -48,6 +48,7 @@ class MyAppController extends AppController {
         this.renderer.state.depthTestEnabled = true;
 
         this._shader = new BasicDiffuseColorShader(this.renderer);
+        await this._shader.load();
         this._objects = [
             {
                 polyListRenderer: this.renderer.factory.polyList(createCube(2, 2, 2)),

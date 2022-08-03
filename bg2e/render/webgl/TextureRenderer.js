@@ -101,4 +101,19 @@ export default class WebGLTextureRenderer extends TextureRenderer {
             this.texture.setUpdated(false);
         }
     }
+
+    ///// webgl specific functions
+    // Returns the webgl target (TEXTURE_2D, TEXTURE_3D...)
+    get target() {
+        return this.renderer.gl[TextureTargetName[this.texture.target]];
+    }
+
+    activeTexture(index = 0) {
+        const { gl } = this.renderer;
+        gl.activeTexture(gl.TEXTURE0 + index);
+    }
+
+    bindTexture() {
+        this.renderer.gl.bindTexture(this.target, this.getApiObject());
+    }
 }

@@ -371,9 +371,18 @@ export default class Texture {
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = color.hexColor;
             ctx.fillRect(0, 0, this.size.x, this.size.y);
-            this._imageData = new Image();
-            this._imageData.src = canvas.toDataURL("image/png");
-            document.body.appendChild(canvas);
+
+            const loadProceduralImage = () => {
+                return new Promise(resolve => {
+                    this._imageData = new Image();
+                    this._imageData.onload = () => {
+                        resolve();
+                    }
+                    this._imageData.src = canvas.toDataURL("image/png");
+                    document.body.appendChild(canvas);
+                })
+            } 
+            await loadProceduralImage();            
 
             this._dirty = true;
         }

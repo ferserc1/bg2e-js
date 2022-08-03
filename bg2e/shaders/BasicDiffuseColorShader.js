@@ -50,13 +50,15 @@ export default class BasicDiffuseColorShader extends Shader {
         this._program.attachVertexSource(g_code.webgl.vertex);
         this._program.attachFragmentSource(g_code.webgl.fragment);
         this._program.link();
+    }
 
+    async load() {
         this._whiteTexture = new Texture();
         this._whiteTexture.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
         this._whiteTexture.proceduralParameters = [1,1,1,1];
         this._whiteTexture.size = new Vec(4,4);
-        this._whiteTexture.loadImageData();
-        this._whiteTextureRenderer = renderer.factory.texture(this._whiteTexture);
+        await this._whiteTexture.loadImageData();
+        this._whiteTextureRenderer = this.renderer.factory.texture(this._whiteTexture);
     }
 
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
@@ -68,19 +70,17 @@ export default class BasicDiffuseColorShader extends Shader {
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
 
-        gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uTexture', 0);
+        let texRenderer = this._whiteTextureRenderer;
         if (material.diffuse instanceof Vec) {
-            const target = TextureTargetName[this._whiteTexture.target];
-            gl.bindTexture(gl[target], this._whiteTextureRenderer.getApiObject());
             this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
         }
         else {
-            const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
-            const target = TextureTargetName[material.diffuse.target];
-            gl.bindTexture(gl[target], webglTexture);
+            texRenderer = materialRenderer.getTextureRenderer('diffuse');
             this._program.uniform3fv('uFixedColor', new Vec(1,1,1));
         }
+        texRenderer.activeTexture(0);
+        texRenderer.bindTexture();
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));
         this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("t0Position"));
