@@ -40,8 +40,10 @@ export default class SkySphereShader extends Shader {
         if (!renderer instanceof WebGLRenderer) {
             throw new Error("SkySphereShader: invalid renderer");
         }
+    }
 
-        const { gl } = renderer;
+    async load() {
+        const { gl } = this.renderer;
         this._program = new ShaderProgram(gl, "SkySphereShader");
         this._program.attachVertexSource(g_code.weblg.vertex);
         this._program.attachFragmentSource(g_code.weblg.fragment);

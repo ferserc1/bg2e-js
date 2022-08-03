@@ -48,10 +48,15 @@ export default class Renderer {
         return this._presentTextureSurface;
     }
 
-    get presentTextureShader() {
+    async initPresentTextureShader() {
         if (!this._presentTextureShader) {
             this._presentTextureShader = new PresentTextureShader(this);
+            this._presentTextureShader.load();
         }
+        return this._presentTextureShader;
+    }
+
+    get presentTextureShader() {
         return this._presentTextureShader;
     }
 

@@ -39,8 +39,10 @@ export default class PresentTextureShader extends Shader {
         if (!renderer instanceof WebGLRenderer) {
             throw new Error("shader.PresentTextureShader: invalid renderer. This shader is compatible with WebGLRenderer");
         }
+    }
 
-        const { gl } = renderer;
+    async load() {
+        const { gl } = this.renderer;
 
         this._program = new ShaderProgram(gl, "DefaultPresentTextureShader");
         this._program.attachVertexSource(g_code.webgl.vertex);

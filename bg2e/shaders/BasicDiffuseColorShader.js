@@ -44,15 +44,15 @@ export default class BasicDiffuseColorShader extends Shader {
         if (!renderer instanceof WebGLRenderer) {
             throw new Error("BasicDiffuseColorShader: invalid renderer");
         }
+    }
 
-        const { gl } = renderer;
+    async load() {
+        const { gl } = this.renderer;
         this._program = new ShaderProgram(gl, "BasicDiffuseColorShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
         this._program.attachFragmentSource(g_code.webgl.fragment);
         this._program.link();
-    }
 
-    async load() {
         this._whiteTexture = new Texture();
         this._whiteTexture.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
         this._whiteTexture.proceduralParameters = [1,1,1,1];

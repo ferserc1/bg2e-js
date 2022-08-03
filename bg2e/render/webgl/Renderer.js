@@ -25,6 +25,8 @@ export default class WebGLRenderer extends Renderer {
         this._state = new State(this);
 
         enableExtensions.apply(this, [this.gl]);
+
+        await this.initPresentTextureShader();
     }
 
     get gl() { return this._gl; }
