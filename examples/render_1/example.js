@@ -62,12 +62,15 @@ class MyWebGLShader extends Shader {
         this._program.attachFragmentSource(fragmentShaderCode);
         this._program.link();
 
+    }
+    
+    async load() {
         this._whiteTexture = new Texture();
         this._whiteTexture.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
         this._whiteTexture.proceduralParameters = [1,1,1,1];
         this._whiteTexture.size = new Vec(4,4);
         this._whiteTexture.loadImageData();
-        this._whiteTextureRenderer = renderer.factory.texture(this._whiteTexture);
+        this._whiteTextureRenderer = this.renderer.factory.texture(this._whiteTexture);
     }
 
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
@@ -91,7 +94,7 @@ class MyWebGLShader extends Shader {
         this._program.uniform1i('uTexture', 0);
         texRenderer.activeTexture(0);
         texRenderer.bindTexture();
-        
+
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));
         this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("t0Position"));
 
@@ -124,6 +127,7 @@ class MyAppController extends AppController {
         state.frontFace = state.CCW;
 
         this._shader = new MyWebGLShader(this.renderer);
+        await this._shader.load();
 
         registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist" }));
         registerComponents();
