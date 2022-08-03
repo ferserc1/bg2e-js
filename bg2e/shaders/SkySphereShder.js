@@ -1,7 +1,8 @@
 import Shader from "../render/Shader";
 import WebGLRenderer from "../render/webgl/Renderer";
 import ShaderProgram from "../render/webgl/ShaderProgram";
-import Texture, { TextureTargetName } from "../base/Texture";
+import { TextureTargetName } from "../base/Texture";
+import Vec from "../math/Vec";
 
 const g_code = {
     weblg: {
@@ -24,11 +25,11 @@ const g_code = {
         
         varying vec2 fragT0Pos;
         
-        uniform vec3 uTexture;
+        uniform sampler2D uTexture;
         
         void main() {
             vec4 texColor = texture2D(uTexture, fragT0Pos);
-            gl_FRagColor = vec4(texColor.rgb, 1.0);
+            gl_FragColor = vec4(texColor.rgb, 1.0);
         }`
     }
 };
