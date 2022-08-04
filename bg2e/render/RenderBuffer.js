@@ -13,6 +13,16 @@ export const RenderBufferTypeName = {
     2: 'CUBE_MAP'
 };
 
+export const CubeMapFace = {
+    NONE: 0,
+    POSITIVE_X: 1,
+    NEGATIVE_X: 2,
+    POSITIVE_Y: 3,
+    NEGATIVE_Y: 4,
+    POSITIVE_Z: 5,
+    NEGATIVE_Z: 6
+}
+
 function getTargetType(texture) {
     if (texture.target === TextureTarget.TEXTURE_2D) {
         return RenderBufferType.TEXTURE;
@@ -106,15 +116,30 @@ export default class RenderBuffer {
         this._dirty = true;
     }
 
-    beginUpdate() {
+    beginUpdate(textureFace = CubeMapFace.NONE) {
         throw new Error("RenderBuffer.beginUpdate(): calling base implementation.");
     }
 
-    endUpdate() {
+    endUpdate(textureFace = CubeMapFace.NONE) {
         throw new Error("RenderBuffer.endUpdate(): calling base implementation.");
     }
 
     destroy() {
         throw new Error("RenderBuffer.destory(): calling base implementation.");
+    }
+
+    update(drawFunc) {
+        if (this.type === RenderBufferType.TEXTURE) {
+            this.beginUpdate();
+            drawFunc();
+            this.endUpdate();
+        }
+        else if (this.type === RenderBufferType.CUBE_MAP) {
+            for (let i = 0; i<6; ++i) {
+                this.beginUpdate(CubeMapFace.POSITIVE_X + i);
+                drawFunc();
+                this.endUpdate(CubeMapFace.POSITIVE_X + i);
+            }
+        }
     }
  }

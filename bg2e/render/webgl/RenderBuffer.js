@@ -1,7 +1,7 @@
 
 import { TextureRenderTargetAttachment, TextureTargetName } from "../../base/Texture";
 import Vec from "../../math/Vec";
-import RenderBuffer, { RenderBufferType } from "../RenderBuffer";
+import RenderBuffer, { RenderBufferType, CubeMapFace } from "../RenderBuffer";
 
 function getAttachmentPoint(gl,att) {
     switch (Number(att)) {
@@ -98,7 +98,7 @@ function endUpdateTexture() {
     this.renderer.state.viewport = this._screenViewport;
 }
 
-function beginUpdateCubemap() {
+function beginUpdateCubemap(face) {
     throw new Error("Not implemented");
 }
 
@@ -110,24 +110,24 @@ export default class WebGLRenderBuffer extends RenderBuffer {
         super(renderer);
     }
 
-    beginUpdate() {
+    beginUpdate(textureFace = CubeMapFace.NONE) {
         if (this.type === RenderBufferType.TEXTURE) {
             beginUpdateTexture.apply(this);
         }
         else if (this.type === RenderBufferType.CUBE_MAP) {
-            beginUpdateCubemap.apply(this);
+            beginUpdateCubemap.apply(this, [textureFace]);
         }
         else {
             throw new Error("The render buffer is not initialized");
         }
     }
 
-    endUpdate() {
+    endUpdate(textureFace = CubeMapFace.NONE) {
         if (this.type === RenderBufferType.TEXTURE) {
             endUpdateTexture.apply(this);
         }
         else if (this.type === RenderBufferType.CUBE_MAP) {
-            endUpdateCubemap.apply(this);
+            endUpdateCubemap.apply(this, [textureFace]);
         }
         else {
             throw new Error("The render buffer is not initialized");

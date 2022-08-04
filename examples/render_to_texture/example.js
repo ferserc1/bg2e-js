@@ -119,10 +119,10 @@ class MyAppController extends AppController {
     display() {
         const { state } = this.renderer;
 
-        this._renderBuffer.beginUpdate();
-        state.clear();
-        this._renderStates.forEach(rs => rs.draw());
-        this._renderBuffer.endUpdate();
+        this._renderBuffer.update(() => {
+            state.clear();
+            this._renderStates.forEach(rs => rs.draw());
+        });
 
         this.renderer.presentTexture(this._rttTarget, {
             viewport: [0, 0, window.innerWidth / 2, window.innerHeight]

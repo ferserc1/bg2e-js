@@ -8,6 +8,7 @@ import { createCube } from "bg2e/primitives";
 import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import BasicDiffuseColorShader from "bg2e/shaders/BasicDiffuseColorShader";
+import Texture, { TextureRenderTargetAttachment, TextureTarget } from "bg2e/base/Texture";
 
 class MyAppController extends AppController {
     async init() {
@@ -17,18 +18,37 @@ class MyAppController extends AppController {
 
         this.renderer.state.depthTestEnabled = true;
 
+        // The view matrix will be used to render the cubemap, and also to render the scene
+        // The projection matrix will be used only to render the scene
         this._viewMatrix = Mat4.MakeIdentity();
         this._projectionMatrix = Mat4.MakePerspective(50, this.canvas.viewport.aspectRatio,0.1,100.0);
 
+        // We going to render a skybox to the cubemap
         this._skySphere = this.renderer.factory.skySphere();
         await this._skySphere.load('../resources/country_field_sun.jpg');
 
+        // This shader and the cube well be used to render the generated cubemap as a
+        // reflection
+        // TODO: Create a reflection shader. The reflection texture will be passed as
+        // a parameter
         this._shader = new BasicDiffuseColorShader(this.renderer);
         await this._shader.load();
         this._cube = this.renderer.factory.polyList(createCube(1,1,1));
         this._material = this.renderer.factory.material(await Material.Deserialize({
             diffuse: [0.4,0.33,0.1,1]
         }));
+
+        // Cubemap resources: we need a RenderBuffer and a Texture
+        this._cubemapTexture = new Texture();
+        this._cubemapTexture.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
+        this._cubemapTexture.target = TextureTarget.CUBE_MAP;
+        // TODO: pass the cubemap texture to the shader
+
+        this._renderBuffer = this.renderer.factory.renderBuffer();
+        await this._renderBuffer.attachTexture(this._cubemapTexture);
+        // This is the size of each cube face
+        this._renderBuffer.size = new Vec(512, 512);
+
     }
 
     reshape(width,height) {
@@ -68,7 +88,11 @@ class MyAppController extends AppController {
         const { state } = this.renderer;
         state.clear();
 
+        this._renderBuffer.beginUpdate();
+        state.clear();
         this._skySphere.draw();
+        this._renderBuffer.endUpdate();
+
         this._renderStates.forEach(rs => rs.draw());
     }
 
