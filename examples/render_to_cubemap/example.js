@@ -88,10 +88,10 @@ class MyAppController extends AppController {
         const { state } = this.renderer;
         state.clear();
 
-        this._renderBuffer.beginUpdate();
-        state.clear();
-        this._skySphere.draw();
-        this._renderBuffer.endUpdate();
+        this._renderBuffer.update(() => {
+            state.clear();
+            this._skySphere.draw();
+        });
 
         this._renderStates.forEach(rs => rs.draw());
     }
