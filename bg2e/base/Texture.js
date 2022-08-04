@@ -31,13 +31,7 @@ export const TextureFilter = {
 
 export const TextureTarget = {
     TEXTURE_2D: 0,
-    CUBE_MAP: 1,
-    POSITIVE_X_FACE: 2,
-    NEGATIVE_X_FACE: 3,
-    POSITIVE_Y_FACE: 4,
-    NEGATIVE_Y_FACE: 5,
-    POSITIVE_Z_FACE: 6,
-    NEGATIVE_Z_FACE: 7
+    CUBE_MAP: 1
 };
 
 export const ProceduralTextureFunction = {
@@ -100,13 +94,7 @@ export const TextureFilterName = {
 
 export const TextureTargetName = {
     0: "TEXTURE_2D",
-    1: "CUBE_MAP",
-    2: "POSITIVE_X_FACE",
-    3: "NEGATIVE_X_FACE",
-    4: "POSITIVE_Y_FACE",
-    5: "NEGATIVE_Y_FACE",
-    6: "POSITIVE_Z_FACE",
-    7: "NEGATIVE_Z_FACE"
+    1: "CUBE_MAP"
 };
 
 export const ProceduralTextureFunctionName = {

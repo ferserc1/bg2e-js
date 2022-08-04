@@ -1,7 +1,7 @@
 
 import { TextureRenderTargetAttachment, TextureTargetName } from "../../base/Texture";
 import Vec from "../../math/Vec";
-import RenderBuffer from "../RenderBuffer";
+import RenderBuffer, { RenderBufferType } from "../RenderBuffer";
 
 function getAttachmentPoint(gl,att) {
     switch (Number(att)) {
@@ -49,57 +49,89 @@ function getAttachmentPoint(gl,att) {
 function getTextureTarget(gl,texture) {
     return gl[TextureTargetName[texture.target]];
 }
+
+function beginUpdateTexture() {
+    const { gl } = this.renderer;
+
+    if (this.dirty) {
+        if (this._framebuffer) {
+            gl.deleteFramebuffer(this._framebuffer);
+        }
+        this._framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
+
+        let depthBufferPresent = false;
+        for (const attachment in this.attachments) {
+            const textureRenderer = this.attachments[attachment];
+            const textureApi = textureRenderer.getApiObject();
+            const attachmentPoint = getAttachmentPoint(gl,attachment);
+            const textureTarget = getTextureTarget(gl,textureRenderer.texture);
+            const level = 0;
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, textureTarget, textureApi, level);
+            depthBufferPresent = depthBufferPresent || Number(attachment) === TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
+        }
+
+        if (!depthBufferPresent) {
+            this._depthBuffer = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthBuffer);
+
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.size.width, this.size.height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthBuffer);
+        }
+
+        this.setUpdated(true);
+
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error("Error initializing render buffer: the framebuffer is not complete");
+        }
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
+
+    this._screenViewport = this.renderer.state.viewport;
+    this.renderer.state.viewport = this.size;
+}
+
+function endUpdateTexture() {
+    const { gl } = this.renderer;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    this.renderer.state.viewport = this._screenViewport;
+}
+
+function beginUpdateCubemap() {
+    throw new Error("Not implemented");
+}
+
+function endUpdateCubemap() {
+    throw new Error("Not implemented");
+}
 export default class WebGLRenderBuffer extends RenderBuffer {
     constructor(renderer) {
         super(renderer);
     }
 
     beginUpdate() {
-        const { gl } = this.renderer;
-
-        if (this.dirty) {
-            if (this._framebuffer) {
-                gl.deleteFramebuffer(this._framebuffer);
-            }
-            this._framebuffer = gl.createFramebuffer();
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
-
-            let depthBufferPresent = false;
-            for (const attachment in this.attachments) {
-                const textureRenderer = this.attachments[attachment];
-                const textureApi = textureRenderer.getApiObject();
-                const attachmentPoint = getAttachmentPoint(gl,attachment);
-                const textureTarget = getTextureTarget(gl,textureRenderer.texture);
-                const level = 0;
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, textureTarget, textureApi, level);
-                depthBufferPresent = depthBufferPresent || Number(attachment) === TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
-            }
-
-            if (!depthBufferPresent) {
-                this._depthBuffer = gl.createRenderbuffer();
-                gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthBuffer);
-
-                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.size.width, this.size.height);
-                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthBuffer);
-            }
-
-            this.setUpdated(true);
-
-            if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
-                throw new Error("Error initializing render buffer: the framebuffer is not complete");
-            }
+        if (this.type === RenderBufferType.TEXTURE) {
+            beginUpdateTexture.apply(this);
         }
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
-
-        this._screenViewport = this.renderer.state.viewport;
-        this.renderer.state.viewport = this.size;
+        else if (this.type === RenderBufferType.CUBE_MAP) {
+            beginUpdateCubemap.apply(this);
+        }
+        else {
+            throw new Error("The render buffer is not initialized");
+        }
     }
 
     endUpdate() {
-        const { gl } = this.renderer;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        this.renderer.state.viewport = this._screenViewport;
+        if (this.type === RenderBufferType.TEXTURE) {
+            endUpdateTexture.apply(this);
+        }
+        else if (this.type === RenderBufferType.CUBE_MAP) {
+            endUpdateCubemap.apply(this);
+        }
+        else {
+            throw new Error("The render buffer is not initialized");
+        }
     }
 
     destroy() {

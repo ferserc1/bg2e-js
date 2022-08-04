@@ -24,3 +24,5 @@ rm -rf examples/render_to_texture/dist
 rm -rf examples/render_to_texture/node_modules
 rm -rf examples/sky_sphere/dist
 rm -rf examples/sky_sphere/node_modules
+rm -rf examples/render_to_cubemap/dist
+rm -rf examples/render_to_cubemap/node_modules

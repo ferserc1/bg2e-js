@@ -1,5 +1,31 @@
-import Texture, { TextureDataType, TextureRenderTargetAttachmentNames } from "../base/Texture";
+import Texture, { TextureDataType, TextureTarget, TextureRenderTargetAttachmentNames } from "../base/Texture";
 import Vec from "../math/Vec";
+
+export const RenderBufferType = {
+    UNINITIALIZED: 0,
+    TEXTURE: 1,
+    CUBE_MAP: 2
+};
+
+export const RenderBufferTypeName = {
+    0: 'UNINITIALIZED',
+    1: 'TEXTURE',
+    2: 'CUBE_MAP'
+};
+
+function getTargetType(texture) {
+    if (texture.target === TextureTarget.TEXTURE_2D) {
+        return RenderBufferType.TEXTURE;
+    }
+    else if (texture.target === TextureTarget.CUBE_MAP) {
+        return RenderBufferType.CUBE_MAP;
+    }
+}
+
+function getRenderBufferTypeName(type) {
+    return RenderBufferTypeName[type];
+}
+
 
 export default class RenderBuffer {
     constructor(renderer, size = new Vec([512,512])) {
@@ -7,9 +33,12 @@ export default class RenderBuffer {
         this._attachments = {};
         this._size = size;
         this._dirty = true;
+        this._type = RenderBufferType.UNINITIALIZED;
     }
 
     get renderer() { return this._renderer; }
+
+    get type() { return this._type; }
 
     get size() { return this._size; }
 
@@ -43,6 +72,16 @@ export default class RenderBuffer {
     async attachTexture(texture) {
         if (this._attachments[texture.renderTargetAttachment]) {
             throw new Error(`RenderBuffer.attachTexture(): The attachment is occupied by another texture ${TextureRenderTargetAttachmentNames[texture.renderTargetAttachment]}`);
+        }
+
+        if (this.type !== RenderBufferType.UNINITIALIZED) {
+            const type = getTargetType(texture);
+            if (this.type !== type) {
+                throw new Error(`Invalid texture attachment. RenderBuffer is ${ getRenderBufferTypeName(this.type) }, but the new attachment is ${ getRenderBufferTypeName(type) }`);
+            }
+        }
+        else {
+            this._type = getTargetType(texture);
         }
 
         texture.dataType = TextureDataType.RENDER_TARGET;

@@ -65,3 +65,9 @@ cd examples/sky_sphere
 npm install
 npm run build
 cd -
+
+cd examples/render_to_cubemap
+npm install
+npm run build
+cd -
+
