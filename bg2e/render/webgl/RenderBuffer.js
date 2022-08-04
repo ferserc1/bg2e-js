@@ -99,6 +99,10 @@ function endUpdateTexture() {
 }
 
 function beginUpdateCubemap(face) {
+    // TODO: Implement this
+    // https://stackoverflow.com/questions/38854832/rendering-to-a-cubemap-texture-with-a-framebuffer
+    // https://stackoverflow.com/questions/34639572/render-to-cubemap-tutorial-in-webgl
+    // https://stackoverflow.com/questions/43634998/can-gl-depth-component-be-used-as-the-format-of-cubemaps
     throw new Error("Not implemented");
 }
 
