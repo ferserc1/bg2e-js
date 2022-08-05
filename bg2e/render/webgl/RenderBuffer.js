@@ -103,6 +103,9 @@ function beginUpdateCubemap(face) {
     // https://stackoverflow.com/questions/38854832/rendering-to-a-cubemap-texture-with-a-framebuffer
     // https://stackoverflow.com/questions/34639572/render-to-cubemap-tutorial-in-webgl
     // https://stackoverflow.com/questions/43634998/can-gl-depth-component-be-used-as-the-format-of-cubemaps
+    // One framebuffer and one depth buffer for each view
+    this._framebuffers = [];
+    this._depthBuffers = [];
     throw new Error("Not implemented");
 }
 
@@ -140,13 +143,25 @@ export default class WebGLRenderBuffer extends RenderBuffer {
 
     destroy() {
         const { gl }  = this.renderer;
-        if (this._framebuffer) {
-            gl.deleteFramebuffer(this._framebuffer);
-            this._framebuffer = null;
+        if (this.type === RenderBufferType.TEXTURE) {
+            if (this._framebuffer) {
+                gl.deleteFramebuffer(this._framebuffer);
+                this._framebuffer = null;
+            }
+            if (this._depthBuffer) {
+                gl.deleteRenderbuffer(this._depthBuffer);
+                this._depthBuffer = null;
+            }
         }
-        if (this._depthBuffer) {
-            gl.deleteRenderbuffer(this._depthBuffer);
-            this._depthBuffer = null;
+        else if (this.type === RenderBufferType.CUBE_MAP) {
+            if (this._framebuffers?.length) {
+                this._framebuffers.forEach(fb => gl.deleteFramebuffer(fb));
+            }
+            if (this._depthBuffers?.length) {
+                this._depthBuffers.forEach(db => gl.deleteRenderbuffer(db));
+            }
+            this._framebuffers = null;
+            this._depthBuffers = null;
         }
     }
 }

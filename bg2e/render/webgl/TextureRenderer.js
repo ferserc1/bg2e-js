@@ -7,13 +7,20 @@ import Texture, {
     TextureTargetName,
     TextureDataType,
     TextureComponentFormat,
-    TextureRenderTargetAttachment
+    TextureRenderTargetAttachment,
+    TextureTarget
 } from '../../base/Texture';
 import Vec from '../../math/Vec';
 
 const getTarget = (gl, tex) => {
-    const name = TextureTargetName[tex.target];
-    return gl[name];
+    switch (tex.target) {
+    case TextureTarget.TEXTURE_2D:
+        return gl.TEXTURE_2D;
+    case TextureTarget.CUBE_MAP:
+        return gl.TEXTURE_CUBE_MAP;
+    default:
+        throw new Error("Error creating WebGL Texture: invalid target");
+    }
 }
 
 const getClampMode = (gl, mode) => {
@@ -59,12 +66,19 @@ const getWebGLTexture = (gl, textureData) => {
         let format = isDepthTexture ? gl.DEPTH_COMPONENT : gl.RGBA;
         const type = isDepthTexture ? gl.UNSIGNED_SHORT : dataFormat;
 
-        gl.texImage2D(target, 0, internalFormat, width, height, 0, format, type, null);
-
         gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        if (target === gl.TEXTURE_CUBE_MAP) {
+            for (let i = 0; i<6; ++i) {
+                gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, format, type, null);
+            }
+        }
+        else {
+            gl.texImage2D(target, 0, internalFormat, width, height, 0, format, type, null);
+        }
 
         textureData.imageData.currentSize = new Vec(textureData.size);
     }
