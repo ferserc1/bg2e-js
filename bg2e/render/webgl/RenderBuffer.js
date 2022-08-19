@@ -3,6 +3,15 @@ import { TextureRenderTargetAttachment, TextureTargetName } from "../../base/Tex
 import Vec from "../../math/Vec";
 import RenderBuffer, { RenderBufferType, CubeMapFace } from "../RenderBuffer";
 
+function glEnumToString(gl, value) {
+    for(var key in gl) {
+      if (gl[key] === value) {
+        return key;
+      }
+    }
+    return "0x" + value.toString(16);
+  }
+
 function getAttachmentPoint(gl,att) {
     switch (Number(att)) {
     case TextureRenderTargetAttachment.COLOR_ATTACHMENT_0:
@@ -104,13 +113,50 @@ function beginUpdateCubemap(face) {
     // https://stackoverflow.com/questions/34639572/render-to-cubemap-tutorial-in-webgl
     // https://stackoverflow.com/questions/43634998/can-gl-depth-component-be-used-as-the-format-of-cubemaps
     // One framebuffer and one depth buffer for each view
-    this._framebuffers = [];
-    this._depthBuffers = [];
-    throw new Error("Not implemented");
+    if (this.dirty) {
+        // TODO: cubemap render only supports ONE texture target
+        // to COLOR_ATTACHMENT_0, check this and throw an exception
+        // if there are more attachments
+        this.destroy();
+        this._framebuffers = [];
+        this._depthBuffers = [];
+
+        const textureRenderer = this.attachments[attachment];
+        const textureApi = textureRenderer.getApiObject();
+        const texture = textureRenderer.texture;
+        const { width, height } = texture.size;
+        for (let i = 0; i < 6; ++i) {
+            const fb = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+            this._framebuffers.push(fb);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, textureApi, 0);
+
+            const rb = gl.createRenderbuffer();
+            this._depthBuffers.push(rb);
+            gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl._DEPTH_COMPONENT16, width, height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rb);
+
+            if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
+                const statusCode = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                throw new Error(`Cubemap frame buffer not complete in cube side #${i}: ${glEnumToString(gl, statusCode)}`);
+            }
+        }
+    }
+
+    // bind face
+    // CubeMapFace.POSITIVE_X === 1, see CubeMapFace definition at render/RenderBuffer.js
+    const faceIndex = face - 1;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, faceIndex);
+
+    this._screenViewport = this.renderer.state.viewport;
+    this.renderer.state.viewport = texture.size;
 }
 
 function endUpdateCubemap() {
-    throw new Error("Not implemented");
+    const { gl } = this.renderer;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    this.renderer.state.viewport = this._screenViewport;
 }
 export default class WebGLRenderBuffer extends RenderBuffer {
     constructor(renderer) {
