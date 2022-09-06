@@ -24,7 +24,7 @@ export default class SkySphere {
         await this._shader.load();
     }
 
-    updateRenderState({ viewMatrix, projectionMatrix }) {
+    updateRenderState({ viewMatrix, projectionMatrix = null }) {
         const rotationMatrix = Mat4.GetRotation(viewMatrix);
         if (!this._renderState) {
             this._renderState = new RenderState({
@@ -37,7 +37,9 @@ export default class SkySphere {
         }
         else {
             this._renderState.viewMatrix = rotationMatrix;
-            this._renderState.projectionMatrix = projectionMatrix;
+            if (projectionMatrix) {
+                this._renderState.projectionMatrix = projectionMatrix;
+            }
         }
         return this._renderState;
     }

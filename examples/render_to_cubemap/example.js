@@ -9,6 +9,7 @@ import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import BasicDiffuseColorShader from "bg2e/shaders/BasicDiffuseColorShader";
 import Texture, { TextureRenderTargetAttachment, TextureTarget } from "bg2e/base/Texture";
+import { CubeMapFace } from "bg2e/render/RenderBuffer";
 
 class MyAppController extends AppController {
     async init() {
@@ -88,8 +89,9 @@ class MyAppController extends AppController {
         const { state } = this.renderer;
         state.clear();
 
-        this._renderBuffer.update(() => {
+        this._renderBuffer.update((face,viewMatrix,projectionMatrix) => {
             state.clear();
+            this._skySphere.updateRenderState({ viewMatrix, projectionMatrix })
             this._skySphere.draw();
         });
 
