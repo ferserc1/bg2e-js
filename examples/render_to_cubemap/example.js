@@ -8,8 +8,114 @@ import { createCube } from "bg2e/primitives";
 import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import BasicDiffuseColorShader from "bg2e/shaders/BasicDiffuseColorShader";
-import Texture, { TextureRenderTargetAttachment, TextureTarget } from "bg2e/base/Texture";
-import { CubeMapFace } from "bg2e/render/RenderBuffer";
+import Texture, { TextureRenderTargetAttachment, TextureTarget, TextureTargetName } from "bg2e/base/Texture";
+
+
+import Shader from 'bg2e/render/Shader';
+import ShaderProgram from 'bg2e/render/webgl/ShaderProgram';
+
+const g_code = {
+    webgl: {
+        vertex: `precision mediump float;
+
+        attribute vec3 position;
+        attribute vec3 normal;
+        attribute vec2 texCoord;
+        
+        varying vec2 fragTexCoord;
+        varying vec3 fragWorldPosition;
+        varying vec3 fragWorldNormal;
+
+        uniform mat4 mWorld;
+        uniform mat4 mView;
+        uniform mat4 mProj;
+
+        void main() {
+            fragTexCoord = texCoord;
+
+            gl_Position = mProj * mView * mWorld * vec4(position, 1.0);
+
+            fragWorldPosition = (mWorld * vec4(position, 1.0)).xyz;
+            fragWorldNormal = (mWorld * vec4(normal, 1.0)).xyz;
+        }`,
+
+        fragment: `precision mediump float;
+       
+        varying vec2 fragTexCoord;
+        varying vec3 fragWorldPosition;
+        varying vec3 fragWorldNormal;
+        
+        uniform samplerCube uCube;
+        uniform vec3 uWorldCameraPosition;
+        
+        void main() {
+            vec3 worldNormal = normalize(fragWorldNormal);
+            vec3 eyeToSurfaceDir = normalize(fragWorldPosition - uWorldCameraPosition);
+            vec3 direction = reflect(eyeToSurfaceDir, worldNormal);
+
+            gl_FragColor = textureCube(uCube, direction);
+        }`
+    }
+}
+
+export default class CubeMapTextureShader extends Shader {
+    constructor(renderer) {
+        super(renderer);
+
+        // This shader is compatible with WebGL renderer
+        if (!renderer instanceof WebGLRenderer) {
+            throw new Error("shader.PresentTextureShader: invalid renderer. This shader is compatible with WebGLRenderer");
+        }
+    }
+
+    async load() {
+        const { gl } = this.renderer;
+
+        this._program = new ShaderProgram(gl, "DefaultPresentTextureShader");
+        this._program.attachVertexSource(g_code.webgl.vertex);
+        this._program.attachFragmentSource(g_code.webgl.fragment);
+        this._program.link();
+    }
+
+    set cubeMapTexture(cm) {
+        this._cubeMapTexture = cm;
+
+        // If necesary, initialize the texture renderer
+        if (!cm.renderer) {
+            this.renderer.factory.texture(cm);
+        }
+    }
+
+    get cubeMapTexture() {
+        return this._cubeMapTexture;
+    }
+
+    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
+        const { gl } = this.renderer;
+        const cameraPosition = new Vec([0, 1, -4]);
+
+        this.renderer.state.shaderProgram = this._program;
+
+        this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
+        this._program.uniformMatrix4fv('mView', false, viewMatrix);
+        this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
+        this._program.uniform3fv('uWorldCameraPosition', cameraPosition.xyz);
+
+        const webglTexture = this.cubeMapTexture.renderer.getApiObject();
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
+
+        gl.activeTexture(gl.TEXTURE0);
+        this._program.uniform1i('uCube', 0);
+
+        
+
+        this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));
+        this._program.normalAttribPointer(plistRenderer.normalAttribParams("normal"));
+        this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("texCoord"));
+    }
+}
+
+
 
 class MyAppController extends AppController {
     async init() {
@@ -28,12 +134,6 @@ class MyAppController extends AppController {
         this._skySphere = this.renderer.factory.skySphere();
         await this._skySphere.load('../resources/country_field_sun.jpg');
 
-        // This shader and the cube well be used to render the generated cubemap as a
-        // reflection
-        // TODO: Create a reflection shader. The reflection texture will be passed as
-        // a parameter
-        this._shader = new BasicDiffuseColorShader(this.renderer);
-        await this._shader.load();
         this._cube = this.renderer.factory.polyList(createCube(1,1,1));
         this._material = this.renderer.factory.material(await Material.Deserialize({
             diffuse: [0.4,0.33,0.1,1]
@@ -43,7 +143,12 @@ class MyAppController extends AppController {
         this._cubemapTexture = new Texture();
         this._cubemapTexture.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
         this._cubemapTexture.target = TextureTarget.CUBE_MAP;
-        // TODO: pass the cubemap texture to the shader
+
+        // This shader and the cube well be used to render the generated cubemap as a
+        // reflection
+        this._shader = new CubeMapTextureShader(this.renderer);
+        await this._shader.load();
+        this._shader.cubeMapTexture = this._cubemapTexture;
 
         this._renderBuffer = this.renderer.factory.renderBuffer();
         await this._renderBuffer.attachTexture(this._cubemapTexture);

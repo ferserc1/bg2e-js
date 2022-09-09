@@ -155,10 +155,10 @@ export default class RenderBuffer {
                     viewMatrix.lookAt([ 0,-1, 0], [0, 0, 0], [0, 0,-1]);
                     break;
                 case CubeMapFace.POSITIVE_Z:
-                    viewMatrix.lookAt([ 0, 0, 1], [0, 0, 0], [0,-1, 0]);
+                    viewMatrix.lookAt([ 0, 0,-1], [0, 0, 0], [0,-1, 0]);
                     break;
                 case CubeMapFace.NEGATIVE_Z:
-                    viewMatrix.lookAt([ 0, 0,-1], [0, 0, 0], [0,-1, 0]);
+                    viewMatrix.lookAt([ 0, 0, 1], [0, 0, 0], [0,-1, 0]);
                     break;
                 }
                 
