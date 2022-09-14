@@ -357,6 +357,17 @@ export default class Vec extends NumericArray {
         // Return rgb(x,y,z) or rgba(x,y,z,w);
     }
 
+    toString() {
+        switch (this.length) {
+        case 2:
+            return `[${this[0]}, ${this[1]}]`;
+        case 3:
+            return `[${this[0]}, ${this[1]}, ${this[2]}]`;
+        case 4:
+            return `[${this[0]}, ${this[1]}, ${this[2]}, ${this[5]}]`;
+        }
+    }
+
     static CheckEqualLength(v1,v2) {
         checkEqualLength(v1,v2);
     }

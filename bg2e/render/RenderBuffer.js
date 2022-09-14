@@ -138,21 +138,20 @@ export default class RenderBuffer {
         else if (this.type === RenderBufferType.CUBE_MAP) {
             const viewMatrix = Mat4.MakeIdentity();
             const projectionMatrix = Mat4.MakePerspective(90, 1, 0.1, 100000);
-            // TODO: Check if the view matrix is calculated correctly
             for (let i = 0; i<6; ++i) {
                 const face = CubeMapFace.POSITIVE_X + i;
                 switch (face) {
                 case CubeMapFace.POSITIVE_X:
-                    viewMatrix.lookAt([ 1, 0, 0], [0, 0, 0], [0,-1, 0]);
-                    break;
-                case CubeMapFace.NEGATIVE_X:
                     viewMatrix.lookAt([-1, 0, 0], [0, 0, 0], [0,-1, 0]);
                     break;
+                case CubeMapFace.NEGATIVE_X:
+                    viewMatrix.lookAt([ 1, 0, 0], [0, 0, 0], [0,-1, 0]);
+                    break;
                 case CubeMapFace.POSITIVE_Y:
-                    viewMatrix.lookAt([ 0, 1, 0], [0, 0, 0], [0, 0, 1]);
+                    viewMatrix.lookAt([ 0,-1, 0], [0, 0, 0], [0, 0, 1]);
                     break;
                 case CubeMapFace.NEGATIVE_Y:
-                    viewMatrix.lookAt([ 0,-1, 0], [0, 0, 0], [0, 0,-1]);
+                    viewMatrix.lookAt([ 0, 1, 0], [0, 0, 0], [0, 0,-1]);
                     break;
                 case CubeMapFace.POSITIVE_Z:
                     viewMatrix.lookAt([ 0, 0,-1], [0, 0, 0], [0,-1, 0]);

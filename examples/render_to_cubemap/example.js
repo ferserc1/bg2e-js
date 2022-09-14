@@ -4,7 +4,7 @@ import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
 import Vec from "bg2e/math/Vec";
 import Mat4 from "bg2e/math/Mat4";
-import { createCube } from "bg2e/primitives";
+import { createCube, createSphere } from "bg2e/primitives";
 import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import BasicDiffuseColorShader from "bg2e/shaders/BasicDiffuseColorShader";
@@ -90,6 +90,14 @@ export default class CubeMapTextureShader extends Shader {
         return this._cubeMapTexture;
     }
 
+    set cameraPosition(p) {
+        this._cameraPosition = p;
+    }
+
+    get cameraPosition() {
+        return this._cameraPosition || new Vec([0, 0, 0]);
+    }
+
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
         const { gl } = this.renderer;
         const cameraPosition = new Vec([0, 1, -4]);
@@ -106,8 +114,6 @@ export default class CubeMapTextureShader extends Shader {
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCube', 0);
-
-        
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));
         this._program.normalAttribPointer(plistRenderer.normalAttribParams("normal"));
@@ -127,7 +133,8 @@ class MyAppController extends AppController {
 
         // The view matrix will be used to render the cubemap, and also to render the scene
         // The projection matrix will be used only to render the scene
-        this._viewMatrix = Mat4.MakeIdentity();
+        this._cameraMatrix = Mat4.MakeTranslation(0, 1, 5);
+        this._cameraPosition = Mat4.GetPosition(this._cameraMatrix);
         this._projectionMatrix = Mat4.MakePerspective(50, this.canvas.viewport.aspectRatio,0.1,100.0);
 
         // We going to render a skybox to the cubemap
@@ -135,9 +142,13 @@ class MyAppController extends AppController {
         await this._skySphere.load('../resources/country_field_sun.jpg');
 
         this._cube = this.renderer.factory.polyList(createCube(1,1,1));
+        this._cubeWorldMatrix = Mat4.MakeIdentity();
         this._material = this.renderer.factory.material(await Material.Deserialize({
             diffuse: [0.4,0.33,0.1,1]
         }));
+
+        this._sphere = this.renderer.factory.polyList(createSphere(0.5));
+        this._sphereWorldMatrix = Mat4.MakeIdentity();
 
         // Cubemap resources: we need a RenderBuffer and a Texture
         this._cubemapTexture = new Texture();
@@ -148,6 +159,7 @@ class MyAppController extends AppController {
         // reflection
         this._shader = new CubeMapTextureShader(this.renderer);
         await this._shader.load();
+        this._shader.cameraPosition = this._cameraPosition;
         this._shader.cubeMapTexture = this._cubemapTexture;
 
         this._renderBuffer = this.renderer.factory.renderBuffer();
@@ -167,13 +179,30 @@ class MyAppController extends AppController {
 
     frame(delta) {
         this._alpha = this._alpha || 0;
-        this._alpha += delta * 0.001;
-        this._viewMatrix.identity()
-            .rotate(this._alpha, 0, 1, 0)
-            .translate(0, -0.5, -4);
+        this._alpha += delta * 0.0001;
 
+        this._cameraMatrix
+            .identity()
+            .translate(0, 0, 5)
+            .rotate(this._alpha * 2, 0, 1, 0);
+
+        this._cameraPosition = Mat4.GetPosition(this._cameraMatrix);
+        this._shader.cameraPosition = this._cameraPosition;
+        console.log(this._cameraPosition.toString());
+
+        this._cubeWorldMatrix.identity()
+            .rotate(this._alpha, 0, 1, 0)
+            .rotate(this._alpha / 2, 1, 0, 0)
+            .translate(1, 0, 0);
+
+        this._sphereWorldMatrix.identity()
+            //.rotate(this._alpha / 2, 0, 1, 0)
+            //.rotate(this._alpha, 1, 0, 0)
+            .translate(-1, 0, 0);
+
+        const viewMatrix = Mat4.GetInverted(this._cameraMatrix);
         this._skySphere.updateRenderState({ 
-            viewMatrix: this._viewMatrix,
+            viewMatrix: viewMatrix,
             projectionMatrix: this._projectionMatrix
         });
 
@@ -182,10 +211,18 @@ class MyAppController extends AppController {
                 polyListRenderer: this._cube,
                 materialRenderer: this._material,
                 shader: this._shader,
-                modelMatrix: Mat4.MakeIdentity(),
-                viewMatrix: this._viewMatrix,
+                modelMatrix: this._cubeWorldMatrix,
+                viewMatrix: viewMatrix,
                 projectionMatrix: this._projectionMatrix
+            }),
 
+            new RenderState({
+                polyListRenderer: this._sphere,
+                materialRenderer: this._material,
+                shader: this._shader,
+                modelMatrix: this._sphereWorldMatrix,
+                viewMatrix: viewMatrix,
+                projectionMatrix: this._projectionMatrix
             })
         ];
     }

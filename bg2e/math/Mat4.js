@@ -602,6 +602,11 @@ export default class Mat4 extends NumericArray {
 		return new Vec(m[12], m[13], m[14]);
 	}
 
+	static GetInverted(m) {
+		const inverted = new Mat4(m);
+		inverted.invert();
+		return inverted;
+	}
     static Equals(m,n) {
 		return	m[ 0] == n[ 0] && m[ 1] == n[ 1] && m[ 2] == n[ 2] && m[ 3] == n[ 3] &&
 				m[ 4] == n[ 4] && m[ 5] == n[ 5] && m[ 6] == n[ 6] && m[ 7] == n[ 7] &&
