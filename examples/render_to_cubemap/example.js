@@ -13,6 +13,7 @@ import Texture, { TextureRenderTargetAttachment, TextureTarget, TextureTargetNam
 
 import Shader from 'bg2e/render/Shader';
 import ShaderProgram from 'bg2e/render/webgl/ShaderProgram';
+import { SpecialKey } from "bg2e/app/KeyboardEvent";
 
 const g_code = {
     webgl: {
@@ -129,10 +130,13 @@ class MyAppController extends AppController {
             throw new Error("This example works only with WebGL Renderer");
         }
 
+        this._animation = true;
+
         this.renderer.state.depthTestEnabled = true;
 
         // The view matrix will be used to render the cubemap, and also to render the scene
         // The projection matrix will be used only to render the scene
+        this._alpha = 0;
         this._cameraMatrix = Mat4.MakeTranslation(0, 1, 5);
         this._cameraPosition = Mat4.GetPosition(this._cameraMatrix);
         this._projectionMatrix = Mat4.MakePerspective(50, this.canvas.viewport.aspectRatio,0.1,100.0);
@@ -178,8 +182,10 @@ class MyAppController extends AppController {
 
 
     frame(delta) {
-        this._alpha = this._alpha || 0;
-        this._alpha += delta * 0.0001;
+        if (this._animation) {
+            this._alpha = this._alpha || 0;
+            this._alpha += delta * 0.0001;
+        }
 
         this._cameraMatrix
             .identity()
@@ -242,6 +248,12 @@ class MyAppController extends AppController {
 
     destroy() {
         this._skySphere.destroy();
+    }
+
+    keyUp(evt) {
+        if (evt.key === SpecialKey.SPACE) {
+            this._animation = !this._animation;
+        }
     }
 }
 

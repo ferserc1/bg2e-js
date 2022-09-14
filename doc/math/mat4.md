@@ -42,6 +42,14 @@ const rot = Mat3.MakeWithQuaternion(q);
 Mat3.IsIdentity(m);   // false
 ```
 
+## Clarifications on transformations
+
+There is a common confusion when working with computer graphics. There are actually two confusions: one is related to the notation used to represent matrices, and the second is related to the order of multiplication in the transformations.
+
+The problem is that these doubts can arise for both an expert mathematician and an expert computer scientist, because it all comes from a conflict between the mathematical notation and the way the data is represented on the computer.
+
+If you know what I'm talking about, it's probably already clear to you what problem I'm talking about. The explanation is detailed in [this document](about_transformations.md). If you don't know what I'm talking about, then I recommend that you read the above document, because it may solve a lot of doubts. Likewise, if you get the impression that the transformations in your programs are behaving strangely, you should read the above document carefully.
+
 ## Reference
 
 ### Instance methods

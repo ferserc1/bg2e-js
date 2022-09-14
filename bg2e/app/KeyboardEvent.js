@@ -25,7 +25,8 @@ export const SpecialKey = {
     RIGHT_ARROW: "ArrowRight",
     DOWN_ARROW: "ArrowDown",
     INSERT: "Insert",
-    DELETE: "Delete"
+    DELETE: "Delete",
+    SPACE: "Space"
 };
 
 export const createKeyboardEvent = (evt) => {
