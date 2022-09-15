@@ -115,7 +115,6 @@ export default class CubeMapTextureShader extends Shader {
         const { gl } = this.renderer;
 
         this.renderer.state.shaderProgram = this._program;
-
         
         const normalMatrix = Mat4.GetInverted(modelMatrix);
         normalMatrix.traspose();
@@ -156,10 +155,7 @@ class MyAppController extends AppController {
         this._cameraPosition = Mat4.GetPosition(this._cameraMatrix);
         this._projectionMatrix = Mat4.MakePerspective(50, this.canvas.viewport.aspectRatio,0.1,100.0);
 
-        // We going to render a skybox to the cubemap
-        this._skySphere = this.renderer.factory.skySphere();
-        await this._skySphere.load('../resources/country_field_sun.jpg');
-
+        // Scene: one cube and one sphere
         this._cube = this.renderer.factory.polyList(createCube(1,1,1));
         this._cubeWorldMatrix = Mat4.MakeIdentity();
         this._material = this.renderer.factory.material(await Material.Deserialize({
@@ -169,22 +165,29 @@ class MyAppController extends AppController {
         this._sphere = this.renderer.factory.polyList(createSphere(0.5));
         this._sphereWorldMatrix = Mat4.MakeIdentity();
 
+        // We going to render a skybox to the cubemap. This will transform a equirectangular
+        // texture into a cube map. The sky sphere contains its own shader to render the
+        // texture sphere, but you also can set your own shader. For example, if you want to
+        // generate a light environment map, you need to set a shader that blurs the texture
+        // TODO: Set predefined shaders to generate PBR cube maps
+        this._skySphere = this.renderer.factory.skySphere();
+        await this._skySphere.load('../resources/country_field_sun.jpg');
+
         // Cubemap resources: we need a RenderBuffer and a Texture
         this._cubemapTexture = new Texture();
         this._cubemapTexture.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
         this._cubemapTexture.target = TextureTarget.CUBE_MAP;
-
-        // This shader and the cube well be used to render the generated cubemap as a
-        // reflection
-        this._shader = new CubeMapTextureShader(this.renderer);
-        await this._shader.load();
-        this._shader.cubeMapTexture = this._cubemapTexture;
 
         this._renderBuffer = this.renderer.factory.renderBuffer();
         await this._renderBuffer.attachTexture(this._cubemapTexture);
         // This is the size of each cube face
         this._renderBuffer.size = new Vec(256, 256);
 
+        // This sader will be used to render the scene, using the cube map to
+        // simulate reflections.
+        this._shader = new CubeMapTextureShader(this.renderer);
+        await this._shader.load();
+        this._shader.cubeMapTexture = this._cubemapTexture;
     }
 
     reshape(width,height) {
