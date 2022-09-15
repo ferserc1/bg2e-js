@@ -93,26 +93,19 @@ export default class CubeMapTextureShader extends Shader {
         return this._cubeMapTexture;
     }
 
-    set cameraPosition(p) {
-        this._cameraPosition = p;
-    }
-
-    get cameraPosition() {
-        return this._cameraPosition || new Vec([0, 0, 0]);
-    }
-
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
         const { gl } = this.renderer;
 
         this.renderer.state.shaderProgram = this._program;
 
+        const cameraPosition = Mat4.GetPosition(Mat4.GetInverted(viewMatrix));
         const normalMatrix = Mat4.GetInverted(modelMatrix);
         normalMatrix.traspose();
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
         this._program.uniformMatrix3fv('mNormalMatrix', false, normalMatrix.mat3);
-        this._program.uniform3fv('uWorldCameraPosition', this.cameraPosition.xyz);
+        this._program.uniform3fv('uWorldCameraPosition', cameraPosition.xyz);
 
         const webglTexture = this.cubeMapTexture.renderer.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
@@ -167,7 +160,6 @@ class MyAppController extends AppController {
         // reflection
         this._shader = new CubeMapTextureShader(this.renderer);
         await this._shader.load();
-        this._shader.cameraPosition = this._cameraPosition;
         this._shader.cubeMapTexture = this._cubemapTexture;
 
         this._renderBuffer = this.renderer.factory.renderBuffer();
