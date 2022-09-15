@@ -69,6 +69,8 @@ export default class CubeMapTextureShader extends Shader {
         if (!renderer instanceof WebGLRenderer) {
             throw new Error("shader.PresentTextureShader: invalid renderer. This shader is compatible with WebGLRenderer");
         }
+
+        this._cameraPosition = [0,0,0];
     }
 
     async load() {
@@ -93,19 +95,35 @@ export default class CubeMapTextureShader extends Shader {
         return this._cubeMapTexture;
     }
 
+    // Call this function once each frame
+    updateCameraPosition({ viewMatrix = null, cameraMatrix = null, cameraPosition = null }) {
+        if (cameraPosition) {
+            this._cameraPosition = new Vec(cameraPosition);
+        }
+        else if (cameraMatrix) {
+            this._cameraPosition = Mat4.GetPosition(cameraMatrix).xyz;
+        }
+        else if (viewMatrix) {
+            this._cameraPosition = Mat4.GetPosition(Mat4.GetInverted(viewMatrix)).xyz;
+        }
+        else {
+            throw new Error("Update camera position: you must specify viewMatrix, cameraMatrix or cameraPosition");
+        }
+    }
+
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
         const { gl } = this.renderer;
 
         this.renderer.state.shaderProgram = this._program;
 
-        const cameraPosition = Mat4.GetPosition(Mat4.GetInverted(viewMatrix));
+        
         const normalMatrix = Mat4.GetInverted(modelMatrix);
         normalMatrix.traspose();
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
         this._program.uniformMatrix3fv('mNormalMatrix', false, normalMatrix.mat3);
-        this._program.uniform3fv('uWorldCameraPosition', cameraPosition.xyz);
+        this._program.uniform3fv('uWorldCameraPosition', this._cameraPosition);
 
         const webglTexture = this.cubeMapTexture.renderer.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
@@ -189,9 +207,6 @@ class MyAppController extends AppController {
             .rotate(-0.3, 1, 0, 0)
             .rotate(this._alpha * 2, 0, 1, 0);
 
-        this._cameraPosition = Mat4.GetPosition(this._cameraMatrix);
-        this._shader.cameraPosition = this._cameraPosition;
-
         this._cubeWorldMatrix.identity()
             .rotate(this._alpha * 2, 0, 1, 0)
             .rotate(this._alpha * 4, 1, 0, 0)
@@ -201,6 +216,7 @@ class MyAppController extends AppController {
             .translate(-1, 0, 0);
 
         const viewMatrix = Mat4.GetInverted(this._cameraMatrix);
+        this._shader.updateCameraPosition({ cameraMatrix: this._cameraMatrix });
 
         this._skySphere.updateRenderState({ viewMatrix, projectionMatrix: this._projectionMatrix });
 
