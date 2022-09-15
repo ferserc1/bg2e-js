@@ -173,7 +173,7 @@ class MyAppController extends AppController {
         this._renderBuffer = this.renderer.factory.renderBuffer();
         await this._renderBuffer.attachTexture(this._cubemapTexture);
         // This is the size of each cube face
-        this._renderBuffer.size = new Vec(512, 512);
+        this._renderBuffer.size = new Vec(256, 256);
 
     }
 
@@ -199,23 +199,18 @@ class MyAppController extends AppController {
 
         this._cameraPosition = Mat4.GetPosition(this._cameraMatrix);
         this._shader.cameraPosition = this._cameraPosition;
-        console.log(this._cameraPosition.toString());
 
         this._cubeWorldMatrix.identity()
-            //.rotate(this._alpha, 0, 1, 0)
-            //.rotate(this._alpha / 2, 1, 0, 0)
+            .rotate(this._alpha * 2, 0, 1, 0)
+            .rotate(this._alpha * 4, 1, 0, 0)
             .translate(1, 0, 0);
 
         this._sphereWorldMatrix.identity()
-            //.rotate(this._alpha / 2, 0, 1, 0)
-            //.rotate(this._alpha, 1, 0, 0)
             .translate(-1, 0, 0);
 
         const viewMatrix = Mat4.GetInverted(this._cameraMatrix);
-        //this._skySphere.updateRenderState({ 
-        //    viewMatrix: viewMatrix,
-        //    projectionMatrix: this._projectionMatrix
-        //});
+
+        this._skySphere.updateRenderState({ viewMatrix, projectionMatrix: this._projectionMatrix });
 
         this._renderStates = [
             new RenderState({
@@ -236,22 +231,23 @@ class MyAppController extends AppController {
                 projectionMatrix: this._projectionMatrix
             })
         ];
-
-        this._viewMatrix = viewMatrix;
     }
 
     display() {
         const { state } = this.renderer;
         state.clear();
 
-        this._skySphere.updateRenderState({ viewMatrix: this._viewMatrix, projectionMatrix: this._projectionMatrix });
         this._skySphere.draw();
 
-        this._renderBuffer.update((face,viewMatrix,projectionMatrix) => {
-            state.clear();
-            this._skySphere.updateRenderState({ viewMatrix, projectionMatrix })
-            this._skySphere.draw();
-        });
+        if (!this._environmentUpdated) {
+            console.log("Update cubemap render");
+            this._renderBuffer.update((face,viewMatrix,projectionMatrix) => {
+                state.clear();
+                this._skySphere.updateRenderState({ viewMatrix, projectionMatrix })
+                this._skySphere.draw();
+            });
+            this._environmentUpdated = true;
+        }
 
         this._renderStates.forEach(rs => rs.draw());
     }
