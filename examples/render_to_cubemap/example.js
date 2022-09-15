@@ -30,6 +30,7 @@ const g_code = {
         uniform mat4 mWorld;
         uniform mat4 mView;
         uniform mat4 mProj;
+        uniform mat3 mNormalMatrix;
 
         void main() {
             fragTexCoord = texCoord;
@@ -37,7 +38,7 @@ const g_code = {
             gl_Position = mProj * mView * mWorld * vec4(position, 1.0);
 
             fragWorldPosition = (mWorld * vec4(position, 1.0)).xyz;
-            fragWorldNormal = (mWorld * vec4(normal, 1.0)).xyz;
+            fragWorldNormal = mNormalMatrix * normal;
         }`,
 
         fragment: `precision mediump float;
@@ -55,6 +56,7 @@ const g_code = {
             vec3 direction = reflect(eyeToSurfaceDir, worldNormal);
 
             gl_FragColor = textureCube(uCube, direction);
+            //gl_FragColor = vec4(direction * 0.5 + 0.5, 1.0);
         }`
     }
 }
@@ -101,14 +103,16 @@ export default class CubeMapTextureShader extends Shader {
 
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
         const { gl } = this.renderer;
-        const cameraPosition = new Vec([0, 1, -4]);
 
         this.renderer.state.shaderProgram = this._program;
 
+        const normalMatrix = Mat4.GetInverted(modelMatrix);
+        normalMatrix.traspose();
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
-        this._program.uniform3fv('uWorldCameraPosition', cameraPosition.xyz);
+        this._program.uniformMatrix3fv('mNormalMatrix', false, normalMatrix.mat3);
+        this._program.uniform3fv('uWorldCameraPosition', this.cameraPosition.xyz);
 
         const webglTexture = this.cubeMapTexture.renderer.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
@@ -190,6 +194,7 @@ class MyAppController extends AppController {
         this._cameraMatrix
             .identity()
             .translate(0, 0, 5)
+            .rotate(-0.3, 1, 0, 0)
             .rotate(this._alpha * 2, 0, 1, 0);
 
         this._cameraPosition = Mat4.GetPosition(this._cameraMatrix);
@@ -197,8 +202,8 @@ class MyAppController extends AppController {
         console.log(this._cameraPosition.toString());
 
         this._cubeWorldMatrix.identity()
-            .rotate(this._alpha, 0, 1, 0)
-            .rotate(this._alpha / 2, 1, 0, 0)
+            //.rotate(this._alpha, 0, 1, 0)
+            //.rotate(this._alpha / 2, 1, 0, 0)
             .translate(1, 0, 0);
 
         this._sphereWorldMatrix.identity()
@@ -207,10 +212,10 @@ class MyAppController extends AppController {
             .translate(-1, 0, 0);
 
         const viewMatrix = Mat4.GetInverted(this._cameraMatrix);
-        this._skySphere.updateRenderState({ 
-            viewMatrix: viewMatrix,
-            projectionMatrix: this._projectionMatrix
-        });
+        //this._skySphere.updateRenderState({ 
+        //    viewMatrix: viewMatrix,
+        //    projectionMatrix: this._projectionMatrix
+        //});
 
         this._renderStates = [
             new RenderState({
@@ -231,11 +236,16 @@ class MyAppController extends AppController {
                 projectionMatrix: this._projectionMatrix
             })
         ];
+
+        this._viewMatrix = viewMatrix;
     }
 
     display() {
         const { state } = this.renderer;
         state.clear();
+
+        this._skySphere.updateRenderState({ viewMatrix: this._viewMatrix, projectionMatrix: this._projectionMatrix });
+        this._skySphere.draw();
 
         this._renderBuffer.update((face,viewMatrix,projectionMatrix) => {
             state.clear();
