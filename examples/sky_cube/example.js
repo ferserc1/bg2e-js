@@ -9,6 +9,7 @@ import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
 import BasicDiffuseColorShader from "bg2e/shaders/BasicDiffuseColorShader";
 import Texture, { TextureRenderTargetAttachment, TextureTarget, TextureTargetName } from "bg2e/base/Texture";
+import IrradianceMapCubeShader from "bg2e/shaders/IrradianceMapCubeShader";
 
 class MyAppController extends AppController {
     async init() {
@@ -44,7 +45,7 @@ class MyAppController extends AppController {
         this._renderBuffer.size = new Vec(512, 512);
 
         this._skyCube = this.renderer.factory.skyCube();
-        await this._skyCube.load(this._cubemapTexture);
+        await this._skyCube.load(this._cubemapTexture, IrradianceMapCubeShader);
 
         this._mouseOffset = new Vec([0,0]);
     }
