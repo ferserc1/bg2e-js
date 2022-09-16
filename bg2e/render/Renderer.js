@@ -94,6 +94,10 @@ export default class Renderer {
     skySphereFactory() {
         throw new Error("Calling base implementation of Renderer.skySphereFactory()");
     }
+    
+    skyCubeFactory() {
+        throw new Error("Calling base implementation of Renderer.skyCubeFactory()");
+    }
 
     get factory() {
         const renderer = this;
@@ -112,6 +116,9 @@ export default class Renderer {
             },
             skySphere() {
                 return renderer.skySphereFactory();
+            },
+            skyCube() {
+                return renderer.skyCubeFactory();
             }
         }
     }

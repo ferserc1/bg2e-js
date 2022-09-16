@@ -2,6 +2,7 @@ import Material from "../base/Material";
 import { createCube } from "../primitives";
 import RenderState from "./RenderState";
 import SkyCubeShader from "../shaders/SkyCubeShader";
+import Mat4 from "../math/Mat4";
 
 export default class SkyCube {
     constructor(renderer) {
@@ -46,7 +47,7 @@ export default class SkyCube {
 
     get polyListRenderer() {
         if (!this._plistRenderer) {
-            this._plistRenderer = this.renderer.factory.polyList(createCube(3));
+            this._plistRenderer = this.renderer.factory.polyList(createCube(1,1,1));
         }
         return this._plistRenderer;
     }

@@ -1,5 +1,6 @@
 import { TextureTargetName } from "../base/Texture";
 import Mat4 from "../math/Mat4";
+import Vec from "../math/Vec";
 import Shader from "../render/Shader";
 import WebGLRenderer from "../render/webgl/Renderer";
 import ShaderProgram from "../render/webgl/ShaderProgram";
@@ -58,7 +59,7 @@ export default class SkyCubeShader extends Shader {
         const { gl } = this.renderer;
         this.renderer.state.shaderProgram = this._program;
 
-        const mvp = Mat4.Mult(projectionMatrix,viewMatrix);
+        const mvp = Mat4.Mult(viewMatrix, projectionMatrix);
         this._program.uniformMatrix4fv('uMVP', false, mvp);
 
         gl.activeTexture(gl.TEXTURE0);
