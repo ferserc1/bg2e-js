@@ -5,7 +5,7 @@ import { TextureTargetName } from "../base/Texture";
 import Vec from "../math/Vec";
 
 const g_code = {
-    weblg: {
+    webgl: {
         vertex: `precision mediump float;
         
         attribute vec3 vertPosition;
@@ -46,8 +46,8 @@ export default class SkySphereShader extends Shader {
     async load() {
         const { gl } = this.renderer;
         this._program = new ShaderProgram(gl, "SkySphereShader");
-        this._program.attachVertexSource(g_code.weblg.vertex);
-        this._program.attachFragmentSource(g_code.weblg.fragment);
+        this._program.attachVertexSource(g_code.webgl.vertex);
+        this._program.attachFragmentSource(g_code.webgl.fragment);
         this._program.link();
     }
 

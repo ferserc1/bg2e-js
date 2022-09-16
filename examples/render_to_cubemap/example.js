@@ -96,7 +96,7 @@ export default class CubeMapTextureShader extends Shader {
     }
 
     // Call this function once each frame
-    updateCameraPosition({ viewMatrix = null, cameraMatrix = null, cameraPosition = null }) {
+    updateCameraPosition({ viewMatrix = null, cameraMatrix = null, cameraPosition = null }) {
         if (cameraPosition) {
             this._cameraPosition = new Vec(cameraPosition);
         }
@@ -109,9 +109,14 @@ export default class CubeMapTextureShader extends Shader {
         else {
             throw new Error("Update camera position: you must specify viewMatrix, cameraMatrix or cameraPosition");
         }
+        this._cameraPositionInitialized = true;
     }
 
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
+        if (!this._cameraPositionInitialized) {
+            console.warn("Warning: camera position not set in cubemap shader. Serious performance impact!");
+            this._cameraPosition = Mat4.GetPosition(Mat4.GetInverted(viewMatrix)).xyz;
+        }
         const { gl } = this.renderer;
 
         this.renderer.state.shaderProgram = this._program;
@@ -165,7 +170,7 @@ class MyAppController extends AppController {
         this._sphere = this.renderer.factory.polyList(createSphere(0.5));
         this._sphereWorldMatrix = Mat4.MakeIdentity();
 
-        // We going to render a skybox to the cubemap. This will transform a equirectangular
+        // We're going to render a skybox to the cubemap. This will transform a equirectangular
         // texture into a cube map. The sky sphere contains its own shader to render the
         // texture sphere, but you also can set your own shader. For example, if you want to
         // generate a light environment map, you need to set a shader that blurs the texture

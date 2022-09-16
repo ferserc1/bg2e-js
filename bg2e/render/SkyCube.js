@@ -1,26 +1,22 @@
-import { createSphere } from "../primitives";
-import SkySphereShader from "../shaders/SkySphereShader";
-import RenderState from "./RenderState";
 import Material from "../base/Material";
-import Texture from "../base/Texture";
-import Mat4 from "../math/Mat4";
+import { createCube } from "../primitives";
+import RenderState from "./RenderState";
+import SkyCubeShader from "../shaders/SkyCubeShader";
 
-export default class SkySphere {
+export default class SkyCube {
     constructor(renderer) {
         this._renderer = renderer;
     }
 
     get renderer() { return this._renderer; }
 
-    async load(equirectangularTextureUrl, Shader = null) {
-        this._texture = new Texture();
-        this._texture.fileName = equirectangularTextureUrl;
-        await this._texture.loadImageData();
+    async load(cubemapTexture, Shader = null) {
+        this._texture = cubemapTexture;
 
         this._material = new Material();
         this._material.diffuse = this._texture;
 
-        this._shader = Shader ? new Shader(this.renderer) : new SkySphereShader(this.renderer);
+        this._shader = Shader ? new Shader(this.renderer) : new SkyCubeShader(this.renderer);
         await this._shader.load();
     }
 
@@ -45,12 +41,12 @@ export default class SkySphere {
     }
 
     draw() {
-        throw new Error("SkySphere.draw(): Calling base implementation of SkySphere");
+        throw new Error("SkyCube.draw(): Calling base implementation of SkyCube");
     }
 
     get polyListRenderer() {
         if (!this._plistRenderer) {
-            this._plistRenderer = this.renderer.factory.polyList(createSphere(3.5));
+            this._plistRenderer = this.renderer.factory.polyList(createCube(3));
         }
         return this._plistRenderer;
     }
@@ -59,9 +55,9 @@ export default class SkySphere {
         this._shader.destroy();
         this._texture.destroy();
         this._plistRenderer.destroy();
+        this._material.destroy();
         this._shader = null;
         this._texture = null;
-        this._material.destroy();
         this._material = null;
         this._plistRenderer = null;
         this._renderState = null;
