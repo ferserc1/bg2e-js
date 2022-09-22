@@ -3,6 +3,7 @@ import MaterialRenderer from "./MaterialRenderer";
 import PresentTextureShader from "../shaders/PresentTextureShader";
 import Material from "../base/Material";
 import PolyList from "../base/PolyList";
+import Environment from "./Environment";
 
 
 export const EngineFeatures = {
@@ -99,6 +100,10 @@ export default class Renderer {
         throw new Error("Calling base implementation of Renderer.skyCubeFactory()");
     }
 
+    environmentFactory() {
+        return new Environment(this);
+    }
+
     get factory() {
         const renderer = this;
         return {
@@ -119,6 +124,9 @@ export default class Renderer {
             },
             skyCube() {
                 return renderer.skyCubeFactory();
+            },
+            environment() {
+                return renderer.environmentFactory();
             }
         }
     }

@@ -11,6 +11,14 @@ export default class SkyCube {
 
     get renderer() { return this._renderer; }
 
+    set texture(texture) {
+        if (!this._texture) {
+            throw new Error("SkyCube: setting texture to an uninitialized sky cube. The texture setter is used to change the skyCube texture once created. Use the load() method instead.");
+        }
+        this._texture = texture;
+        this._material.diffuse = this._texture;
+    }
+
     async load(cubemapTexture, Shader = null) {
         this._texture = cubemapTexture;
 
