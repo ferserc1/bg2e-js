@@ -79,7 +79,7 @@ class MyAppController extends AppController {
         if (evt.key === "Digit1") {
             this._skyCube.texture = this._env.environmentMap;
         }
-        else if (evt.key === "Digit1") {
+        else if (evt.key === "Digit2") {
             this._skyCube.texture = this._env.specularMap;
         }
         else if (evt.key === "Digit3") {

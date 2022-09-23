@@ -1,5 +1,6 @@
 import Texture, { TextureRenderTargetAttachment, TextureTarget } from "../base/Texture";
 import IrradianceMapCubeShader from "../shaders/IrradianceMapCubeShader";
+import SpecularMapCubeShader from "../shaders/SpecularMapCubeShader";
 
 const createTextureResources = async (renderer, size) => {
     const texture = new Texture();
@@ -58,9 +59,9 @@ export default class Environment {
         this._environmentMapResources.skyShape = this.renderer.factory.skySphere();
         await this._environmentMapResources.skyShape.load(textureUrl);
 
-        //this._specularMapResources = await createTextureResources(this.renderer, specularMapSize);
-        //this._specularMapResources.skyShape = this.renderer.factory.skyCube();
-        //await this._specularMapResources.skyShape.load(this._environmentMapResources.texture, SpecularMapCubeShader);
+        this._specularMapResources = await createTextureResources(this.renderer, specularMapSize);
+        this._specularMapResources.skyShape = this.renderer.factory.skyCube();
+        await this._specularMapResources.skyShape.load(this._environmentMapResources.texture, SpecularMapCubeShader);
 
         this._irradianceMapResources = await createTextureResources(this.renderer, irradianceMapSize);
         this._irradianceMapResources.skyShape = this.renderer.factory.skyCube();
@@ -69,7 +70,7 @@ export default class Environment {
 
     updateMaps() {
         updateMap(this._environmentMapResources);
-        //updateMap(this._specularMapResources);
+        updateMap(this._specularMapResources);
         updateMap(this._irradianceMapResources);
     }
 }

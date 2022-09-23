@@ -27,7 +27,6 @@ const g_code = {
         uniform samplerCube uCubemap;
         
         void main() {
-            //vec3 color = textureCube(uCubemap, normalize(fragNormal)).xyz;
             vec3 normal = normalize(fragNormal);
             vec3 irradiance = vec3(0.0);
 
@@ -86,7 +85,7 @@ export default class IrradianceMapCubeShader extends Shader {
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
         if (material.diffuse instanceof Vec) {
-            throw new Error("Invalid material configuration in SkySphereShader: diffuse component must be a cube map texture");
+            throw new Error("Invalid material configuration in IrradianceMapCubeShader: diffuse component must be a cube map texture");
         }
         const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
