@@ -19,12 +19,11 @@ const g_code = {
             fragNormal = normalize(vertPosition);
         }`,
 
-        fragment: (sampleCount) => `precision mediump float;
+        fragment: (sampleCount,roughness) => `precision mediump float;
         
         varying vec3 fragNormal;
         
         uniform samplerCube uCubemap;
-        uniform float uRoughness;
         
         float vanDerCorpus(int n, int base) {
             float invBase = 1.0 / float(base);
@@ -49,11 +48,12 @@ const g_code = {
             return vec2(float(i)/float(N), vanDerCorpus(i, 2));
         }
 
-        vec3 importanceSampleGGX(vec2 Xi, vec3 N, float roughness) {
-            float a = roughness*roughness;
+        vec3 importanceSampleGGX(vec2 Xi, vec3 N) {
+            // compute roughness^4 outside the gpu
+            float a = ${ roughness*roughness*roughness*roughness };
             
-            float phi = 2.0 * ${ Math.PI } * Xi.x;
-            float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
+            float phi = ${ 2.0 * Math.PI } * Xi.x;
+            float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a - 1.0) * Xi.y));
             float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
             
             // from spherical coordinates to cartesian coordinates
@@ -81,7 +81,7 @@ const g_code = {
             for (int i = 0; i < ${ sampleCount }; ++i)
             {
                 vec2 Xi = hammersleyNoBitOps(i, ${ sampleCount });
-                vec3 H = importanceSampleGGX(Xi, N, uRoughness);
+                vec3 H = importanceSampleGGX(Xi, N);
                 vec3 L = normalize(2.0 * dot(V, H) * H - V);
 
                 float NdotL = max(dot(N,L), 0.0);
@@ -107,12 +107,16 @@ export default class SpecularMapCubeShader extends Shader {
         }
     }
 
-    async load() {
+    get roughness() { return this._roughness; }
+
+    async load(roughness = 0.2) {
         const { gl } = this.renderer;
+
+        this._roughness = roughness;
 
         this._program = new ShaderProgram(gl, "SpecularMapCubeShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
-        this._program.attachFragmentSource(g_code.webgl.fragment(128));
+        this._program.attachFragmentSource(g_code.webgl.fragment(128, this._roughness));
         this._program.link();
     }
 
@@ -123,7 +127,6 @@ export default class SpecularMapCubeShader extends Shader {
 
         const mvp = Mat4.Mult(viewMatrix, projectionMatrix);
         this._program.uniformMatrix4fv('uMVP', false, mvp);
-        this._program.uniform1f('uRoughness', 0.2);
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
