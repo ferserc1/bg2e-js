@@ -11,6 +11,23 @@ function destroy() {
 }
 
 export default class ShaderProgram {
+    static Create(gl,name,vertexCode,fragmentCode) {
+        if (!vertexCode ||  !fragmentCode) {
+            throw new Error("ShaderProgram.Create(): Invalid vertex or fragment code");
+        }
+        const result = new ShaderProgram(gl,name);
+        if (!Array.isArray(vertexCode)) {
+            vertexCode = [vertexCode];
+        }
+        if (!Array.isArray(fragmentCode)) {
+            fragmentCode = [fragmentCode];
+        }
+        vertexCode.forEach(shaderCode => result.attachVertexSource(shaderCode));
+        fragmentCode.forEach(shaderCode => result.attachFragmentSource(shaderCode));
+        result.link();
+        return result;
+    }
+
     static GetShaderProgram(glProgram) {
         return glProgram.__shaderProgram__;
     }
