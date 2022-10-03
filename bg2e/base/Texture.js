@@ -148,6 +148,7 @@ const loadImageFromFile = async fileUrl => {
     const loadFlipImage = () => {
         return new Promise(resolve => {
             flipImage.onload = () => {
+                flipImage._hash = generateImageHash(flipImage);
                 resolve();
             }
             flipImage.src = canvas.toDataURL("image/png");
@@ -352,8 +353,6 @@ export default class Texture {
 
             this._size = new Vec(this._imageData.width, this._imageData.height);
 
-            // Generate a symbol to use as unique identifier of the image
-            this._imageData._hash = generateImageHash(this._imageData);
             this._dirty = true; 
         }
         else if (this.dataType === TextureDataType.RENDER_TARGET) {

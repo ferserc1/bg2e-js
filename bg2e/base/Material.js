@@ -226,7 +226,7 @@ const deserializeValueTexture = async (obj,relativePath) => {
         const tex = new Texture();
         tex.fileName = relativePath + obj;
         tex.dataType = TextureDataType.IMAGE;
-        await loadTextureImage(tex);
+        await tex.loadImageData();
         return tex;
     }
     else if (typeof(obj) === "number") {
@@ -235,7 +235,7 @@ const deserializeValueTexture = async (obj,relativePath) => {
     else if (obj.type === "Texture") {
         const tex = new Texture();
         tex.deserialize(obj.data);
-        await loadTextureImage(tex);
+        await tex.loadImageData();
         return tex;
     }
     else if (obj.type === "number") {
