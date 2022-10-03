@@ -1,7 +1,7 @@
 
 import Vec from '../math/Vec';
 import Color from './Color';
-import Texture, { TextureDataType } from './Texture';
+import Texture, { TextureDataType, TextureFilter, TextureWrap } from './Texture';
 
 export const MaterialType = {
     PBR: "pbr"
@@ -164,6 +164,10 @@ const deserializeColorTexture = async (obj,relativePath = "") => {
         const tex = new Texture();
         tex.fileName = relativePath + obj;
         tex.dataType = TextureDataType.IMAGE;
+        tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+        tex.magFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+        tex.wrapModeX = TextureWrap.REPEAT;
+        tex.wrapModeY = TextureWrap.REPEAT;
         await tex.loadImageData();
         return tex;
     }
@@ -226,6 +230,10 @@ const deserializeValueTexture = async (obj,relativePath) => {
         const tex = new Texture();
         tex.fileName = relativePath + obj;
         tex.dataType = TextureDataType.IMAGE;
+        tex.wrapModeX = TextureWrap.REPEAT;
+        tex.wrapModeY = TextureWrap.REPEAT;
+        tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+        tex.magFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
         await tex.loadImageData();
         return tex;
     }
@@ -393,7 +401,7 @@ export default class Material {
         }
         this._diffuse = v;
         if (this._diffuse instanceof Texture) {
-            this._diffuse.incRefecences();
+            this._diffuse.incReferences();
         }
     }
 
@@ -414,7 +422,7 @@ export default class Material {
         }
         this._metallic = v;
         if (this._metallic instanceof Texture) {
-            this._metallic.incRefecences();
+            this._metallic.incReferences();
         }
     }
     

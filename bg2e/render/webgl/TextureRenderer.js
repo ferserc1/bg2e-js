@@ -24,8 +24,13 @@ const getTarget = (gl, tex) => {
 }
 
 const getClampMode = (gl, mode) => {
-    const name = TextureWrapName[mode];
-    return gl[name];
+    if (mode === 1) {
+        return gl.CLAMP_TO_EDGE;
+    }
+    else {
+        const name = TextureWrapName[mode];
+        return gl[name];
+    }
 }
 
 const getTextureFilter = (gl, filter) => {

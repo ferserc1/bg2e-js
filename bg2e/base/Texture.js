@@ -190,7 +190,7 @@ export default class Texture {
         return this._references;
     }
 
-    incRefecences() {
+    incReferences() {
         this._references++;
     }
 

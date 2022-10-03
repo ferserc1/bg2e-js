@@ -141,6 +141,13 @@ export default class ShaderProgram {
         }
     }
 
+    tangentAttribPointer({ name, size = 3, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+        this.vertexAttribPointer(name, size, this._gl.FLOAT, true, stride * bytesPerElement, offset * bytesPerElement);
+        if (enable) {
+            this.enableVertexAttribArray(name);
+        }
+    }
+
     texCoordAttribPointer({ name, stride, offset, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
         this.vertexAttribPointer(name, 2, this._gl.FLOAT, false, stride * bytesPerElement, offset * bytesPerElement);
         if (enable) {
