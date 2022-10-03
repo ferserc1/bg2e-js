@@ -531,23 +531,35 @@ export default class Material {
     }
 
     async deserialize(sceneData, relativePath) {
+        const P = [];
         for (const i in MaterialAttributeNames) {
             const att = MaterialAttributeNames[i];
             if (sceneData[att] !== undefined) {
-                let value = await deserializeAttribute(att, sceneData, relativePath);
-                if (att === "type" && !value) {
+                if (att === "type") {
                     value = await deserializeAttribute("class", sceneData, relativePath);
                 }
-                if (value) {
-                    if (this[att] === undefined) {
-                        console.warn(`Material.deserialize(): invalid material attribute found in JSON material definition: '${ att }`);
-                    }
-                    else {
-                        this[att] = value;
-                    }
+                else {
+                    // Use promise array to load the resources concurrently
+                    P.push(new Promise(resolve => {
+                        ((at) => {
+                            deserializeAttribute(at, sceneData, relativePath)
+                                .then(value => {
+                                    if (value) {
+                                        if (this[at] === undefined) {
+                                            console.warn(`Material.deserialize(): invalid material attribute found in JSON material definition: '${ att }`)
+                                        }
+                                        else {
+                                            this[at] = value;
+                                        }
+                                    }
+                                    resolve();
+                                }) 
+                        })(att);
+                    }));
                 }
             }
         }
+        return Promise.all(P);
     }
 
     destroy() {
