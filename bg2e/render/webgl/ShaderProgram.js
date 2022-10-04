@@ -1,3 +1,5 @@
+import Mat4 from "../../math/Mat4";
+import Mat3 from "../../math/Mat3";
 
 export const ShaderType = {
     VERTEX: 0,
@@ -255,5 +257,61 @@ export default class ShaderProgram {
     uniform4iv(name, value) {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform4iv(location, value);
+    }
+
+    // Utility functions
+    bindAttribs(polyListRenderer, { 
+        position, 
+        normal = null, 
+        tex0 = null, 
+        tex1 = null, 
+        tex2 = null, 
+        color = null, 
+        tangent = null
+    }) {
+        this.positionAttribPointer(polyListRenderer.positionAttribParams(position));
+        if (normal) {
+            this.normalAttribPointer(polyListRenderer.normalAttribParams(normal));
+        }
+        if (tex0) {
+            this.texCoordAttribPointer(polyListRenderer.texCoord0AttribParams(tex0));
+        }
+        if (tex1) {
+            this.texCoordAttribPointer(polyListRenderer.texCoord1AttribParams(tex1));
+        }
+        if (tex2) {
+            this.texCoordAttribPointer(polyListRenderer.texCoord2AttribParams(tex1));
+        }
+        if (tangent) {
+            this.tangentAttribPointer(polyListRenderer.tangentAttribParams(tangent));
+        }
+        if (color) {
+            this.colorAttribPointer(polyListRenderer.colorAttribParams(color));
+        }
+    }
+
+    bindMatrix(uniformName, matrix) {
+        if (matrix instanceof Mat4) {
+            this.uniformMatrix4fv(uniformName, false, matrix);
+        }
+        else if (matrix instanceof Mat3) {
+            this.uniformMatrix3fv(uniformName, false, matrix);
+        }
+    }
+
+    bindVector(uniformName, vec) {
+        switch (vec.length) {
+        case 2:
+            this.uniform2fv(uniformName, vec);
+            break;
+        case 3:
+            this.uniform3fv(uniformName, vec);
+            break;
+        case 4:
+            this.uniform4fv(uniformName, vec);
+            break;
+        default:
+            throw new Error("ShaderProgram.bindVector(): invalid vector size");
+        }
     }
 }

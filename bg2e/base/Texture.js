@@ -2,6 +2,7 @@
 import Vec from '../math/Vec';
 import Resource from '../tools/Resource';
 import { generateImageHash } from '../tools/image';
+import Color from './Color';
 
 export const TextureDataType = {
     NONE: 0,
@@ -369,10 +370,10 @@ export default class Texture {
                 return;
             }
 
-            if (!Array.isArray(this.proceduralParameters) || this.proceduralParameters.length<3) {
+            if ((!Array.isArray(this.proceduralParameters) && !(this.proceduralParameters instanceof Vec)) || this.proceduralParameters.length<3) {
                 throw new Error("Error generating procedural plain color texture. invalid 'proceduralParameters' set.")
             }
-            const color = new Vec(this.proceduralParameters);
+            const color = new Color(this.proceduralParameters);
             const canvas = document.createElement('canvas');
             canvas.width = this.size.x;
             canvas.height = this.size.y;

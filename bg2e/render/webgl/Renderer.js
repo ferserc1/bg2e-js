@@ -1,4 +1,5 @@
 import Renderer, { EngineFeatures } from "../Renderer";
+import MaterialRenderer from "./MaterialRenderer";
 import State from "./State";
 import PolyListRenderer from "./PolyListRenderer";
 import TextureRenderer from "./TextureRenderer";
@@ -13,9 +14,15 @@ function enableExtensions(gl) {
     });
 }
 
+let g_uuidLast = 0;
 export default class WebGLRenderer extends Renderer {
     constructor() {
         super("webgl");
+        this._uuid = g_uuidLast++;
+    }
+
+    get uniqueId() {
+        return this._uuid;
     }
 
     async init(canvas) {
@@ -57,6 +64,10 @@ export default class WebGLRenderer extends Renderer {
             plistRenderer.refresh();
             return plistRenderer;
         }
+    }
+
+    materialFactory(material) {
+        return new MaterialRenderer(this, material);
     }
 
     textureFactory(texture) {

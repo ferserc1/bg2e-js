@@ -1,5 +1,4 @@
 
-import MaterialRenderer from "./MaterialRenderer";
 import PresentTextureShader from "../shaders/PresentTextureShader";
 import Material from "../base/Material";
 import PolyList from "../base/PolyList";
@@ -15,6 +14,10 @@ export const EngineFeatures = {
 export default class Renderer {
     constructor(identifier) {
         this._identifier = identifier;
+    }
+
+    get uniqueId() {
+        throw new Error("Calling Renderer.uniqueId base implementation.");
     }
 
     async init(canvas) {
@@ -81,7 +84,7 @@ export default class Renderer {
     }
 
     materialFactory(material) {
-        return new MaterialRenderer(this, material);
+        throw new Error("Calling base implementation of Renderer.materialFactory()");
     }
 
     textureFactory(texture) {
