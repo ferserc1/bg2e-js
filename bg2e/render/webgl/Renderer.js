@@ -36,6 +36,8 @@ export default class WebGLRenderer extends Renderer {
         enableExtensions.apply(this, [this.gl]);
 
         await this.initPresentTextureShader();
+
+        await MaterialRenderer.InitResources(this);
     }
 
     get gl() { return this._gl; }

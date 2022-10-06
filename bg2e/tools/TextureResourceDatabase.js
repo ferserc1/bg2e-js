@@ -19,23 +19,40 @@ const createColorTexture = async (color) => {
     return result;
 }
 
-export const whiteTexture = async (renderer) => {
+export const createWhiteTexture = async (renderer) => {
     if (!g_textureDatabase.whiteTexture[renderer.uniqueId]) {
         g_textureDatabase.whiteTexture[renderer.uniqueId] = await createColorTexture(Color.White());
+    }
+}
+export const whiteTexture = (renderer) => {
+    if (!g_textureDatabase.whiteTexture[renderer.uniqueId]) {
+        throw new Error(`TextureResourceDatabase: whiteTexture is not initialize. Call 'createWhiteTexture' before use 'whiteTexture' function`);
     }
     return g_textureDatabase.whiteTexture[renderer.uniqueId];
 }
 
-export const blackTexture = async (renderer) => {
+export const createBlackTexture = async (renderer) => {
     if (!g_textureDatabase.blackTexture[renderer.uniqueId]) {
         g_textureDatabase.blackTexture[renderer.uniqueId] = await createColorTexture(Color.Black());
+    }
+}
+
+export const blackTexture = (renderer) => {
+    if (!g_textureDatabase.blackTexture[renderer.uniqueId]) {
+        throw new Error(`TextureResourceDatabase: blackTexture is not initialize. Call 'createBlackTexture' before use 'blackTexture' function`);
     }
     return g_textureDatabase.blackTexture[renderer.uniqueId];
 }
 
-export const normalTexture = async (renderer) => {
+export const createNormalTexture = async (renderer) => {
     if (!g_textureDatabase.normalTexture[renderer.uniqueId]) {
         g_textureDatabase.normalTexture[renderer.uniqueId] = await createColorTexture(new Color([0.5, 0.5, 1, 1]));
+    }
+}
+
+export const normalTexture = (renderer) => {
+    if (!g_textureDatabase.normalTexture[renderer.uniqueId]) {
+        throw new Error(`TextureResourceDatabase: normalTexture is not initialize. Call 'createNormalTexture' before use 'normalTexture' function`);
     }
     return g_textureDatabase.normalTexture[renderer.uniqueId];
 }
