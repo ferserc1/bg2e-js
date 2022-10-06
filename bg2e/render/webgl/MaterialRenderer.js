@@ -31,7 +31,7 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
             return true;
         }
         else if (fallbackTexture instanceof Texture) {
-            bindTexture(this.factory.texture(fallbackTexture));
+            bindTexture(this.renderer.factory.texture(fallbackTexture));
             return false;
         }
         else {

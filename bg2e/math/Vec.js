@@ -346,9 +346,9 @@ export default class Vec extends NumericArray {
     }
 
     get hexColor() {
-        const r = this.r * 255;
-        const g = this.g * 255;
-        const b = this.b * 255;
+        const r = Math.round(this.r * 255);
+        const g = Math.round(this.g * 255);
+        const b = Math.round(this.b * 255);
         const hex = (color) => color.toString(16).toUpperCase();
         return `#${ hex(r) }${ hex(g) }${ hex(b) }`;
     }

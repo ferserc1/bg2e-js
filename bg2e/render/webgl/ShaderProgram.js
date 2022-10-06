@@ -68,7 +68,12 @@ export default class ShaderProgram {
         gl.shaderSource(shader, src);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            throw new Error(`Error compiling shader: \n${gl.getShaderInfoLog(shader)}`);
+            const debugCode = src.split(/\r?\n/)
+                .map((line,i) => `${i + 1} | ${line}`)
+                .join('\n');
+            throw new Error(`Error compiling shader: \n${gl.getShaderInfoLog(shader)} 
+            ${debugCode}
+            `);
         }
         gl.attachShader(this._program, shader);
     }
