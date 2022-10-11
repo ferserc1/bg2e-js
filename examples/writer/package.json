@@ -1,0 +1,17 @@
+{
+    "name": "writer-example",
+    "version": "1.0.0",
+    "description": "",
+    "main": "writer.js",
+    "type": "module",
+    "scripts": {
+      "build": "rollup -c",
+      "dev": "rollup -c --watch"
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+      "bg2e": "file:../../bg2e"
+    }
+  }
+  
