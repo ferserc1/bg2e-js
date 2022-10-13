@@ -155,8 +155,8 @@ const serializeColorTexture = (obj) => {
 }
 
 
-const deserializeColorTexture = async (obj,relativePath = "") => {
-    if (!obj) {
+const deserializeColorTexture = (obj,relativePath = "") => {
+    if (obj === null || obj === undefined) {
         return null;
     }
     else if (typeof(obj) === "string") {
@@ -168,7 +168,6 @@ const deserializeColorTexture = async (obj,relativePath = "") => {
         tex.magFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
         tex.wrapModeX = TextureWrap.REPEAT;
         tex.wrapModeY = TextureWrap.REPEAT;
-        await tex.loadImageData();
         return tex;
     }
     else if (Array.isArray(obj) && (obj.length === 3 || obj.length === 4)) {
@@ -186,11 +185,10 @@ const deserializeColorTexture = async (obj,relativePath = "") => {
     else if (obj.type === "Texture") {
         const tex = new Texture();
         tex.deserialize(obj.data);
-        await tex.loadImageData();
         return tex;
     }
     else {
-        throw new Error(`Invalid parameter found in material deserialization`);
+        reject(new Error(`Invalid parameter found in material deserialization`));
     }
 }
 
@@ -222,8 +220,8 @@ const serializeValueTexture = (obj) => {
     return result;
 }
 
-const deserializeValueTexture = async (obj,relativePath) => {
-    if (!obj) {
+const deserializeValueTexture = (obj,relativePath) => {
+    if (obj === null || obj === undefined) {
         return null;
     }
     else if (typeof(obj) === "string") {
@@ -234,7 +232,6 @@ const deserializeValueTexture = async (obj,relativePath) => {
         tex.wrapModeY = TextureWrap.REPEAT;
         tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
         tex.magFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-        await tex.loadImageData();
         return tex;
     }
     else if (typeof(obj) === "number") {
@@ -243,7 +240,6 @@ const deserializeValueTexture = async (obj,relativePath) => {
     else if (obj.type === "Texture") {
         const tex = new Texture();
         tex.deserialize(obj.data);
-        await tex.loadImageData();
         return tex;
     }
     else if (obj.type === "number") {
@@ -272,12 +268,12 @@ const serializeAttribute = (att,mat) => {
     }
 }
 
-const deserializeAttribute = async (att,obj, relativePath) => {
+const deserializeAttribute = (att,obj, relativePath) => {
     if (ColorTextureAttributes.indexOf(att) !== -1) {
-        return await deserializeColorTexture(obj[att],relativePath);
+        return deserializeColorTexture(obj[att],relativePath);
     }
     else if (ValueTextureAttributes.indexOf(att) !== -1) {
-        return await deserializeValueTexture(obj[att],relativePath);
+        return deserializeValueTexture(obj[att],relativePath);
     }
     else if (VectorAttribures.indexOf(att) !== -1) {
         return deserializeVector(obj[att]);
@@ -535,31 +531,23 @@ export default class Material {
         for (const i in MaterialAttributeNames) {
             const att = MaterialAttributeNames[i];
             if (sceneData[att] !== undefined) {
+                let value = null;
                 if (att === "type") {
-                    value = await deserializeAttribute("class", sceneData, relativePath);
+                    value = deserializeAttribute("class", sceneData, relativePath);
                 }
                 else {
-                    // Use promise array to load the resources concurrently
-                    P.push(new Promise(resolve => {
-                        ((at) => {
-                            deserializeAttribute(at, sceneData, relativePath)
-                                .then(value => {
-                                    if (value) {
-                                        if (this[at] === undefined) {
-                                            console.warn(`Material.deserialize(): invalid material attribute found in JSON material definition: '${ att }`)
-                                        }
-                                        else {
-                                            this[at] = value;
-                                        }
-                                    }
-                                    resolve();
-                                }) 
-                        })(att);
-                    }));
+                    value = deserializeAttribute(att, sceneData, relativePath);
+                    if (value instanceof Texture) {
+                        P.push(value.loadImageData());
+                    }
+                }
+
+                if (value !== null) {
+                    this[att] = value;
                 }
             }
         }
-        return Promise.all(P);
+        return await Promise.all(P);
     }
 
     destroy() {

@@ -36,72 +36,76 @@ class MyAppController extends AppController {
         this._shader = new BasicPBRLightShader(this.renderer);
         await this._shader.load();
 
-        registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist" }));
-        registerComponents();
-        const loader = new Loader();
-        const drawable = await loader.loadDrawable("../resources/cubes.bg2");
-        this._plistRenderers = [];
-        this._plistRenderers = drawable.items.map(({ polyList, material, transform }) => {
-            const plistRenderer = this.renderer.factory.polyList(polyList);
-            material.metallic = 1;
-            material.roughness = 0.4;
-            const materialRenderer = this.renderer.factory.material(material);
+        console.log("Loading scene...");
+        const spherePlist = createSphere(0.3);
+        this._plistRenderers = await Promise.all([
+            { roughness: 0.0, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3, 3, 0 ] },
+            { roughness: 0.1, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2, 3, 0 ] },
+            { roughness: 0.3, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1, 3, 0 ] },
+            { roughness: 0.5, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [  0, 3, 0 ] },
+            { roughness: 0.7, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [  1, 3, 0 ] },
+            { roughness: 0.9, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [  2, 3, 0 ] },
+            { roughness: 1.0, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [  3, 3, 0 ] },
+            
+            { roughness: 0.0, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3, 2, 0 ] },
+            { roughness: 0.1, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2, 2, 0 ] },
+            { roughness: 0.3, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1, 2, 0 ] },
+            { roughness: 0.5, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [  0, 2, 0 ] },
+            { roughness: 0.7, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [  1, 2, 0 ] },
+            { roughness: 0.9, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [  2, 2, 0 ] },
+            { roughness: 1.0, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [  3, 2, 0 ] },
+            
+            { roughness: 0.0, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3, 1, 0 ] },
+            { roughness: 0.1, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2, 1, 0 ] },
+            { roughness: 0.3, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1, 1, 0 ] },
+            { roughness: 0.5, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [  0, 1, 0 ] },
+            { roughness: 0.7, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [  1, 1, 0 ] },
+            { roughness: 0.9, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [  2, 1, 0 ] },
+            { roughness: 1.0, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [  3, 1, 0 ] },
+
+            { roughness: 0.0, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3, 0, 0 ] },
+            { roughness: 0.1, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2, 0, 0 ] },
+            { roughness: 0.3, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1, 0, 0 ] },
+            { roughness: 0.5, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [  0, 0, 0 ] },
+            { roughness: 0.7, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [  1, 0, 0 ] },
+            { roughness: 0.9, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [  2, 0, 0 ] },
+            { roughness: 1.0, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [  3, 0, 0 ] },
+
+            { roughness: 0.0, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3,-1, 0 ] },
+            { roughness: 0.1, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2,-1, 0 ] },
+            { roughness: 0.3, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1,-1, 0 ] },
+            { roughness: 0.5, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [  0,-1, 0 ] },
+            { roughness: 0.7, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [  1,-1, 0 ] },
+            { roughness: 0.9, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [  2,-1, 0 ] },
+            { roughness: 1.0, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [  3,-1, 0 ] },
+            
+            { roughness: 0.0, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3,-2, 0 ] },
+            { roughness: 0.1, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2,-2, 0 ] },
+            { roughness: 0.3, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1,-2, 0 ] },
+            { roughness: 0.5, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  0,-2, 0 ] },
+            { roughness: 0.7, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  1,-2, 0 ] },
+            { roughness: 0.9, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  2,-2, 0 ] },
+            { roughness: 1.0, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  3,-2, 0 ] },
+            
+            { roughness: 0.0, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3,-3, 0 ] },
+            { roughness: 0.1, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2,-3, 0 ] },
+            { roughness: 0.3, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1,-3, 0 ] },
+            { roughness: 0.5, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  0,-3, 0 ] },
+            { roughness: 0.7, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  1,-3, 0 ] },
+            { roughness: 0.9, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  2,-3, 0 ] },
+            { roughness: 1.0, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  3,-3, 0 ] }
+        ].map(async ({ roughness, metallic, diffuse, position }) => {
             return {
-                plistRenderer,
-                materialRenderer,
-                transform: Mat4.Mult(Mat4.MakeTranslation(0, 1, 0),transform)
+                plistRenderer: this.renderer.factory.polyList(spherePlist),
+                materialRenderer: this.renderer.factory.material(await Material.Deserialize({
+                    diffuse,
+                    roughness,
+                    metallic
+                })),
+                transform: Mat4.MakeTranslation(...position)
             }
-        });
-
-        this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createCube(5,0.5,2)),
-            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: [0.8, 0.4, 0.1],
-                roughness: 0.2,
-                metallic: 1
-            })),
-            transform: Mat4.MakeRotation(45,0,1,0).rotate(0.3, 1, 0, 0)
-        });
-
-        this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createSphere(0.5)),
-            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: [0.3,0.98,0.05],
-                roughness: 0.1,
-                metallic: 1
-            })),
-            transform: Mat4.MakeTranslation(2, 0, 0)
-        });
-
-        this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createCylinder(1,1)),
-            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: [0.3,0.28,0.95],
-                roughness: 0.2,
-                metallic: 0.2
-            })),
-            transform: Mat4.MakeTranslation(-2,0,0).rotate(0.3, 1, 0, 0)
-        });
-
-        this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createCone(1,0.5)),
-            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: [0.3,0.98,0.85],
-                roughness: 0.4,
-                metallic: 0.98
-            })),
-            transform: Mat4.MakeTranslation(-2,0,-2)
-        });
-
-        this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createPlane(5, 5)),
-            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: [0.93,0.98,0.05],
-                roughness: 0.2,
-                metallic: 0
-            })),
-            transform: Mat4.MakeIdentity()
-        });
+        }));
+        console.log("Scene load done");
     }
 
     reshape(width,height) {
