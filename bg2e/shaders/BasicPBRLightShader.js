@@ -2,7 +2,8 @@ import Shader from "../render/Shader";
 import { 
     fresnelSchlick,
     distributionGGX,
-    geometrySmith
+    geometrySmith,
+    pbrPointLight
 } from './webgl_shader_lib';
 import ShaderFunction from "./ShaderFunction";
 import WebGLRenderer from "../render/webgl/Renderer";
@@ -72,9 +73,9 @@ export default class BasicPBRLightShader extends Shader {
         uniform vec2 uMetallicScale;
         uniform vec2 uRoughnessScale;`,
         [
-            fresnelSchlick,
-            distributionGGX,
-            geometrySmith,
+            //fresnelSchlick,
+            //distributionGGX,
+            //geometrySmith,
             new ShaderFunction('void','main','',`{
                 vec3 N = normalize(fragNorm);
                 vec3 T = normalize(fragTangent);
@@ -89,8 +90,8 @@ export default class BasicPBRLightShader extends Shader {
                 N = normalize(TBN * normal);
                 vec3 V = normalize(uCameraPos - fragPos);
 
-                vec3 F0 = vec3(0.04);
-                F0 = mix(F0, albedo, metallic);
+                //vec3 F0 = vec3(0.04);
+                //F0 = mix(F0, albedo, metallic);
 
                 vec3 lightPositions[4];
                 lightPositions[0] = vec3( 10.0, 10.0, -10.0);
@@ -107,30 +108,9 @@ export default class BasicPBRLightShader extends Shader {
                 vec3 Lo = vec3(0.0);
                 for (int i = 0; i < 4; ++i)
                 {
-                    vec3 L = normalize(lightPositions[i] - fragPos);
-                    vec3 H = normalize(V + L);
-
-                    float distance = length(lightPositions[i] - fragPos);
-                    float attenuation = 1.0 / (distance * distance);
-                    vec3 radiance = lightColors[i] * attenuation;
-
-
-                    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-                    float NDF = distributionGGX(N, H, roughness);
-                    float G = geometrySmith(N, V, L, roughness);
-
-                    vec3 numerator = NDF * G * F;
-                    float denom = 4.0 * max(dot(N,V), 0.0) * max(dot(N,L), 0.0) + 0.0001;
-                    vec3 specular = numerator / denom;
-
-                    vec3 kS = F;
-                    vec3 kD = vec3(1.0) - kS;
-
-                    kD *= 1.0 - metallic;
-
-                    float NdotL = max(dot(N,L), 0.0);
-                    Lo += (kD * albedo / ${ Math.PI } + specular) * radiance * NdotL;
+                    Lo += pbrPointLight(
+                        lightPositions[i], lightColors[i], fragPos, N, V,
+                        albedo, roughness, metallic);
                 }
 
                 vec3 ambient = vec3(0.03) * albedo;
@@ -139,7 +119,7 @@ export default class BasicPBRLightShader extends Shader {
                 color = pow(color, vec3(1.0/2.2));
 
                 gl_FragColor = vec4(color,1.0);
-            }`)
+            }`, [pbrPointLight])
         ]);
 
         this._program = ShaderProgram.Create(renderer.gl,"PBRBasicLight",vshader,fshader);

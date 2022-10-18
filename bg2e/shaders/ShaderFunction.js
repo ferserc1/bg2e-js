@@ -4,6 +4,26 @@ const isRequired = (candidateFunction,includedFunctions) => {
     return !includedFunctions.find(includedFunc => includedFunc.name === candidateFunction.name);
 }
 
+const getAllDependencies = (fn, result = []) => {
+    fn.dependencies.forEach(depFn => {
+        getAllDependencies(depFn, result);
+        result.push(depFn);
+    });
+    result.push(fn);
+}
+
+const getDependencies = (fn) => {
+    const allFunctions = [];
+    getAllDependencies(fn, allFunctions);
+    const includedFunctions = [];
+    return allFunctions.filter(candidateFn => {
+        if (includedFunctions.indexOf(candidateFn.name) === -1) {
+            includedFunctions.push(candidateFn.name);
+            return true;
+        }
+    });
+}
+
 export default class ShaderFunction {
     constructor(returnType, name, params, body, deps = []) {
         this._returnType = returnType;
@@ -38,19 +58,10 @@ export default class ShaderFunction {
     }
 
     static GetShaderCode(header, requiredFunctions) {
-        const allFunctions = [];
-        requiredFunctions.forEach(requiredFunction => {
-            if (isRequired(requiredFunction,allFunctions)) {
-                requiredFunction.dependencies.forEach(dep => {
-                    if (isRequired(dep,allFunctions)) {
-                        allFunctions.push(dep);
-                    }
-                });
-
-                allFunctions.push(requiredFunction);
-            }
+        let allFunctions = [];
+        requiredFunctions.forEach(req => {
+            allFunctions = [...allFunctions, ...getDependencies(req, allFunctions)];
         });
-
         let code = header;
         allFunctions.forEach(fn => {
             code += fn.getFunctionText() + "\n\n";

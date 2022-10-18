@@ -36,3 +36,34 @@ export const geometrySmith = new ShaderFunction('float','geometrySmith','vec3 N,
 
     return ggx1 * ggx2;
 }`, [ geometrySchlickGGX ]);
+
+export const pbrPointLight = new ShaderFunction('vec3','pbrPointLight',
+    'vec3 lightPos, vec3 lightColor, vec3 fragPos, vec3 fragNorm, vec3 viewPos, vec3 albedo, float roughness, float metallic',
+`{
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
+
+    vec3 L = normalize(lightPos - fragPos);
+    vec3 H = normalize(viewPos + L);
+
+    float distance = length(lightPos - fragPos);
+    float attenuation = 1.0 / (distance * distance);
+    vec3 radiance = lightColor * attenuation;
+
+    vec3 F = fresnelSchlick(max(dot(H, viewPos), 0.0), F0);
+
+    float NDF = distributionGGX(fragNorm, H, roughness);
+    float G = geometrySmith(fragNorm, viewPos, L, roughness);
+
+    vec3 numerator = NDF * G * F;
+    float denom = 4.0 * max(dot(fragNorm,viewPos), 0.0) * max(dot(fragNorm,L), 0.0) + 0.0001;
+    vec3 specular = numerator / denom;
+
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+
+    kD *= 1.0 - metallic;
+
+    float NdotL = max(dot(fragNorm,L), 0.0);
+    return (kD * albedo / ${ Math.PI } + specular) * radiance * NdotL;
+}`, [fresnelSchlick, distributionGGX, geometrySmith]);
