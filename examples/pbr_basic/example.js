@@ -15,6 +15,7 @@ import RenderState from "bg2e/render/RenderState";
 import { createCube, createSphere, createCylinder, createCone, createPlane } from 'bg2e/primitives';
 
 import BasicPBRLightShader from 'bg2e/shaders/BasicPBRLightShader';
+import Light from "bg2e/base/Light";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -35,65 +36,77 @@ class MyAppController extends AppController {
 
         this._shader = new BasicPBRLightShader(this.renderer);
         await this._shader.load();
+        
+        this._lights = await Promise.all([
+            { position: [10.0, 10.0, -10.0], color: [1.0, 0.5, 0.0], intensity:300 },
+            { position: [-10.0, 10.0, -10.0], color: [0.5, 0.0, 1.0], intensity:300 },
+            { position: [-10.0,-10.0, -10.0], color: [0.0, 0.5, 1.0], intensity:300 },
+            { position: [ 10.0,-10.0, -10.0], color: [0.0, 1.0, 0.5], intensity:300 }
+        ].map(async lightData => {
+            const light = new Light();
+            await light.deserialize(lightData);
+            return light;
+        }));
 
         console.log("Loading scene...");
+        const sphereColor = [0.93, 0.95, 0.95, 1];
         const spherePlist = createSphere(0.3);
         this._plistRenderers = await Promise.all([
-            { roughness: 0.0, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3, 3, 0 ] },
-            { roughness: 0.1, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2, 3, 0 ] },
-            { roughness: 0.3, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1, 3, 0 ] },
-            { roughness: 0.5, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [  0, 3, 0 ] },
-            { roughness: 0.7, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [  1, 3, 0 ] },
-            { roughness: 0.9, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [  2, 3, 0 ] },
-            { roughness: 1.0, metallic: 1.0, diffuse: [0.93, 0.1, 0.1, 1], position: [  3, 3, 0 ] },
+            { roughness: 0.0, metallic: 1.0, diffuse: sphereColor, position: [ -3, 3, 0 ] },
+            { roughness: 0.1, metallic: 1.0, diffuse: sphereColor, position: [ -2, 3, 0 ] },
+            { roughness: 0.3, metallic: 1.0, diffuse: sphereColor, position: [ -1, 3, 0 ] },
+            { roughness: 0.5, metallic: 1.0, diffuse: sphereColor, position: [  0, 3, 0 ] },
+            { roughness: 0.6, metallic: 1.0, diffuse: sphereColor, position: [  1, 3, 0 ] },
+            { roughness: 0.8, metallic: 1.0, diffuse: sphereColor, position: [  2, 3, 0 ] },
+            { roughness: 1.0, metallic: 1.0, diffuse: sphereColor, position: [  3, 3, 0 ] },
             
-            { roughness: 0.0, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3, 2, 0 ] },
-            { roughness: 0.1, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2, 2, 0 ] },
-            { roughness: 0.3, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1, 2, 0 ] },
-            { roughness: 0.5, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [  0, 2, 0 ] },
-            { roughness: 0.7, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [  1, 2, 0 ] },
-            { roughness: 0.9, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [  2, 2, 0 ] },
-            { roughness: 1.0, metallic: 0.8, diffuse: [0.93, 0.1, 0.1, 1], position: [  3, 2, 0 ] },
+            { roughness: 0.0, metallic: 0.8, diffuse: sphereColor, position: [ -3, 2, 0 ] },
+            { roughness: 0.1, metallic: 0.8, diffuse: sphereColor, position: [ -2, 2, 0 ] },
+            { roughness: 0.3, metallic: 0.8, diffuse: sphereColor, position: [ -1, 2, 0 ] },
+            { roughness: 0.5, metallic: 0.8, diffuse: sphereColor, position: [  0, 2, 0 ] },
+            { roughness: 0.6, metallic: 0.8, diffuse: sphereColor, position: [  1, 2, 0 ] },
+            { roughness: 0.8, metallic: 0.8, diffuse: sphereColor, position: [  2, 2, 0 ] },
+            { roughness: 1.0, metallic: 0.8, diffuse: sphereColor, position: [  3, 2, 0 ] },
             
-            { roughness: 0.0, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3, 1, 0 ] },
-            { roughness: 0.1, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2, 1, 0 ] },
-            { roughness: 0.3, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1, 1, 0 ] },
-            { roughness: 0.5, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [  0, 1, 0 ] },
-            { roughness: 0.7, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [  1, 1, 0 ] },
-            { roughness: 0.9, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [  2, 1, 0 ] },
-            { roughness: 1.0, metallic: 0.6, diffuse: [0.93, 0.1, 0.1, 1], position: [  3, 1, 0 ] },
+            { roughness: 0.0, metallic: 0.6, diffuse: sphereColor, position: [ -3, 1, 0 ] },
+            { roughness: 0.1, metallic: 0.6, diffuse: sphereColor, position: [ -2, 1, 0 ] },
+            { roughness: 0.3, metallic: 0.6, diffuse: sphereColor, position: [ -1, 1, 0 ] },
+            { roughness: 0.5, metallic: 0.6, diffuse: sphereColor, position: [  0, 1, 0 ] },
+            { roughness: 0.6, metallic: 0.6, diffuse: sphereColor, position: [  1, 1, 0 ] },
+            { roughness: 0.8, metallic: 0.6, diffuse: sphereColor, position: [  2, 1, 0 ] },
+            { roughness: 1.0, metallic: 0.6, diffuse: sphereColor, position: [  3, 1, 0 ] },
 
-            { roughness: 0.0, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3, 0, 0 ] },
-            { roughness: 0.1, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2, 0, 0 ] },
-            { roughness: 0.3, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1, 0, 0 ] },
-            { roughness: 0.5, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [  0, 0, 0 ] },
-            { roughness: 0.7, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [  1, 0, 0 ] },
-            { roughness: 0.9, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [  2, 0, 0 ] },
-            { roughness: 1.0, metallic: 0.5, diffuse: [0.93, 0.1, 0.1, 1], position: [  3, 0, 0 ] },
+            { roughness: 0.0, metallic: 0.5, diffuse: sphereColor, position: [ -3, 0, 0 ] },
+            { roughness: 0.1, metallic: 0.5, diffuse: sphereColor, position: [ -2, 0, 0 ] },
+            { roughness: 0.3, metallic: 0.5, diffuse: sphereColor, position: [ -1, 0, 0 ] },
+            { roughness: 0.5, metallic: 0.5, diffuse: sphereColor, position: [  0, 0, 0 ] },
+            { roughness: 0.6, metallic: 0.5, diffuse: sphereColor, position: [  1, 0, 0 ] },
+            { roughness: 0.8, metallic: 0.5, diffuse: sphereColor, position: [  2, 0, 0 ] },
+            { roughness: 1.0, metallic: 0.5, diffuse: sphereColor, position: [  3, 0, 0 ] },
 
-            { roughness: 0.0, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3,-1, 0 ] },
-            { roughness: 0.1, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2,-1, 0 ] },
-            { roughness: 0.3, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1,-1, 0 ] },
-            { roughness: 0.5, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [  0,-1, 0 ] },
-            { roughness: 0.7, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [  1,-1, 0 ] },
-            { roughness: 0.9, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [  2,-1, 0 ] },
-            { roughness: 1.0, metallic: 0.3, diffuse: [0.93, 0.1, 0.1, 1], position: [  3,-1, 0 ] },
+            { roughness: 0.0, metallic: 0.3, diffuse: sphereColor, position: [ -3,-1, 0 ] },
+            { roughness: 0.1, metallic: 0.3, diffuse: sphereColor, position: [ -2,-1, 0 ] },
+            { roughness: 0.3, metallic: 0.3, diffuse: sphereColor, position: [ -1,-1, 0 ] },
+            { roughness: 0.5, metallic: 0.3, diffuse: sphereColor, position: [  0,-1, 0 ] },
+            { roughness: 0.6, metallic: 0.3, diffuse: sphereColor, position: [  1,-1, 0 ] },
+            { roughness: 0.8, metallic: 0.3, diffuse: sphereColor, position: [  2,-1, 0 ] },
+            { roughness: 1.0, metallic: 0.3, diffuse: sphereColor, position: [  3,-1, 0 ] },
             
-            { roughness: 0.0, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3,-2, 0 ] },
-            { roughness: 0.1, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2,-2, 0 ] },
-            { roughness: 0.3, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1,-2, 0 ] },
-            { roughness: 0.5, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  0,-2, 0 ] },
-            { roughness: 0.7, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  1,-2, 0 ] },
-            { roughness: 0.9, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  2,-2, 0 ] },
-            { roughness: 1.0, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  3,-2, 0 ] },
+            { roughness: 0.0, metallic: 0.1, diffuse: sphereColor, position: [ -3,-2, 0 ] },
+            { roughness: 0.1, metallic: 0.1, diffuse: sphereColor, position: [ -2,-2, 0 ] },
+            { roughness: 0.3, metallic: 0.1, diffuse: sphereColor, position: [ -1,-2, 0 ] },
+            { roughness: 0.5, metallic: 0.1, diffuse: sphereColor, position: [  0,-2, 0 ] },
+            { roughness: 0.6, metallic: 0.1, diffuse: sphereColor, position: [  1,-2, 0 ] },
+            { roughness: 0.8, metallic: 0.1, diffuse: sphereColor, position: [  2,-2, 0 ] },
+            { roughness: 1.0, metallic: 0.1, diffuse: sphereColor, position: [  3,-2, 0 ] },
             
-            { roughness: 0.0, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -3,-3, 0 ] },
-            { roughness: 0.1, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -2,-3, 0 ] },
-            { roughness: 0.3, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [ -1,-3, 0 ] },
-            { roughness: 0.5, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  0,-3, 0 ] },
-            { roughness: 0.7, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  1,-3, 0 ] },
-            { roughness: 0.9, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  2,-3, 0 ] },
-            { roughness: 1.0, metallic: 0.1, diffuse: [0.93, 0.1, 0.1, 1], position: [  3,-3, 0 ] }
+            { roughness: 0.0, metallic: 0.1, diffuse: sphereColor, position: [ -3,-3, 0 ] },
+            { roughness: 0.1, metallic: 0.1, diffuse: sphereColor, position: [ -2,-3, 0 ] },
+            { roughness: 0.3, metallic: 0.1, diffuse: sphereColor, position: [ -1,-3, 0 ] },
+            { roughness: 0.5, metallic: 0.1, diffuse: sphereColor, position: [  0,-3, 0 ] },
+            { roughness: 0.6, metallic: 0.1, diffuse: sphereColor, position: [  1,-3, 0 ] },
+            { roughness: 0.8, metallic: 0.1, diffuse: sphereColor, position: [  2,-3, 0 ] },
+            { roughness: 1.0, metallic: 0.1, diffuse: sphereColor, position: [  3,-3, 0 ] }
         ].map(async ({ roughness, metallic, diffuse, position }) => {
             return {
                 plistRenderer: this.renderer.factory.polyList(spherePlist),
@@ -106,6 +119,8 @@ class MyAppController extends AppController {
             }
         }));
         console.log("Scene load done");
+
+        this._shader.lights = this._lights;
     }
 
     reshape(width,height) {

@@ -17,16 +17,15 @@ export default class Light {
         this._type = LightType.DIRECTIONAL;
         
         this._direction = new Vec(0,0,-1);
+        this._position = new Vec(0,0,0);
         
-        this._ambient = new Color({ r: 0.2, g: 0.2, b: 0.2 });
-        this._diffuse = new Color({ rgb: 0.9 });
-        this._specular = Color.White();
+        this._color = new Color({ rgb: 0.9 });
+        this._intensity = 300;
         this._spotCutoff = 20;
         this._spotExponent = 30;
         this._shadowStrength = 0.7;
         this._castShadows = true;
         this._shadowBias = 0.00002;
-        this._intensity = 1;
         
         this._projection = Mat4.MakeOrtho(-10,10,-10,10,0.5,300.0);
     }
@@ -41,9 +40,8 @@ export default class Light {
         this.enabled = other.enabled;
         this.type = other.type;
         this.direction.assign(other.direction);
-        this.ambient.assign(other.ambient);
-        this.diffuse.assign(other.diffuse);
-        this.specular.assign(other.specular);
+        this.position.assign(other.position);
+        this.color.assign(other.color);
         this.spotCutoff = other.spotCutoff;
         this.spotExponent = other.spotExponent;
         this.shadowStrength = other.shadowStrength;
@@ -61,13 +59,12 @@ export default class Light {
     
     get direction() { return this._direction; }
     set direction(d) { this._direction = d; }
+
+    get position() { return this._position; }
+    set position(p) { this._position = p; }
     
-    get ambient() { return this._ambient; }
-    set ambient(a) { this._ambient = a; }
-    get diffuse() { return this._diffuse; }
-    set diffuse(d) { this._diffuse = d; }
-    get specular() { return this._specular; }
-    set specular(s) { this._specular = s; }
+    get color() { return this._color; }
+    set color(c) { this._color = c; }
     get intensity() { return this._intensity; }
     set intensity(i) { this._intensity = i; }
     
@@ -100,17 +97,28 @@ export default class Light {
         case 'kTypePoint':
             this._type = LightType.POINT;
             break;
+        default:
+            this._type = LightType.DIRECTIONAL;
+        }
+
+        this._position = sceneData.position || new Vec(0,0,0);
+
+        if (sceneData.diffuse) {
+            this._color = new Color(sceneData.diffuse);
+            this._intensity = (sceneData.intensity || 1) * 300;
+        }
+        else if (sceneData.color) {
+            this._color = new Color(sceneData.color);
+            this._intensity = sceneData.intensity || 300;
         }
         
-        this._ambient = new Color(sceneData.ambient);
-        this._diffuse = new Color(sceneData.diffuse);
-        this._specular = new Color(sceneData.specular);
         this._spotCutoff = sceneData.spotCutoff || 20;
         this._spotExponent = sceneData.spotExponent || 30;
-        this._shadowStrength = sceneData.shadowStrength;
-        this._projection = new Mat4(sceneData.projection);
-        this._castShadows = sceneData.castShadows;
-        this._intensity = sceneData.intensity || 1;
+        this._shadowStrength = sceneData.shadowStrength || 1;
+        if (sceneData.projection) {
+            this._projection = new Mat4(sceneData.projection);
+        }
+        this._castShadows = sceneData.castShadows !== undefined ? sceneData.castShadows : true;
     }
 
     async serialize(sceneData) {
@@ -119,16 +127,14 @@ export default class Light {
         lightTypes[LightType.SPOT] = "kTypeSpot";
         lightTypes[LightType.POINT] = "kTypePoint";
         sceneData.lightType = lightTypes[this._type];
-        sceneData.ambient = this._ambient;
-        sceneData.diffuse = this._diffuse;
-        sceneData.specular = this._specular;
-        sceneData.intensity = 1;
+        sceneData.position = this._position;
+        sceneData.color = this._color;
+        sceneData.intensity = this._intensity;
         sceneData.spotCutoff = this._spotCutoff || 20;
         sceneData.spotExponent = this._spotExponent || 30;
         sceneData.shadowStrength = this._shadowStrength;
         sceneData.projection = this._projection;
         sceneData.castShadows = this._castShadows;
         sceneData.shadowBias = this._shadowBias || 0.0029;
-        sceneData.intensity = this.intensity || 1;
     }
 }

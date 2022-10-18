@@ -1,10 +1,5 @@
 import Shader from "../render/Shader";
-import { 
-    fresnelSchlick,
-    distributionGGX,
-    geometrySmith,
-    pbrPointLight
-} from './webgl_shader_lib';
+import { pbrPointLight } from './webgl_shader_lib';
 import ShaderFunction from "./ShaderFunction";
 import WebGLRenderer from "../render/webgl/Renderer";
 import ShaderProgram from "../render/webgl/ShaderProgram";
@@ -12,17 +7,12 @@ import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
 import { createNormalTexture, normalTexture } from "../tools/TextureResourceDatabase";
 
+function getShaderProgramForLights(renderer, numLights) {
+    if (this._programs[numLights]) {
+        return this._programs[numLights];
+    }
 
-export default class BasicPBRLightShader extends Shader {
-    constructor(renderer) {
-        super(renderer);
-
-        if (!renderer instanceof WebGLRenderer) {
-            throw new Error("BasicDiffuseColorShader: invalid renderer");
-        }
-
-        const vshader = ShaderFunction.GetShaderCode(`precision mediump float;
-
+    const vshader = ShaderFunction.GetShaderCode(`precision mediump float;
         attribute vec3 inPosition;
         attribute vec3 inNormal;
         attribute vec2 inTexCoord;
@@ -50,7 +40,7 @@ export default class BasicPBRLightShader extends Shader {
             }`)
         ]);
 
-        const fshader = ShaderFunction.GetShaderCode(`precision mediump float;
+    const fshader = ShaderFunction.GetShaderCode(`precision mediump float;
         varying vec3 fragPos;
         varying vec3 fragNorm;
         varying vec2 fragTexCoord;
@@ -71,11 +61,13 @@ export default class BasicPBRLightShader extends Shader {
         uniform vec2 uAlbedoScale;
         uniform vec2 uNormalScale;
         uniform vec2 uMetallicScale;
-        uniform vec2 uRoughnessScale;`,
+        uniform vec2 uRoughnessScale;
+        
+        uniform vec3 uLightPositions[${numLights}];
+        uniform vec3 uLightColors[${numLights}];
+        uniform float uLightIntensities[${numLights}];
+        `,
         [
-            //fresnelSchlick,
-            //distributionGGX,
-            //geometrySmith,
             new ShaderFunction('void','main','',`{
                 vec3 N = normalize(fragNorm);
                 vec3 T = normalize(fragTangent);
@@ -90,26 +82,11 @@ export default class BasicPBRLightShader extends Shader {
                 N = normalize(TBN * normal);
                 vec3 V = normalize(uCameraPos - fragPos);
 
-                //vec3 F0 = vec3(0.04);
-                //F0 = mix(F0, albedo, metallic);
-
-                vec3 lightPositions[4];
-                lightPositions[0] = vec3( 10.0, 10.0, -10.0);
-                lightPositions[1] = vec3(-10.0, 10.0, -10.0);
-                lightPositions[2] = vec3(-10.0,-10.0, -10.0);
-                lightPositions[3] = vec3( 10.0,-10.0, -10.0);
-
-                vec3 lightColors[4];
-                lightColors[0] = vec3(300.0);
-                lightColors[1] = vec3(300.0);
-                lightColors[2] = vec3(300.0);
-                lightColors[3] = vec3(300.0);
-
                 vec3 Lo = vec3(0.0);
-                for (int i = 0; i < 4; ++i)
+                for (int i = 0; i < ${numLights}; ++i)
                 {
                     Lo += pbrPointLight(
-                        lightPositions[i], lightColors[i], fragPos, N, V,
+                        uLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
                         albedo, roughness, metallic);
                 }
 
@@ -122,14 +99,20 @@ export default class BasicPBRLightShader extends Shader {
             }`, [pbrPointLight])
         ]);
 
-        this._program = ShaderProgram.Create(renderer.gl,"PBRBasicLight",vshader,fshader);
+    this._programs[numLights] = ShaderProgram.Create(renderer.gl,"PBRBasicLight",vshader,fshader);
+    return this._programs[numLights];
+}
+export default class BasicPBRLightShader extends Shader {
+    constructor(renderer) {
+        super(renderer);
 
-        if (!this._checked) {
-            this._checked = true;
-            if (!this._program.checkInvalidLocations()) {
-                console.error("Invalid attrib location names found. This error should produce a lot of WebGL errors. Check that the attribute names match with the attrib location names in your shader.")
-            }
+        this._lights = [];
+
+        if (!renderer instanceof WebGLRenderer) {
+            throw new Error("BasicDiffuseColorShader: invalid renderer");
         }
+
+        this._programs = {};
     }
 
     async load() {
@@ -140,7 +123,49 @@ export default class BasicPBRLightShader extends Shader {
         this._cameraPosition = p;
     }
 
+    set lights(l) {
+        if (!l.length) {
+            throw new Error("BasicPBRLightShader: Invalid light array set.");
+        }
+        this._lights = l;
+        this._lightPositions = [];
+        this._lightColors = [];
+        this._lightIntensities = [];
+        this._lights.forEach(light => {
+            this._lightPositions.push(new Vec(light.position));
+            this._lightColors.push(new Vec(light.color));
+            this._lightIntensities.push(light.intensity);
+        });
+        this._program = getShaderProgramForLights.apply(this, [this.renderer, this._lights.length]);
+    }
+
+    get lights() {
+        return this._lights;
+    }
+
+    updateLight(light,index) {
+        if (light >= this._lights.length) {
+            throw new Error("BasicPBRLightShader: Invalid light index updating light data");
+        }
+        this._lightPositions[index] = new Vec(light.position);
+        this._lightColors[index] = new Vec(light.color);
+        this._lightIntensities[index] = light.intensity;
+    }
+
+    updateLights(lights) {
+        if (this._lights.length !== lights.length) {
+            this.lights = lights;
+        }
+        else {
+            lights.forEach((l,i) => this.updateLight(l,i));
+        }
+    }
+
     setup(plistRenderer,materialRenderer,modelMatrix,viewMatrix,projectionMatrix) {
+        if (!this._program) {
+            throw new Error("BasicPBRLightShader: lights array not specified");
+        }
+
         const material = materialRenderer.material;
         this.renderer.state.shaderProgram = this._program;
         
@@ -172,7 +197,13 @@ export default class BasicPBRLightShader extends Shader {
         this._program.bindVector("uNormalScale", material.normalScale);
         this._program.bindVector("uMetallicScale", material.metallicScale);
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
-        
+
+        this._lights.forEach((light,i) => {
+            this._program.bindVector(`uLightPositions[${i}]`, this._lightPositions[i]);
+            this._program.bindVector(`uLightColors[${i}]`, this._lightColors[i].rgb);
+            this._program.uniform1f(`uLightIntensities[${i}]`, this._lightIntensities[i]);
+        });
+
         this._program.bindAttribs(plistRenderer, {
             position: "inPosition",
             normal: "inNormal",
