@@ -15,7 +15,7 @@ import RenderState from "bg2e/render/RenderState";
 import { createCube, createSphere, createCylinder, createCone, createPlane } from 'bg2e/primitives';
 
 import BasicPBRLightShader from 'bg2e/shaders/BasicPBRLightShader';
-import Light from "bg2e/base/Light";
+import Light, { LightType } from "bg2e/base/Light";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -38,10 +38,11 @@ class MyAppController extends AppController {
         await this._shader.load();
         
         this._lights = await Promise.all([
-            { position: [10.0, 10.0, -10.0], color: [1.0, 0.5, 0.0], intensity:300 },
-            { position: [-10.0, 10.0, -10.0], color: [0.5, 0.0, 1.0], intensity:300 },
-            { position: [-10.0,-10.0, -10.0], color: [0.0, 0.5, 1.0], intensity:300 },
-            { position: [ 10.0,-10.0, -10.0], color: [0.0, 1.0, 0.5], intensity:300 }
+            { position: [10.0, 10.0, -10.0], color: [1.0, 0.5, 0.0], intensity:300, lightType: LightType.POINT },
+            { position: [-10.0, 10.0, -10.0], color: [0.5, 0.0, 1.0], intensity:300, lightType: LightType.POINT },
+            { position: [-10.0,-10.0, -10.0], color: [0.0, 0.5, 1.0], intensity:300, lightType: LightType.POINT },
+            { position: [ 10.0,-10.0, -10.0], color: [0.0, 1.0, 0.5], intensity:300, lightType: LightType.POINT },
+            { direction: [ -1, 2, 1 ], intensity: 1, color_: [0.9, 0.9, 0.9, 1], lightType: LightType.DIRECTIONAL }
         ].map(async lightData => {
             const light = new Light();
             await light.deserialize(lightData);
@@ -121,6 +122,25 @@ class MyAppController extends AppController {
         console.log("Scene load done");
 
         this._shader.lights = this._lights;
+
+        this._worldMatrix = Mat4.MakeIdentity();
+        this._viewMatrix = Mat4.MakeIdentity();
+        this._projMatrix = Mat4.MakeIdentity();
+
+        this._renderStates = [];
+        this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
+            this._renderStates.push(new RenderState({
+                shader: this._shader,
+                materialRenderer: materialRenderer,
+                modelMatrix: (new Mat4(transform)).mult(this._worldMatrix),
+                polyListRenderer: plistRenderer,
+
+                // Save view and projection matrixes pointers to update
+                // from the frame() callback
+                viewMatrix: this._viewMatrix,
+                projectionMatrix: this._projMatrix
+            }))
+        });
     }
 
     reshape(width,height) {
@@ -133,8 +153,6 @@ class MyAppController extends AppController {
         this._elapsed = this._elapsed || 0;
         this._elapsed += delta / 1000;
         this._angle = this._angle || 0;
-        this._worldMatrix = Mat4.MakeIdentity();
-        this._projMatrix = Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0);
 
         this._angle += (delta / 1000) * Math.PI / 4;
 
@@ -142,21 +160,12 @@ class MyAppController extends AppController {
             .translate(0, 0, 10)
             .rotate(0.3, -1, 0, 0)
             .rotate(this._angle, 0, 1, 0);
-            
-        this._viewMatrix = Mat4.GetInverted(cameraMatrix);
-        this._shader.cameraPosition = Mat4.GetPosition(cameraMatrix);
-
-        this._renderStates = [];
-        this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
-            this._renderStates.push(new RenderState({
-                shader: this._shader,
-                materialRenderer: materialRenderer,
-                modelMatrix: (new Mat4(transform)).mult(this._worldMatrix),
-                viewMatrix: this._viewMatrix,
-                projectionMatrix: this._projMatrix,
-                polyListRenderer: plistRenderer
-            }))
-        });
+        
+        // Update projection and view matrixes
+        this._projMatrix.assign(Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0));
+        this._viewMatrix.assign(Mat4.GetInverted(cameraMatrix));
+        
+        this._shader.cameraPosition = Mat4.GetPosition(cameraMatrix);   
     }
 
     display() {

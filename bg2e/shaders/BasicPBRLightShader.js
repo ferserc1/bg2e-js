@@ -1,10 +1,11 @@
 import Shader from "../render/Shader";
-import { pbrPointLight } from './webgl_shader_lib';
+import { pbrPointLight, pbrDirectionalLight } from './webgl_shader_lib';
 import ShaderFunction from "./ShaderFunction";
 import WebGLRenderer from "../render/webgl/Renderer";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
+import { LightType } from "../base/Light";
 import { createNormalTexture, normalTexture } from "../tools/TextureResourceDatabase";
 
 function getShaderProgramForLights(renderer, numLights) {
@@ -63,7 +64,9 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform vec2 uMetallicScale;
         uniform vec2 uRoughnessScale;
         
+        uniform int uLightTypes[${numLights}];
         uniform vec3 uLightPositions[${numLights}];
+        uniform vec3 uLightDirections[${numLights}];
         uniform vec3 uLightColors[${numLights}];
         uniform float uLightIntensities[${numLights}];
         `,
@@ -85,9 +88,16 @@ function getShaderProgramForLights(renderer, numLights) {
                 vec3 Lo = vec3(0.0);
                 for (int i = 0; i < ${numLights}; ++i)
                 {
-                    Lo += pbrPointLight(
-                        uLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                        albedo, roughness, metallic);
+                    if (uLightTypes[i] == ${ LightType.POINT }) {
+                        Lo += pbrPointLight(
+                            uLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
+                            albedo, roughness, metallic);
+                    }
+                    else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
+                        Lo += pbrDirectionalLight(
+                            uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
+                            albedo, roughness, metallic);
+                    }
                 }
 
                 vec3 ambient = vec3(0.03) * albedo;
@@ -96,7 +106,7 @@ function getShaderProgramForLights(renderer, numLights) {
                 color = pow(color, vec3(1.0/2.2));
 
                 gl_FragColor = vec4(color,1.0);
-            }`, [pbrPointLight])
+            }`, [pbrPointLight, pbrDirectionalLight])
         ]);
 
     this._programs[numLights] = ShaderProgram.Create(renderer.gl,"PBRBasicLight",vshader,fshader);
@@ -128,11 +138,15 @@ export default class BasicPBRLightShader extends Shader {
             throw new Error("BasicPBRLightShader: Invalid light array set.");
         }
         this._lights = l;
+        this._lightTypes = [];
         this._lightPositions = [];
+        this._lightDirections = [];
         this._lightColors = [];
         this._lightIntensities = [];
         this._lights.forEach(light => {
+            this._lightTypes.push(light.type);
             this._lightPositions.push(new Vec(light.position));
+            this._lightDirections.push(new Vec(light.direction));
             this._lightColors.push(new Vec(light.color));
             this._lightIntensities.push(light.intensity);
         });
@@ -147,7 +161,9 @@ export default class BasicPBRLightShader extends Shader {
         if (light >= this._lights.length) {
             throw new Error("BasicPBRLightShader: Invalid light index updating light data");
         }
+        this._lightTypes[index] = light.type;
         this._lightPositions[index] = new Vec(light.position);
+        this._lightDirections[index] = new Vec(light.direction);
         this._lightColors[index] = new Vec(light.color);
         this._lightIntensities[index] = light.intensity;
     }
@@ -199,7 +215,9 @@ export default class BasicPBRLightShader extends Shader {
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
 
         this._lights.forEach((light,i) => {
+            this._program.uniform1i(`uLightTypes[${i}]`, this._lightTypes[i]);
             this._program.bindVector(`uLightPositions[${i}]`, this._lightPositions[i]);
+            this._program.bindVector(`uLightDirections[${i}]`, this._lightDirections[i]);
             this._program.bindVector(`uLightColors[${i}]`, this._lightColors[i].rgb);
             this._program.uniform1f(`uLightIntensities[${i}]`, this._lightIntensities[i]);
         });

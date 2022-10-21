@@ -86,32 +86,39 @@ export default class Light {
     async deserialize(sceneData) {
         switch (sceneData.lightType) {
         case 'kTypeDirectional':
+        case LightType.DIRECTIONAL:
             this._type = LightType.DIRECTIONAL;
             // Use the predefined shadow bias for directional lights
             //this._shadowBias = sceneData.shadowBias;
             break;
         case 'kTypeSpot':
+        case LightType.SPOT:
             this._type = LightType.SPOT;
             this._shadowBias = sceneData.shadowBias;
             break;
         case 'kTypePoint':
+        case LightType.POINT:
             this._type = LightType.POINT;
             break;
         default:
             this._type = LightType.DIRECTIONAL;
         }
 
+        const defaultIntensity = () => this._type === LightType.DIRECTIONAL ? 1 : 300;
+
         this._position = sceneData.position || new Vec(0,0,0);
+        this._direction = sceneData.direction || new Vec(0, 0, -1);
 
         if (sceneData.diffuse) {
             this._color = new Color(sceneData.diffuse);
-            this._intensity = (sceneData.intensity || 1) * 300;
+            this._intensity = (sceneData.intensity || 1) * defaultIntensity();
         }
         else if (sceneData.color) {
             this._color = new Color(sceneData.color);
-            this._intensity = sceneData.intensity || 300;
+            this._intensity = sceneData.intensity || defaultIntensity();
         }
         
+        this._intensity = sceneData.intensity || defaultIntensity();
         this._spotCutoff = sceneData.spotCutoff || 20;
         this._spotExponent = sceneData.spotExponent || 30;
         this._shadowStrength = sceneData.shadowStrength || 1;
@@ -128,6 +135,7 @@ export default class Light {
         lightTypes[LightType.POINT] = "kTypePoint";
         sceneData.lightType = lightTypes[this._type];
         sceneData.position = this._position;
+        sceneData.direction = this._direction;
         sceneData.color = this._color;
         sceneData.intensity = this._intensity;
         sceneData.spotCutoff = this._spotCutoff || 20;
