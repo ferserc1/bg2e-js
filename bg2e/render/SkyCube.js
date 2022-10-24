@@ -19,14 +19,14 @@ export default class SkyCube {
         this._material.diffuse = this._texture;
     }
 
-    async load(cubemapTexture, Shader = null) {
+    async load(cubemapTexture, Shader = null, shaderParams = []) {
         this._texture = cubemapTexture;
 
         this._material = new Material();
         this._material.diffuse = this._texture;
 
         this._shader = Shader ? new Shader(this.renderer) : new SkyCubeShader(this.renderer);
-        await this._shader.load();
+        await this._shader.load.apply(this._shader,shaderParams);
     }
 
     updateRenderState({ viewMatrix, projectionMatrix = null }) {

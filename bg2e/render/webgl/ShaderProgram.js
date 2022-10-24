@@ -1,6 +1,6 @@
 import Mat4 from "../../math/Mat4";
 import Mat3 from "../../math/Mat3";
-import { TextureTargetName } from "../../base/Texture";
+import { TextureTarget, TextureTargetName } from "../../base/Texture";
 
 export const ShaderType = {
     VERTEX: 0,
@@ -324,9 +324,16 @@ export default class ShaderProgram {
     bindTexture(uniformName, textureRenderer, textureUnit) {
         const gl = this._gl;
         const webglTexture = textureRenderer.getApiObject();
-        const target = TextureTargetName[textureRenderer.texture.target];
+        
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
-        gl.bindTexture(gl[target], webglTexture);
+        switch (textureRenderer.texture.target) {
+        case TextureTarget.TEXTURE_2D:
+            gl.bindTexture(gl.TEXTURE_2D, webglTexture);
+            break;
+        case TextureTarget.CUBE_MAP:
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
+            break;
+        }
         this.uniform1i(uniformName, textureUnit);
     }
 }

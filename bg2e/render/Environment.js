@@ -61,7 +61,7 @@ export default class Environment {
 
         this._specularMapResources = await createTextureResources(this.renderer, specularMapSize);
         this._specularMapResources.skyShape = this.renderer.factory.skyCube();
-        await this._specularMapResources.skyShape.load(this._environmentMapResources.texture, SpecularMapCubeShader);
+        await this._specularMapResources.skyShape.load(this._environmentMapResources.texture, SpecularMapCubeShader, [0.5]);
 
         this._irradianceMapResources = await createTextureResources(this.renderer, irradianceMapSize);
         this._irradianceMapResources.skyShape = this.renderer.factory.skyCube();

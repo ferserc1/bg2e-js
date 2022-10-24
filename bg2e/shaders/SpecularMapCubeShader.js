@@ -109,7 +109,7 @@ export default class SpecularMapCubeShader extends Shader {
 
     get roughness() { return this._roughness; }
 
-    async load(roughness = 0.2) {
+    async load(roughness = 0.5) {
         const { gl } = this.renderer;
 
         this._roughness = roughness;

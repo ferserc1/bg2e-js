@@ -1,10 +1,12 @@
 import Color from "../base/Color"
-import Texture, { ProceduralTextureFunction, TextureFilter, TextureWrap } from "../base/Texture"
+import Texture, { ProceduralTextureFunction, TextureFilter, TextureTarget, TextureWrap } from "../base/Texture"
+import BRDFIntegrationMap from "../render/BRDFIntegrationMap";
 
 const g_textureDatabase = {
     whiteTexture: {},
     blackTexture: {},
-    normalTexture: {}
+    normalTexture: {},
+    brdfIntegrationTexture: {}
 }
 
 const createColorTexture = async (color) => {
@@ -23,6 +25,7 @@ export const createWhiteTexture = async (renderer) => {
     if (!g_textureDatabase.whiteTexture[renderer.uniqueId]) {
         g_textureDatabase.whiteTexture[renderer.uniqueId] = await createColorTexture(Color.White());
     }
+    return g_textureDatabase.whiteTexture[renderer.uniqueId];
 }
 export const whiteTexture = (renderer) => {
     if (!g_textureDatabase.whiteTexture[renderer.uniqueId]) {
@@ -35,6 +38,7 @@ export const createBlackTexture = async (renderer) => {
     if (!g_textureDatabase.blackTexture[renderer.uniqueId]) {
         g_textureDatabase.blackTexture[renderer.uniqueId] = await createColorTexture(Color.Black());
     }
+    return g_textureDatabase.blackTexture[renderer.uniqueId];
 }
 
 export const blackTexture = (renderer) => {
@@ -48,11 +52,33 @@ export const createNormalTexture = async (renderer) => {
     if (!g_textureDatabase.normalTexture[renderer.uniqueId]) {
         g_textureDatabase.normalTexture[renderer.uniqueId] = await createColorTexture(new Color([0.5, 0.5, 1, 1]));
     }
+    return g_textureDatabase.normalTexture[renderer.uniqueId];
 }
 
 export const normalTexture = (renderer) => {
     if (!g_textureDatabase.normalTexture[renderer.uniqueId]) {
-        throw new Error(`TextureResourceDatabase: normalTexture is not initialize. Call 'createNormalTexture' before use 'normalTexture' function`);
+        throw new Error(`TextureResourceDatabase: normalTexture is not initialized. Call 'createNormalTexture' before use 'normalTexture' function`);
     }
     return g_textureDatabase.normalTexture[renderer.uniqueId];
+}
+
+export const createBRDFIntegrationTexture = async (renderer) => {
+    if (!g_textureDatabase.brdfIntegrationTexture[renderer.uniqueId]) {
+        const tex = new Texture();
+        tex.target = TextureTarget.TEXTURE_2D;
+        tex.proceduralFunction = ProceduralTextureFunction.FROM_BASE64;
+        tex.proceduralParameters = {
+            imageData: BRDFIntegrationMap
+        };
+        await tex.loadImageData();
+        g_textureDatabase.brdfIntegrationTexture[renderer.uniqueId] = tex;
+    }
+    return g_textureDatabase.brdfIntegrationTexture[renderer.uniqueId];
+}
+
+export const BRDFIntegrationTexture = (renderer) => {
+    if (!g_textureDatabase.brdfIntegrationTexture[renderer.uniqueId]) {
+        throw new Error(`TextureResourceDatabase: BRDFIntegrationTexture is not initialized. Call 'createBRDFIntegrationTexture' before use 'BRDFIntegrationTexture' function`);
+    }
+    return g_textureDatabase.brdfIntegrationTexture[renderer.uniqueId];
 }

@@ -38,7 +38,8 @@ export const TextureTarget = {
 export const ProceduralTextureFunction = {
     PLAIN_COLOR: 0,
     RANDOM_NOISE: 1,
-    DYNAMIC_CUBEMAP: 2
+    DYNAMIC_CUBEMAP: 2,
+    FROM_BASE64: 3
 };
 
 export const TextureRenderTargetAttachment = {
@@ -100,7 +101,9 @@ export const TextureTargetName = {
 
 export const ProceduralTextureFunctionName = {
     0: "PLAIN_COLOR",
-    1: "RANDOM_NOISE"
+    1: "RANDOM_NOISE",
+    2: "DYNAMIC_CUBEMAP",
+    3: "FROM_BASE64"
 };
 
 export const TextureRenderTargetAttachmentNames = {
@@ -159,6 +162,7 @@ const loadImageFromFile = async fileUrl => {
     
     return flipImage;
 }
+
 export default class Texture {
     constructor() {
         // This flag allows to the renderer to know if the texture object
@@ -393,6 +397,28 @@ export default class Texture {
             } 
             await loadProceduralImage();            
 
+            this._dirty = true;
+        }
+        else if (this.proceduralFunction === ProceduralTextureFunction.FROM_BASE64) {
+            if (this._imageData && refresh === false) {
+                return;
+            }
+
+            if (!/;base64/i.test(this.proceduralParameters?.imageData)) {
+                throw new Error("Error generating procedural texture from base64 string. Invalid base64 image");
+            }
+
+            const loadProceduralImage = () => {
+                return new Promise(resolve => {
+                    this._imageData = new Image();
+                    this._imageData.onload = () => {
+                        resolve();
+                    }
+                    this._imageData.src = this.proceduralParameters.imageData;
+                })
+            }
+            await loadProceduralImage();
+            this._size = new Vec(this._imageData.width, this._imageData.height);
             this._dirty = true;
         }
         else {
