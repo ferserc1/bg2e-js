@@ -53,7 +53,7 @@ export default class Environment {
         textureUrl, 
         environmentMapSize = [ 512, 512 ],
         specularMapSize = [ 128, 128 ],
-        irradianceMapSize = [16, 16 ]
+        irradianceMapSize = [64, 64 ]
     }) {
         this._environmentMapResources = await createTextureResources(this.renderer, environmentMapSize);
         this._environmentMapResources.skyShape = this.renderer.factory.skySphere();
