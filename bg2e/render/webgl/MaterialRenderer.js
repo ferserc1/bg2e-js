@@ -17,25 +17,16 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
     // material property ies a texture. If not, it binds the fallbackTexture. If the fallbackTexture
     // value is null, it binds a 2x2 px white texture
     bindTexture(shaderProgram, property, uniformName, textureUnit, fallbackTexture = null) {
-        const { gl } = this.renderer;
-        const bindTexture = (textureRenderer) => {
-            const webglTexture = textureRenderer.getApiObject();
-            const target = TextureTargetName[textureRenderer.texture.target];
-            gl.activeTexture(gl.TEXTURE0 +  textureUnit);
-            gl.bindTexture(gl[target], webglTexture);
-            shaderProgram.uniform1i(uniformName, textureUnit);
-        }
-
         if (this.material[property] instanceof Texture) {
-            bindTexture(this.getTextureRenderer(property));
+            shaderProgram.bindTexture(uniformName, this.getTextureRenderer(property), textureUnit);
             return true;
         }
         else if (fallbackTexture instanceof Texture) {
-            bindTexture(this.renderer.factory.texture(fallbackTexture));
+            shaderProgram.bindTexture(uniformName, this.renderer.factory.texture(fallbackTexture), textureUnit);
             return false;
         }
         else {
-            bindTexture(this._whiteTexture);
+            shaderProgram.bindTexture(uniformName, this._whiteTexture, textureUnit);
             return false;
         }
     }
