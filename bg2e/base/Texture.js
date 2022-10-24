@@ -162,6 +162,42 @@ const loadImageFromFile = async fileUrl => {
     
     return flipImage;
 }
+const loadBase64Image = async base64Img => {
+    const loadImage = () => {
+        return new Promise(resolve => {
+            const image = new Image();
+            image.onload = () => {
+                resolve(image);
+            }
+            image.src = base64Img;
+        });
+    }
+
+    const image = await loadImage();
+    
+    // Flip image Y coord
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+
+    const ctx = canvas.getContext('2d');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(1, -1);
+    ctx.drawImage(image, 0, 0, canvas.width, -canvas.height);
+    const flipImage = new Image();
+    const loadFlipImage = () => {
+        return new Promise(resolve => {
+            flipImage.onload = () => {
+                flipImage._hash = generateImageHash(flipImage);
+                resolve();
+            }
+            flipImage.src = canvas.toDataURL("image/png");
+        })
+    } 
+    await loadFlipImage();    
+    
+    return flipImage;
+}
 
 export default class Texture {
     constructor() {
@@ -408,16 +444,18 @@ export default class Texture {
                 throw new Error("Error generating procedural texture from base64 string. Invalid base64 image");
             }
 
-            const loadProceduralImage = () => {
-                return new Promise(resolve => {
-                    this._imageData = new Image();
-                    this._imageData.onload = () => {
-                        resolve();
-                    }
-                    this._imageData.src = this.proceduralParameters.imageData;
-                })
-            }
-            await loadProceduralImage();
+            this._imageData = await loadBase64Image(this.proceduralParameters.imageData);
+
+            //const loadProceduralImage = () => {
+            //    return new Promise(resolve => {
+            //        this._imageData = new Image();
+            //        this._imageData.onload = () => {
+            //            resolve();
+            //        }
+            //        this._imageData.src = this.proceduralParameters.imageData;
+            //    })
+            //}
+            //await loadProceduralImage();
             this._size = new Vec(this._imageData.width, this._imageData.height);
             this._dirty = true;
         }
