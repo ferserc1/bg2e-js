@@ -14,6 +14,11 @@ const createTextureResources = async (renderer, size) => {
     return { renderer, texture, renderBuffer };
 }
 
+const destroyTextureResources = (resources) => {
+    resources.texture.destroy();
+    resources.renderBuffer.destroy();
+}
+
 const updateMap = (mapResources) => {
     const { state } = mapResources.renderer; 
     const { renderBuffer, skyShape } = mapResources;
@@ -31,10 +36,16 @@ export default class Environment {
         this._environmentMap = null;
         this._specularMap = null;
         this._irradianceMap = null;
+
+        this._updated = false;
     }
 
     get renderer() {
         return this._renderer;
+    }
+
+    get updated() {
+        return this._updated;
     }
 
     get environmentMap() {
@@ -55,6 +66,10 @@ export default class Environment {
         specularMapSize = [ 128, 128 ],
         irradianceMapSize = [64, 64 ]
     }) {
+        this._envMapSize = environmentMapSize;
+        this._specMapSize = specularMapSize;
+        this._irrMapSize = irradianceMapSize;
+
         this._environmentMapResources = await createTextureResources(this.renderer, environmentMapSize);
         this._environmentMapResources.skyShape = this.renderer.factory.skySphere();
         await this._environmentMapResources.skyShape.load(textureUrl);
@@ -66,6 +81,14 @@ export default class Environment {
         this._irradianceMapResources = await createTextureResources(this.renderer, irradianceMapSize);
         this._irradianceMapResources.skyShape = this.renderer.factory.skyCube();
         await this._irradianceMapResources.skyShape.load(this._environmentMapResources.texture, IrradianceMapCubeShader);
+        this._updated = false;
+    }
+
+    destroy() {
+        destroyTextureResources(this._environmentMapResources);
+        destroyTextureResources(this._specularMapResources);
+        destroyTextureResources(this._irradianceMapResources);
+        this._updated = false;
     }
 
     updateMaps() {
@@ -76,5 +99,11 @@ export default class Environment {
         updateMap(this._specularMapResources);
         updateMap(this._irradianceMapResources);
         state.frontFace = face;
+        this._updated = true;
+    }
+
+    async reloadImage(imageUrl) {
+        this._environmentMapResources.skyShape.setTexture(imageUrl);
+        this._updated = false;
     }
 }

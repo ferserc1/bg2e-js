@@ -5,6 +5,10 @@ export const fresnelSchlick = new ShaderFunction('vec3', 'fresnelSchlick', 'floa
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }`);
 
+export const fresnelSchlickRoughness = new ShaderFunction('vec3', 'fresnelSchlickRoughness', 'float cosTheta, vec3 F0, float roughness', `{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}`);
+
 export const distributionGGX = new ShaderFunction('float','distributionGGX','vec3 N, vec3 H, float roughness',`{
     float a = roughness * roughness;
     float a2 = a * a;
@@ -94,3 +98,35 @@ export const pbrDirectionalLight = new ShaderFunction('vec3','pbrDirectionalLigh
     float NdotL = max(dot(fragNorm,L), 0.0);
     return (kD * albedo / ${ Math.PI } + specular) * lightColor * NdotL;
 }`, [fresnelSchlick, distributionGGX, geometrySmith]);
+
+export const getPrefilteredColor = new ShaderFunction('vec3','getPrefilteredColor','float roughness, vec3 refVec, samplerCube irrMap, samplerCube specMap, samplerCube envMap',
+`{
+    vec3 specMap0 = textureCube(envMap, refVec).rgb;
+    vec3 specMap1 = textureCube(specMap, refVec).rgb;
+    vec3 specMap2 = textureCube(irrMap, refVec).rgb;
+
+    if (roughness<0.7) {
+        return mix(specMap0, specMap1, (log(roughness) + 5.0) / 5.0);
+    }
+    else {
+        return mix(specMap1, specMap2, roughness);
+    }
+}`);
+
+export const pbrAmbientLight = new ShaderFunction('vec3','pbrAmbientLight','vec3 fragPos, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness, samplerCube irradianceMap, samplerCube specularMap, samplerCube envMap, sampler2D brdfMap',
+`{
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
+    vec3 kS = fresnelSchlickRoughness(max(dot(N,V), 0.0), F0, roughness);
+    vec3 kD = 1.0 - kS;
+    vec3 irradiance = textureCube(irradianceMap, N).rgb;
+    vec3 diffuse = irradiance * albedo;
+
+    vec3 R = reflect(-V, N);
+    vec3 prefilteredColor = getPrefilteredColor(roughness, R, irradianceMap, specularMap, envMap);
+    float NdotV = max(dot(N,V), 0.0);
+    vec2 envBRDF = texture2D(brdfMap, vec2(NdotV,roughness)).xy;
+    vec3 indirectSpecular = prefilteredColor * (kS * envBRDF.x + envBRDF.y);
+
+    return kD * diffuse + indirectSpecular;
+}`, [fresnelSchlickRoughness,getPrefilteredColor]);

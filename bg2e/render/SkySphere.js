@@ -24,6 +24,16 @@ export default class SkySphere {
         await this._shader.load();
     }
 
+    async setTexture(equirectangularTextureUrl) {
+        if (this._texture) {
+            this._texture.destroy();
+        }
+        this._texture.fileName = equirectangularTextureUrl;
+        await this._texture.loadImageData();
+
+        this._material.diffuse = this._texture;
+    }
+
     updateRenderState({ viewMatrix, projectionMatrix = null }) {
         const rotationMatrix = Mat4.GetRotation(viewMatrix);
         if (!this._renderState) {
