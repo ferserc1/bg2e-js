@@ -103,7 +103,7 @@ export default class Environment {
     }
 
     async reloadImage(imageUrl) {
-        this._environmentMapResources.skyShape.setTexture(imageUrl);
+        await this._environmentMapResources.skyShape.setTexture(imageUrl);
         this._updated = false;
     }
 }
