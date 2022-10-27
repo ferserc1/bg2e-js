@@ -59,6 +59,17 @@ export const RenderLayer = {
     ALL: 0xFFFFFFFF
 };
 
+export const PolyListFrontFace = {
+    CW: 0,
+    CCW: 1
+};
+
+export const PolyListCullFace = {
+    FRONT: 0,
+    BACK: 1,
+    FRONT_AND_BACK: 2
+};
+
 function buildTangents(plist) {
     plist._tangent = [];
 
@@ -161,6 +172,10 @@ export default class PolyList {
         this._visible = true;
         this._visibleToShadows = true;
 
+        this._cullFace = PolyListCullFace.BACK;
+        this._frontFace = PolyListFrontFace.CCW;
+        this._enableCullFace = true;
+
         this._vertex = [];
         this._normal = [];
         this._texCoord0 = [];
@@ -198,6 +213,13 @@ export default class PolyList {
     set renderLayers(layers) { this._renderLayers = layers; }
     enableLayer(layer) { this._renderLayers = this._renderLayers | layer; }
     disableLayer(layer) { this._renderLayers = this._renderLayers & ~layer; }
+
+    set cullFace(v) { this._cullFace = v; }
+    get cullFace() { return this._cullFace; }
+    set frontFace(v) { this._frontFace = v; }
+    get frontFace() { return this._frontFace; }
+    set enableCullFace(v) { this._enableCullFace = v; }
+    get enableCullFace() { return this._enableCullFace; }
 
     get drawMode() { return this._drawMode; }
     set drawMode(m) { this._drawMode = m; }
