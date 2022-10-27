@@ -68,6 +68,13 @@ export const TextureComponentFormat = {
     FLOAT32: 1
 };
 
+export const TextureChannel = {
+    R: 1,
+    G: 2,
+    B: 3,
+    A: 4
+};
+
 export const TextureDataTypeName = {
     0: "NONE",
     1: "IMAGE",
@@ -130,6 +137,13 @@ export const TextureRenderTargetAttachmentNames = {
 export const TextureComponentFormatNames = {
     0: "UNSIGNED_BYTE",
     1: "FLOAT32"
+};
+
+export const TextureChannelNames = {
+    1: "R",
+    2: "G",
+    3: "B",
+    4: "A"
 };
 
 const g_loadedImages = {};
