@@ -64,7 +64,7 @@ export default class Environment {
         textureUrl, 
         environmentMapSize = [ 512, 512 ],
         specularMapSize = [ 128, 128 ],
-        irradianceMapSize = [64, 64 ]
+        irradianceMapSize = [32, 32]
     }) {
         this._envMapSize = environmentMapSize;
         this._specMapSize = specularMapSize;

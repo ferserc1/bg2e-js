@@ -35,10 +35,10 @@ class MyAppController extends AppController {
         await this._shader.load();
         
         this._lights = await Promise.all([
-            { position: [10.0, 10.0, -10.0], color: [1.0, 0.5, 0.0], intensity:300, lightType: LightType.POINT },
-            { position: [-10.0, 10.0, -10.0], color: [0.5, 0.0, 1.0], intensity:300, lightType: LightType.POINT },
-            { position: [-10.0,-10.0, -10.0], color: [0.0, 0.5, 1.0], intensity:300, lightType: LightType.POINT },
-            { position: [ 10.0,-10.0, -10.0], color: [0.0, 1.0, 0.5], intensity:300, lightType: LightType.POINT },
+            { position: [10.0, 10.0, -10.0], color: [1, 1, 1], intensity:300, lightType: LightType.POINT },
+            { position: [-10.0, 10.0, -10.0], color: [1, 1, 1], intensity:300, lightType: LightType.POINT },
+            { position: [-10.0,-10.0, -10.0], color: [1, 1, 1], intensity:300, lightType: LightType.POINT },
+            { position: [ 10.0,-10.0, -10.0], color: [1, 1, 1], intensity:300, lightType: LightType.POINT },
             { direction: [ -1, 2, 1 ], intensity: 1, color_: [0.9, 0.9, 0.9, 1], lightType: LightType.DIRECTIONAL }
         ].map(async lightData => {
             const light = new Light();
