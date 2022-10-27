@@ -3,6 +3,7 @@ import { createCube } from "../primitives";
 import RenderState from "./RenderState";
 import SkyCubeShader from "../shaders/SkyCubeShader";
 import Mat4 from "../math/Mat4";
+import { PolyListCullFace } from "../base/PolyList";
 
 export default class SkyCube {
     constructor(renderer) {
@@ -55,7 +56,9 @@ export default class SkyCube {
 
     get polyListRenderer() {
         if (!this._plistRenderer) {
-            this._plistRenderer = this.renderer.factory.polyList(createCube(1,1,1));
+            const cube = createCube(1,1,1);
+            cube.cullFace = PolyListCullFace.FRONT;  // Draw back face
+            this._plistRenderer = this.renderer.factory.polyList(cube);
         }
         return this._plistRenderer;
     }

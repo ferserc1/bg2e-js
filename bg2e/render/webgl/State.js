@@ -12,6 +12,8 @@ export default class State {
 
     constructor(renderer) {
         this._renderer = renderer;
+
+        this.cullFaceEnabled = true;
     }
 
     get renderer() {

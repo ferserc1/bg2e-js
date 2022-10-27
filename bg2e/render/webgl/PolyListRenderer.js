@@ -1,5 +1,5 @@
 
-import { DrawMode } from "../../base/PolyList";
+import { DrawMode, PolyListCullFace, PolyListFrontFace } from "../../base/PolyList";
 import PolyListRenderer from "../PolyListRenderer";
 import VertexBuffer, { BufferTarget } from "./VertexBuffer";
 
@@ -163,10 +163,33 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
     }
     
     draw() {
-        const { gl } = this.renderer;
-        //this._vertexBuffer.bind(BufferTarget.ARRAY_BUFFER);
-        //this._indexBuffer.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);
+        const { gl, state } = this.renderer;
 
+        state.cullFaceEnabled = this.polyList.enableCullFace;
+        
+        switch (this.polyList.frontFace) {
+        case PolyListFrontFace.CCW:
+            state.frontFace = state.CCW;
+            break;
+        case PolyListFrontFace.CW:
+            state.frontFace = state.CW;
+            break;
+        }
+
+        switch (this.polyList.cullFace) {
+        case PolyListCullFace.BACK:
+            state.cullFace = state.BACK;
+            break;
+        case PolyListCullFace.FRONT:
+            state.cullFace = state.FRONT;
+            break;
+        case PolyListCullFace.FRONT_AND_BACK:
+            state.cullFace = state.FRONT_AND_BACK;
+            break;
+        }
+
+
+        
         let mode = 0;
         switch (this._polyList.drawMode) {
         case DrawMode.POINTS:

@@ -92,13 +92,9 @@ export default class Environment {
     }
 
     updateMaps() {
-        const { state } = this.renderer;
-        const face = state.frontFace;
-        state.frontFace = state.CW;
         updateMap(this._environmentMapResources);
         updateMap(this._specularMapResources);
         updateMap(this._irradianceMapResources);
-        state.frontFace = face;
         this._updated = true;
     }
 

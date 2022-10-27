@@ -136,9 +136,6 @@ class MyAppController extends AppController {
         const { state } = this.renderer;
 
         state.depthTestEnabled = true;
-        state.cullFaceEnabled = true;
-        state.cullFace = state.BACK;
-        state.frontFace = state.CCW;
         state.clearColor = Color.Black();
 
         this._shader = new MyWebGLShader(this.renderer);

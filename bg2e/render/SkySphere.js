@@ -4,6 +4,7 @@ import RenderState from "./RenderState";
 import Material from "../base/Material";
 import Texture from "../base/Texture";
 import Mat4 from "../math/Mat4";
+import { PolyListCullFace, PolyListFrontFace } from "../base/PolyList";
 
 export default class SkySphere {
     constructor(renderer) {
@@ -60,7 +61,9 @@ export default class SkySphere {
 
     get polyListRenderer() {
         if (!this._plistRenderer) {
-            this._plistRenderer = this.renderer.factory.polyList(createSphere(3.5));
+            const sphere = createSphere(3.5);
+            sphere.cullFace = PolyListCullFace.FRONT;  // Draw back face
+            this._plistRenderer = this.renderer.factory.polyList(sphere);
         }
         return this._plistRenderer;
     }

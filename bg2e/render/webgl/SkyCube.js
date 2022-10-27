@@ -8,11 +8,8 @@ export default class WebGLSkyCube extends SkyCube {
         }
 
         const dm = state.depthMask;
-        const face = state.frontFace;
-        state.frontFace = state.CW;
         state.depthMask = false;
         this._renderState.draw();
         state.depthMask = dm;
-        state.frontFace = face;
     }
 }

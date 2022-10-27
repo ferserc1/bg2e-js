@@ -107,9 +107,6 @@ class MyAppController extends AppController {
         console.log(extensions);
 
         state.depthTestEnabled = true;
-        state.cullFaceEnabled = true;
-        state.cullFace = state.BACK;
-        state.frontFace = state.CCW;
         
         this._program = new ShaderProgram(gl, "SimpleColorCombination");
         this._program.attachVertexSource(vertexShaderCode);

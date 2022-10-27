@@ -40,7 +40,6 @@ export const MaterialAttributeNames = [
     "heightUV",
     "heightIntensity",
     "castShadows",
-    "cullFace",
     "unlit"
 ];
 
@@ -89,7 +88,6 @@ export const PrimitiveTypeAttributes = [
     "heightUV",
     "heightIntensity",
     "castShadows",
-    "cullFace",
     "unlit"
 ];
 
@@ -329,7 +327,6 @@ export default class Material {
         this._heightUV = 0;
         this._heightIntensity = 1.0;
         this._castShadows = true;
-        this._cullFace = true;
         this._unlit = false;
     }
 
@@ -371,7 +368,6 @@ export default class Material {
         this.heightUV = other._heightUV;
         this.heightIntensity = other._heightIntensity;
         this.castShadows = other._castShadows;
-        this.cullFace = other._cullFace;
         this.unlit = other._unlit;
     }
 
@@ -514,8 +510,6 @@ export default class Material {
     set heightIntensity(v) { this._heightIntensity = v; }
     get castShadows() { return this._castShadows; }
     set castShadows(v) { this._castShadows = v; }
-    get cullFace() { return this._cullFace; }
-    set cullFace(v) { this._cullFace = v; }
     get unlit() { return this._unlit; }
     set unlit(v) { this._unlit = v; }
 

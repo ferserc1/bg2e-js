@@ -122,9 +122,6 @@ class MyAppController extends AppController {
         const { gl, state } = this.renderer;
 
         state.depthTestEnabled = true;
-        state.cullFaceEnabled = true;
-        state.cullFace = state.BACK;
-        state.frontFace = state.CCW;
 
         this._shader = new MyWebGLShader(this.renderer);
         await this._shader.load();
