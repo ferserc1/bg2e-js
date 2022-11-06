@@ -1,8 +1,6 @@
 
 import { TextureChannel } from "../base/Texture";
 
-// TODO: Implement texture merger
-
 export default class TextureMergerRenderer {
     constructor(renderer) {
         this._renderer = renderer;
@@ -45,9 +43,6 @@ export default class TextureMergerRenderer {
     }
 
     async merge() {
-        if (this._dirty) {
-            // TODO: Merge textures
-            this._dirty = false;
-        }
+        throw new Error("Calling base implementation of TextureMergerRenderer.merge()");
     }
 }

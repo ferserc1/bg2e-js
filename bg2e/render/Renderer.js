@@ -107,6 +107,10 @@ export default class Renderer {
         return new Environment(this);
     }
 
+    textureMergerFactory() {
+        throw new Error("Calling base implementation of Renderer.textureMergerFactory()");
+    }
+
     get factory() {
         const renderer = this;
         return {
@@ -130,6 +134,9 @@ export default class Renderer {
             },
             environment() {
                 return renderer.environmentFactory();
+            },
+            textureMerger() {
+                return renderer.textureMergerFactory();
             }
         }
     }
