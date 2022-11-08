@@ -7,6 +7,7 @@ import RenderBuffer from "./RenderBuffer";
 import SkySphere from "./SkySphere";
 import SkyCube from "./SkyCube";
 import TextureMergerRenderer from "./TextureMergerRenderer";
+import FrameBuffer from "./FrameBuffer";
 
 function enableExtensions(gl) {
     // Enable all available extensions
@@ -24,6 +25,13 @@ export default class WebGLRenderer extends Renderer {
 
     get uniqueId() {
         return this._uuid;
+    }
+
+    get frameBuffer() {
+        if (!this._frameBuffer) {
+            this._frameBuffer = new FrameBuffer(this);
+        }
+        return this._frameBuffer;
     }
 
     async init(canvas) {

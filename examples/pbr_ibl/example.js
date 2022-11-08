@@ -179,14 +179,10 @@ class MyAppController extends AppController {
     }
 
     display() {
-        const { state } = this.renderer;
-        state.clear();
-        state.depthTestEnabled = true;
-            state.frontFace = state.CCW;
-
+        this.renderer.frameBuffer.clear();
+        
         if (!this._env.updated) {
             this._env.updateMaps();
-            
         }
 
         this._skyCube.draw();

@@ -14,6 +14,7 @@ export const EngineFeatures = {
 export default class Renderer {
     constructor(identifier) {
         this._identifier = identifier;
+        this._frameBuffer = null;
     }
 
     get uniqueId() {
@@ -26,6 +27,10 @@ export default class Renderer {
 
     get canvas() {
         return this._canvas;
+    }
+
+    get frameBuffer() {
+        throw new Error("Calling Renderer.frameBuffer base implementation.");
     }
 
     get presentTextureSurfaceRenderer() {

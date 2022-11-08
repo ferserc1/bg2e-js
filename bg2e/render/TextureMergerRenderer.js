@@ -1,5 +1,5 @@
 
-import { TextureChannel } from "../base/Texture";
+import Texture, { TextureChannel, TextureComponentFormat, TextureRenderTargetAttachment } from "../base/Texture";
 
 export default class TextureMergerRenderer {
     constructor(renderer) {
@@ -9,6 +9,18 @@ export default class TextureMergerRenderer {
         this._dirty = true;
 
         this._mergedTexture = null;
+    }
+
+    async create() {
+        this._mergedTexture = new Texture();
+        this._mergedTexture.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
+        this._mergedTexture.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
+
+        this._renderBuffer = this.renderer.factory.renderBuffer();
+        this._renderBuffer.attachTexture(this._mergedTexture);
+
+        // TODO: Create texture merge shader
+        this._shader = null;
     }
 
     get renderer() {
@@ -43,6 +55,9 @@ export default class TextureMergerRenderer {
     }
 
     async merge() {
-        throw new Error("Calling base implementation of TextureMergerRenderer.merge()");
+        this._renderBuffer.update(() => {
+            // TODO: clear buffers
+            // TODO: present texture
+        });
     }
 }
