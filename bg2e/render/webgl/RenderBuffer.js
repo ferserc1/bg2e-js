@@ -167,6 +167,10 @@ export default class WebGLRenderBuffer extends RenderBuffer {
         super(renderer);
     }
 
+    get frameBuffer() {
+        return this.renderer.frameBuffer;
+    }
+
     beginUpdate(textureFace = CubeMapFace.NONE) {
         if (this.type === RenderBufferType.TEXTURE) {
             beginUpdateTexture.apply(this);

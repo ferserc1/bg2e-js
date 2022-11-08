@@ -129,6 +129,10 @@ export default class RenderBuffer {
         throw new Error("RenderBuffer.destory(): calling base implementation.");
     }
 
+    get frameBuffer() {
+        throw new Error("RenderBuffer.frameBuffer: calling base implementation");
+    }
+
     update(drawFunc) {
         if (this.type === RenderBufferType.TEXTURE) {
             this.beginUpdate();

@@ -117,10 +117,8 @@ class MyAppController extends AppController {
 
 
     display() {
-        const { state } = this.renderer;
-
         this._renderBuffer.update(() => {
-            state.clear();
+            this._renderBuffer.frameBuffer.clear();
             this._renderStates.forEach(rs => rs.draw());
         });
 
