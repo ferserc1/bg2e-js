@@ -6,7 +6,6 @@ import TextureRenderer from "./TextureRenderer";
 import RenderBuffer from "./RenderBuffer";
 import SkySphere from "./SkySphere";
 import SkyCube from "./SkyCube";
-import TextureMergerRenderer from "./TextureMergerRenderer";
 import FrameBuffer from "./FrameBuffer";
 
 function enableExtensions(gl) {
@@ -100,10 +99,6 @@ export default class WebGLRenderer extends Renderer {
 
     skyCubeFactory() {
         return new SkyCube(this);
-    }
-
-    textureMergerFactory() {
-        return new TextureMergerRenderer(this);
     }
     
     presentTexture(texture, { clearBuffers = true, shader = null, viewport = null } = {}) {

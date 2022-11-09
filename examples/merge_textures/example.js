@@ -24,15 +24,16 @@ class MyAppController extends AppController {
 
 
         this._textureMerger = this.renderer.factory.textureMerger();
+        await this._textureMerger.create();
 
         this._textureR = new Texture();
-        this._textureR.fileName = '../resources/r-texture.jpg';
+        this._textureR.fileName = '../resources/r-texture.png';
         this._textureG = new Texture();
-        this._textureG.fileName = '../resources/g-texture.jpg';
+        this._textureG.fileName = '../resources/g-texture.png';
         this._textureB = new Texture();
-        this._textureB.fileName = '../resources/b-texture.jpg';
+        this._textureB.fileName = '../resources/b-texture.png';
         this._textureA = new Texture();
-        this._textureA.fileName = '../resources/a-texture.jpg';
+        this._textureA.fileName = '../resources/a-texture.png';
         await Promise.all([
             this._textureR.loadImageData(),
             this._textureG.loadImageData(),
@@ -40,18 +41,10 @@ class MyAppController extends AppController {
             this._textureA.loadImageData()
         ]);
 
-        this._textures = [
-            this._textureR,
-            this._textureG,
-            this._textureB,
-            this._textureA
-        ];
-
-        this._textures.forEach((t,i) => {
-            this._textureMerger.setTexture(t, TextureChannel.R + i);
-        });
-        console.log(this._textureMerger.isComplete);
-
+        this._textureMerger.setTexture(this._textureR, TextureChannel.R, TextureChannel.R);
+        this._textureMerger.setTexture(this._textureG, TextureChannel.G, TextureChannel.G);
+        this._textureMerger.setTexture(this._textureB, TextureChannel.B, TextureChannel.B);
+        this._textureMerger.setTexture(this._textureA, TextureChannel.A, TextureChannel.A);
     }
 
     reshape(width,height) {
@@ -62,14 +55,12 @@ class MyAppController extends AppController {
     }
 
     frame(delta) {
-        this._time = this._time || 0;
-        this._time += delta;
-        this._showTextureIndex = Math.round(this._time / 1000) % this._textures.length;
+        this._textureMerger.update();
     }
 
 
     display() {
-        this.renderer.presentTexture(this._textures[this._showTextureIndex]);
+        this.renderer.presentTexture(this._textureMerger.mergedTexture);
     }
 
     destroy() {

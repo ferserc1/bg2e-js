@@ -1,14 +1,13 @@
 
 import Texture, { TextureChannel, TextureComponentFormat, TextureRenderTargetAttachment } from "../base/Texture";
-
+import TextureMergerShader from "../shaders/TextureMergerShader";
 export default class TextureMergerRenderer {
     constructor(renderer) {
         this._renderer = renderer;
 
-        this._textures = {};
-        this._dirty = true;
+        this._shader = new TextureMergerShader(this.renderer);
 
-        this._mergedTexture = null;
+        this._dirty = true;
     }
 
     async create() {
@@ -19,8 +18,7 @@ export default class TextureMergerRenderer {
         this._renderBuffer = this.renderer.factory.renderBuffer();
         this._renderBuffer.attachTexture(this._mergedTexture);
 
-        // TODO: Create texture merge shader
-        this._shader = null;
+        await this._shader.load();
     }
 
     get renderer() {
@@ -35,11 +33,8 @@ export default class TextureMergerRenderer {
         this._dirty = d;
     }
 
-    setTexture(tex,channel) {
-        if (channel<TextureChannel.R || channel>TextureChannel.A) {
-            throw new Error(`TextureMergerRenderer: invalid texture channel set ${ channel }`);
-        }
-        this._textures[channel] = tex;
+    setTexture(tex,channel,dstChannel = TextureChannel.R) {
+        this._shader.setTexture(tex,channel,dstChannel);
         this._dirty = true;
     }
 
@@ -48,16 +43,17 @@ export default class TextureMergerRenderer {
     }
 
     get isComplete() {
-        return  this._textures[TextureChannel.R] &&
-                this._textures[TextureChannel.G] &&
-                this._textures[TextureChannel.B] &&
-                this._textures[TextureChannel.A] && true;
+        return this._shader.isComplete;
     }
 
-    async merge() {
-        this._renderBuffer.update(() => {
-            this._renderBuffer.frameBuffer.clear();
-            // TODO: present texture
-        });
+    update() {
+        if (this._dirty) {
+            this._renderBuffer.update(() => {
+                // DEBUG: check why it's neccesary to present texture twice
+                this.renderer.presentTexture(null, { clear: true, shader: this._shader });
+                this.renderer.presentTexture(null, { shader: this._shader });
+            });
+            //this._dirty = false;
+        }
     }
 }

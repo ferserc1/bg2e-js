@@ -3,7 +3,7 @@ import PresentTextureShader from "../shaders/PresentTextureShader";
 import Material from "../base/Material";
 import PolyList from "../base/PolyList";
 import Environment from "./Environment";
-
+import TextureMergerRenderer from "./TextureMergerRenderer";
 
 export const EngineFeatures = {
     RENDER_TARGET_TEXTURES:         0x1 << 0,
@@ -113,7 +113,7 @@ export default class Renderer {
     }
 
     textureMergerFactory() {
-        throw new Error("Calling base implementation of Renderer.textureMergerFactory()");
+        return new TextureMergerRenderer(this);
     }
 
     get factory() {
