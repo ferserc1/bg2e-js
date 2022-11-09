@@ -51,12 +51,12 @@ export default class TextureMergerRenderer {
         return  this._textures[TextureChannel.R] &&
                 this._textures[TextureChannel.G] &&
                 this._textures[TextureChannel.B] &&
-                this._textures[TextureChannel.A];
+                this._textures[TextureChannel.A] && true;
     }
 
     async merge() {
         this._renderBuffer.update(() => {
-            // TODO: clear buffers
+            this._renderBuffer.frameBuffer.clear();
             // TODO: present texture
         });
     }
