@@ -209,6 +209,7 @@ export default class PBRLightIBLShader extends Shader {
         }
 
         const material = materialRenderer.material;
+        materialRenderer.mergeTextures();
         this.renderer.state.shaderProgram = this._program;
         
         const normMatrix = Mat4.GetNormalMatrix(modelMatrix);
@@ -227,7 +228,8 @@ export default class PBRLightIBLShader extends Shader {
 
         materialRenderer.bindTexture(this._program, 'diffuse', 'uAlbedoTexture', 0);
         materialRenderer.bindTexture(this._program, 'normal', 'uNormalTexture', 1, normalTexture(this.renderer));
-        materialRenderer.bindTexture(this._program, 'metallic', 'uMetallicTexture', 2);
+        materialRenderer.bindMetallicRoughnessHeightAOTexture(this._program, 'uMetallicTexture', 2);
+        //materialRenderer.bindTexture(this._program, 'metallic', 'uMetallicTexture', 2);
         materialRenderer.bindTexture(this._program, 'roughness', 'uRoughnessTexture', 3);
 
         materialRenderer.bindColor(this._program, 'diffuse', 'uAlbedo');

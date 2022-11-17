@@ -1,4 +1,4 @@
-import Texture, { TextureTargetName } from "../../base/Texture";
+import Texture, { TextureChannel, TextureTargetName } from "../../base/Texture";
 import MaterialRenderer from "../MaterialRenderer";
 import { whiteTexture, createWhiteTexture } from "../../tools/TextureResourceDatabase";
 
@@ -15,6 +15,31 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
         material._renderer = this;
 
         this._whiteTexture = renderer.factory.texture(whiteTexture(renderer));
+        this._textureMerger = renderer.factory.textureMerger();
+    }
+
+    mergeTextures() {
+        if (this.material.dirty) {
+            const getTexture = (att) => {
+                if (this.material[att] instanceof Texture) {
+                    return this.material[att];
+                }
+                else {
+                    return this._whiteTexture.texture;
+                }
+            }
+
+            this._textureMerger.setTexture(getTexture('metallic'), TextureChannel.R, TextureChannel.R + this.material.metallicChannel);
+            this._textureMerger.setTexture(getTexture('roughness'), TextureChannel.G, TextureChannel.R + this.material.roughnessChannel);
+            this._textureMerger.setTexture(getTexture('height'), TextureChannel.B, TextureChannel.R + this.material.heighChannel);
+            this._textureMerger.setTexture(getTexture('ambientOcclussion'), TextureChannel.A, TextureChannel.R + this.material.ambientOcclussionChannel);
+            this._textureMerger.update();
+            this.material.dirty = false;
+        }
+    }
+
+    get metallicRoughnessHeightAOTexture() {
+        return this._textureMerger.mergedTexture;
     }
 
     destroy() {
@@ -22,6 +47,12 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
         if (this.material) {
             this.material._renderer = null;
         }
+    }
+
+    // Bind the metallic, roughness, height and ambient occlussion combined texture
+    bindMetallicRoughnessHeightAOTexture(shaderProgram, uniformName, textureUnit) {
+        shaderProgram.bindTexture(uniformName, this.renderer.factory.texture(this.metallicRoughnessHeightAOTexture), textureUnit);
+        return true;
     }
 
     // Binds the property to the uniformName  uniform of the shader program, if the

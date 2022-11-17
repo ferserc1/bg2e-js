@@ -329,10 +329,20 @@ export default class Material {
         this._heightIntensity = 1.0;
         this._castShadows = true;
         this._unlit = false;
+
+        this._dirty = true;
     }
 
     get renderer() {
         return this._renderer;
+    }
+
+    get dirty() {
+        return this._dirty;
+    }
+
+    set dirty(d) {
+        this._dirty = d;
     }
 
     clone() {
@@ -374,6 +384,7 @@ export default class Material {
         this.heightIntensity = other._heightIntensity;
         this.castShadows = other._castShadows;
         this.unlit = other._unlit;
+        this._dirty = true;
     }
 
     get type() { return this._type; }
@@ -383,10 +394,11 @@ export default class Material {
             v = "pbr";
         }
         this._type = v;
+        this._dirty = true;
     }
 
     // Compatibility with v1.4
-    set class(v) { this.type = v; }
+    set class(v) { this.type = v; this._dirty = true; }
     get class() { return this.type; }
 
 
@@ -400,16 +412,17 @@ export default class Material {
         if (this._diffuse instanceof Texture) {
             this._diffuse.incReferences();
         }
+        this._dirty = true;
     }
 
     get diffuseScale() { return this._diffuseScale; }
-    set diffuseScale(v) { assertScale(v, "diffuseScale"); this._diffuseScale = new Vec(v); }
+    set diffuseScale(v) { assertScale(v, "diffuseScale"); this._diffuseScale = new Vec(v); this._dirty = true; }
     get diffuseUV() { return this._diffuseUV; }
-    set diffuseUV(v) { this._diffuseUV = v; }
+    set diffuseUV(v) { this._diffuseUV = v; this._dirty = true; }
     get alphaCutoff() { return this._alphaCutoff; }
-    set alphaCutoff(v) { this._alphaCutoff = v; }
+    set alphaCutoff(v) { this._alphaCutoff = v; this._dirty = true; }
     get isTransparent() { return this._isTransparent; }
-    set isTransparent(v) { this._isTransparent = v; }
+    set isTransparent(v) { this._isTransparent = v; this._dirty = true; }
     
     get metallic() { return this._metallic; }
     set metallic(v) {
@@ -421,14 +434,15 @@ export default class Material {
         if (this._metallic instanceof Texture) {
             this._metallic.incReferences();
         }
+        this._dirty = true;
     }
     
     get metallicChannel() { return this._metallicChannel; }
-    set metallicChannel(v) { this._metallicChannel = v; }
+    set metallicChannel(v) { this._metallicChannel = v; this._dirty = true; }
     get metallicScale() { return this._metallicScale; }
-    set metallicScale(v) { assertScale(v, "metallicScale"); this._metallicScale = new Vec(v); }
+    set metallicScale(v) { assertScale(v, "metallicScale"); this._metallicScale = new Vec(v); this._dirty = true; }
     get metallicUV() { return this._metallicUV; }
-    set metallicUV(v) { this._metallicUV = v; }
+    set metallicUV(v) { this._metallicUV = v; this._dirty = true; }
 
     get roughness() { return this._roughness; }
     set roughness(v) {
@@ -440,16 +454,17 @@ export default class Material {
         if (this._roughness instanceof Texture) {
             this._roughness.incReferences();
         }
+        this._dirty = true;
     }
     
     get roughnessChannel() { return this._roughnessChannel; }
-    set roughnessChannel(v) { this._roughnessChannel = v; }
+    set roughnessChannel(v) { this._roughnessChannel = v; this._dirty = true; }
     get roughnessScale() { return this._roughnessScale; }
-    set roughnessScale(v) { assertScale(v, "roughnessScale"); this._roughnessScale = new Vec(v); }
+    set roughnessScale(v) { assertScale(v, "roughnessScale"); this._roughnessScale = new Vec(v); this._dirty = true; }
     get roughnessUV() { return this._roughnessUV; }
-    set roughnessUV(v) { this._roughnessUV = v; }
+    set roughnessUV(v) { this._roughnessUV = v; this._dirty = true; }
     get fresnel() { return this._fresnel; }
-    set fresnel(v) { assertColor(v, "fresnel"); this._fresnel = v; }
+    set fresnel(v) { assertColor(v, "fresnel"); this._fresnel = v; this._dirty = true; }
     
     get lightEmission() { return this._lightEmission; }
     set lightEmission(v) {
@@ -461,14 +476,15 @@ export default class Material {
         if (this._lightEmission instanceof Texture) {
             this._lightEmission.incReferences();
         }
+        this._dirty = true;
     }
     
     get lightEmissionChannel() { return this._lightEmissionChannel; }
-    set lightEmissionChannel(v) { this._lightEmissionChannel = v; }
+    set lightEmissionChannel(v) { this._lightEmissionChannel = v; this._dirty = true; }
     get lightEmissionScale() { return this._lightEmissionScale; }
-    set lightEmissionScale(v) { assertScale(v, "lightEmissionScale"); this._lightEmissionScale = new Vec(v); }
+    set lightEmissionScale(v) { assertScale(v, "lightEmissionScale"); this._lightEmissionScale = new Vec(v); this._dirty = true; }
     get lightEmissionUV() { return this._lightEmissionUV; }
-    set lightEmissionUV(v) { this._lightEmissionUV = v; }
+    set lightEmissionUV(v) { this._lightEmissionUV = v; this._dirty = true; }
 
     get ambientOcclussion() { return this._ambientOcclussion; }
     set ambientOcclussion(v) {
@@ -480,12 +496,13 @@ export default class Material {
         if (this._ambientOcclussion instanceof Texture) {
             this._ambientOcclussion.incReferences();
         }
+        this._dirty = true;
     }
 
     get ambientOcclussionChannel() { return this._ambientOcclussionChannel; }
-    set ambientOcclussionChannel(v) { this._ambientOcclussionChannel = v; }
+    set ambientOcclussionChannel(v) { this._ambientOcclussionChannel = v; this._dirty = true; }
     get ambientOcclussionUV() { return this._ambientOcclussionUV; }
-    set ambientOcclussionUV(v) { this._ambientOcclussionUV = v; }
+    set ambientOcclussionUV(v) { this._ambientOcclussionUV = v; this._dirty = true; }
 
     get normal() { return this._normal; }
     set normal(v) {
@@ -497,26 +514,27 @@ export default class Material {
         if (this._normal instanceof Texture) {
             this._normal.incReferences();
         }
+        this._dirty = true;
     }
     
     get normalScale() { return this._normalScale; }
-    set normalScale(v) { assertScale(v, "normalScale"); this._normalScale = new Vec(v); }
+    set normalScale(v) { assertScale(v, "normalScale"); this._normalScale = new Vec(v); this._dirty = true; }
     get normalUV() { return this._normalUV; }
-    set normalUV(v) { this._normalUV = v; }
+    set normalUV(v) { this._normalUV = v; this._dirty = true; }
     get height() { return this._height; }
-    set height(v) { assertValueTexture(v, "height"); this._height = v; }
+    set height(v) { assertValueTexture(v, "height"); this._height = v; this._dirty = true; }
     get heightChannel() { return this._heightChannel; }
-    set heightChannel(v) { this._heightChannel = v; }
+    set heightChannel(v) { this._heightChannel = v; this._dirty = true; }
     get heightScale() { return this._heightScale; }
-    set heightScale(v) { assertScale(v, "heightScale"); this._heightScale = new Vec(v); }
+    set heightScale(v) { assertScale(v, "heightScale"); this._heightScale = new Vec(v); this._dirty = true; }
     get heightUV() { return this._heightUV; }
-    set heightUV(v) { this._heightUV = v; }
+    set heightUV(v) { this._heightUV = v; this._dirty = true; }
     get heightIntensity() { return this._heightIntensity; }
-    set heightIntensity(v) { this._heightIntensity = v; }
+    set heightIntensity(v) { this._heightIntensity = v; this._dirty = true; }
     get castShadows() { return this._castShadows; }
-    set castShadows(v) { this._castShadows = v; }
+    set castShadows(v) { this._castShadows = v; this._dirty = true; }
     get unlit() { return this._unlit; }
-    set unlit(v) { this._unlit = v; }
+    set unlit(v) { this._unlit = v; this._dirty = true; }
 
     async serialize(sceneData) {
         MaterialAttributeNames.forEach(att => {
