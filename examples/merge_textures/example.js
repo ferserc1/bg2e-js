@@ -24,7 +24,6 @@ class MyAppController extends AppController {
 
 
         this._textureMerger = this.renderer.factory.textureMerger();
-        await this._textureMerger.create();
 
         this._textureR = new Texture();
         this._textureR.fileName = '../resources/r-texture.png';

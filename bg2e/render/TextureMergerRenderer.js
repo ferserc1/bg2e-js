@@ -8,9 +8,7 @@ export default class TextureMergerRenderer {
         this._shader = new TextureMergerShader(this.renderer);
 
         this._dirty = true;
-    }
 
-    async create() {
         this._mergedTexture = new Texture();
         this._mergedTexture.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
         this._mergedTexture.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
@@ -18,7 +16,7 @@ export default class TextureMergerRenderer {
         this._renderBuffer = this.renderer.factory.renderBuffer();
         this._renderBuffer.attachTexture(this._mergedTexture);
 
-        await this._shader.load();
+        this._shader.load();
     }
 
     get renderer() {

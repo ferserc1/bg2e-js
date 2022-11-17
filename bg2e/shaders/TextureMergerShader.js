@@ -73,7 +73,7 @@ export default class TextureMergerShader extends Shader {
         this._textureChannels = {};
     }
 
-    async load() {
+    load() {
         const { gl } = this.renderer;
 
         this._program = new ShaderProgram(gl, "DefaultTextureMergerShader");
