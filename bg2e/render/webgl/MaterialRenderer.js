@@ -9,8 +9,19 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
 
     constructor(renderer, material) {
         super(renderer, material);
+        if (material.renderer) {
+            throw new Error("Duplicate material renderer set to material. Please, use the Renderer factory to get material renderer instance.");
+        }
+        material._renderer = this;
 
         this._whiteTexture = renderer.factory.texture(whiteTexture(renderer));
+    }
+
+    destroy() {
+        console.log("Destroy material renderer");
+        if (this.material) {
+            this.material._renderer = null;
+        }
     }
 
     // Binds the property to the uniformName  uniform of the shader program, if the

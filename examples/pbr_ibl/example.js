@@ -31,6 +31,8 @@ class MyAppController extends AppController {
         state.depthTestEnabled = true;
         state.clearColor = new Color([0.1, 0.1, 0.112, 1]);
 
+        this._zoom = 10;
+
         this._shader = new PBRLightIBLShader(this.renderer);
         await this._shader.load();
         
@@ -116,6 +118,17 @@ class MyAppController extends AppController {
                 transform: Mat4.MakeTranslation(...position)
             }
         }));
+
+        this._plistRenderers.push({
+            plistRenderer: this.renderer.factory.polyList(createSphere(1.0)),
+            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
+                diffuse: "../resources/vintage-tile1_albedo.jpeg",
+                metallic: "../resources/vintage-tile1_metallic.jpeg",
+                roughness: "../resources/vintage-tile1_roughness.jpeg",
+                normal: "../resources/vintage-tile1_normal.jpeg"
+            })),
+            transform: Mat4.MakeIdentity()
+        })
         console.log("Scene load done");
 
         this._shader.lights = this._lights;
@@ -162,7 +175,7 @@ class MyAppController extends AppController {
         this._angle += (delta / 1000) * Math.PI / 4;
 
         const cameraMatrix = Mat4.MakeIdentity()
-            .translate(0, 0, 10)
+            .translate(0, 0, this._zoom)
             .rotate(0.3, -1, 0, 0)
             .rotate(this._angle, 0, 1, 0);
         
@@ -226,6 +239,11 @@ class MyAppController extends AppController {
             this._shader.environment = this._env;
             this._skyCube.load(this._env);
         }
+    }
+
+    mouseWheel(evt) {
+        console.log("mouseWheel");
+        this._zoom += evt.delta * 0.05;
     }
 }
 

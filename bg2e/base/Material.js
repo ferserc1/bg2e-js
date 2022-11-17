@@ -296,6 +296,7 @@ export default class Material {
 
     constructor() {
         this._type = MaterialType.PBR;
+        this._renderer = null;
 
         this._diffuse = Color.White();
         this._diffuseScale = new Vec(1, 1);
@@ -328,6 +329,10 @@ export default class Material {
         this._heightIntensity = 1.0;
         this._castShadows = true;
         this._unlit = false;
+    }
+
+    get renderer() {
+        return this._renderer;
     }
 
     clone() {
@@ -553,5 +558,9 @@ export default class Material {
 
         ColorTextureAttributes.forEach(decReferences);
         ValueTextureAttributes.forEach(decReferences);
+
+        if (this.renderer) {
+            this.renderer.destroy();
+        }
     }
 }

@@ -77,7 +77,12 @@ export default class WebGLRenderer extends Renderer {
     }
 
     materialFactory(material) {
-        return new MaterialRenderer(this, material);
+        if (material.renderer) {
+            return material.renderer;
+        }
+        else {
+            return new MaterialRenderer(this, material);
+        }
     }
 
     textureFactory(texture) {
