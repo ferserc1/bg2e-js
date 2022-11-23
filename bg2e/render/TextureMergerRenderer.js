@@ -1,5 +1,5 @@
 
-import Texture, { TextureChannel, TextureComponentFormat, TextureRenderTargetAttachment } from "../base/Texture";
+import Texture, { TextureChannel, TextureComponentFormat, TextureRenderTargetAttachment, TextureWrap } from "../base/Texture";
 import TextureMergerShader from "../shaders/TextureMergerShader";
 export default class TextureMergerRenderer {
     constructor(renderer) {
@@ -12,6 +12,7 @@ export default class TextureMergerRenderer {
         this._mergedTexture = new Texture();
         this._mergedTexture.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
         this._mergedTexture.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
+        this._mergedTexture.wrapModeXY = TextureWrap.REPEAT;
 
         this._renderBuffer = this.renderer.factory.renderBuffer();
         this._renderBuffer.attachTexture(this._mergedTexture);

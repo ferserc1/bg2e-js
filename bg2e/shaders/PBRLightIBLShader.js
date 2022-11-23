@@ -52,8 +52,7 @@ function getShaderProgramForLights(renderer, numLights) {
 
         uniform sampler2D uAlbedoTexture;
         uniform sampler2D uNormalTexture;
-        uniform sampler2D uMetallicTexture;
-        uniform sampler2D uRoughnessTexture;
+        uniform sampler2D uMetallicRoughnessHeightAOTexture;
 
         uniform vec4 uAlbedo;
         uniform float uMetallic;
@@ -84,8 +83,8 @@ function getShaderProgramForLights(renderer, numLights) {
 
                 vec3 albedo = texture2D(uAlbedoTexture, fragTexCoord * uAlbedoScale).rgb * uAlbedo.rgb;
                 vec3 normal = texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0;
-                float metallic = texture2D(uMetallicTexture, fragTexCoord * uMetallicScale).r * uMetallic;
-                float roughness = max(texture2D(uRoughnessTexture, fragTexCoord * uRoughnessScale).r * uRoughness, 0.01);
+                float metallic = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uMetallicScale).r * uMetallic;
+                float roughness = max(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uRoughnessScale).g * uRoughness, 0.01);
 
                 N = normalize(TBN * normal);
                 vec3 V = normalize(uCameraPos - fragPos);
@@ -228,9 +227,9 @@ export default class PBRLightIBLShader extends Shader {
 
         materialRenderer.bindTexture(this._program, 'diffuse', 'uAlbedoTexture', 0);
         materialRenderer.bindTexture(this._program, 'normal', 'uNormalTexture', 1, normalTexture(this.renderer));
-        materialRenderer.bindMetallicRoughnessHeightAOTexture(this._program, 'uMetallicTexture', 2);
+        materialRenderer.bindMetallicRoughnessHeightAOTexture(this._program, 'uMetallicRoughnessHeightAOTexture', 2);
         //materialRenderer.bindTexture(this._program, 'metallic', 'uMetallicTexture', 2);
-        materialRenderer.bindTexture(this._program, 'roughness', 'uRoughnessTexture', 3);
+        //materialRenderer.bindTexture(this._program, 'roughness', 'uRoughnessTexture', 3);
 
         materialRenderer.bindColor(this._program, 'diffuse', 'uAlbedo');
         materialRenderer.bindValue(this._program, 'metallic', 'uMetallic');
@@ -242,10 +241,10 @@ export default class PBRLightIBLShader extends Shader {
         this._program.bindVector("uMetallicScale", material.metallicScale);
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
 
-        this._program.bindTexture("uIrradianceMap", this.renderer.factory.texture(this.irradianceMap), 4);
-        this._program.bindTexture("uSpecularMap", this.renderer.factory.texture(this.specularMap), 5);
-        this._program.bindTexture("uEnvMap", this.renderer.factory.texture(this.environmentMap), 6);
-        this._program.bindTexture("uBRDFIntegrationMap", this.renderer.factory.texture(this._brdfIntegrationTexture), 7);
+        this._program.bindTexture("uIrradianceMap", this.renderer.factory.texture(this.irradianceMap), 3);
+        this._program.bindTexture("uSpecularMap", this.renderer.factory.texture(this.specularMap), 4);
+        this._program.bindTexture("uEnvMap", this.renderer.factory.texture(this.environmentMap), 5);
+        this._program.bindTexture("uBRDFIntegrationMap", this.renderer.factory.texture(this._brdfIntegrationTexture), 6);
 
 
         this._lights.forEach((light,i) => {

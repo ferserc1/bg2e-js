@@ -51,6 +51,7 @@ class MyAppController extends AppController {
         console.log("Loading scene...");
         const sphereColor = [0.93, 0.95, 0.95, 1];
         const spherePlist = createSphere(0.3);
+        /*
         this._plistRenderers = await Promise.all([
             { roughness: 0.0, metallic: 1.0, diffuse: sphereColor, position: [ -3, 3, 0 ] },
             { roughness: 0.1, metallic: 1.0, diffuse: sphereColor, position: [ -2, 3, 0 ] },
@@ -118,14 +119,20 @@ class MyAppController extends AppController {
                 transform: Mat4.MakeTranslation(...position)
             }
         }));
+        */
+        this._plistRenderers = [];
 
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(createSphere(1.0)),
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: "../resources/vintage-tile1_albedo.jpeg",
-                metallic: "../resources/vintage-tile1_metallic.jpeg",
-                roughness: "../resources/vintage-tile1_roughness.jpeg",
-                normal: "../resources/vintage-tile1_normal.jpeg"
+                //diffuse: "../resources/vintage-tile1_albedo.jpeg",
+                metallic: "../resources/logo.png",
+                //roughness: "../resources/vintage-tile1_roughness.jpeg",
+                roughness: "../resources/logo.png",
+                //normal: "../resources/vintage-tile1_normal.jpeg",
+                metallicScale: [2, 2],
+                roughnessScale: [2, 2],
+                normalScale: [2,2]
             })),
             transform: Mat4.MakeIdentity()
         })

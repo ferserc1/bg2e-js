@@ -73,8 +73,8 @@ const getWebGLTexture = (gl, textureData) => {
 
         gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, getClampMode(gl,textureData.wrapModeX));
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, getClampMode(gl,textureData.wrapModeY));
 
         if (target === gl.TEXTURE_CUBE_MAP) {
             for (let i = 0; i<6; ++i) {
