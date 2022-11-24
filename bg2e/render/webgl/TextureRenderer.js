@@ -75,7 +75,7 @@ const getWebGLTexture = (gl, textureData) => {
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, getClampMode(gl,textureData.wrapModeX));
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, getClampMode(gl,textureData.wrapModeY));
-
+        
         if (target === gl.TEXTURE_CUBE_MAP) {
             for (let i = 0; i<6; ++i) {
                 gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, format, type, null);

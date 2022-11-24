@@ -9,6 +9,9 @@ const checkEqualLength = (v1,v2) => {
 export default class Vec extends NumericArray {
     constructor() {
         switch (arguments.length) {
+        case 0:
+            super([0, 0]);
+            break;
         case 1:
             if (arguments[0].length>1 && arguments[0].length<5)
             {

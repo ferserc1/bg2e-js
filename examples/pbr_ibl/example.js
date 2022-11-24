@@ -51,7 +51,6 @@ class MyAppController extends AppController {
         console.log("Loading scene...");
         const sphereColor = [0.93, 0.95, 0.95, 1];
         const spherePlist = createSphere(0.3);
-        /*
         this._plistRenderers = await Promise.all([
             { roughness: 0.0, metallic: 1.0, diffuse: sphereColor, position: [ -3, 3, 0 ] },
             { roughness: 0.1, metallic: 1.0, diffuse: sphereColor, position: [ -2, 3, 0 ] },
@@ -119,20 +118,19 @@ class MyAppController extends AppController {
                 transform: Mat4.MakeTranslation(...position)
             }
         }));
-        */
-        this._plistRenderers = [];
 
+        const scale = [1, 1];
         this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createSphere(1.0)),
+            plistRenderer: this.renderer.factory.polyList(createCube(1,1,1)),
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                //diffuse: "../resources/vintage-tile1_albedo.jpeg",
+                diffuse: "../resources/logo.png",
                 metallic: "../resources/logo.png",
-                //roughness: "../resources/vintage-tile1_roughness.jpeg",
                 roughness: "../resources/logo.png",
-                //normal: "../resources/vintage-tile1_normal.jpeg",
-                metallicScale: [2, 2],
-                roughnessScale: [2, 2],
-                normalScale: [2,2]
+                normal: "../resources/logo_nm.png",
+                diffuseScale:  scale,
+                metallicScale:  scale,
+                roughnessScale:  scale,
+                normalScale: scale
             })),
             transform: Mat4.MakeIdentity()
         })
@@ -166,6 +164,8 @@ class MyAppController extends AppController {
         // A sky cube to render the environment
         this._skyCube = this.renderer.factory.skyCube();
         await this._skyCube.load(this._env.environmentMap);
+
+        this._rotation = new Vec();
     }
 
     reshape(width,height) {
@@ -175,16 +175,19 @@ class MyAppController extends AppController {
     }
 
     frame(delta) {
-        this._elapsed = this._elapsed || 0;
-        this._elapsed += delta / 1000;
-        this._angle = this._angle || 0;
+        //this._elapsed = this._elapsed || 0;
+        //this._elapsed += delta / 1000;
+        //this._angle = this._angle || 0;
 
-        this._angle += (delta / 1000) * Math.PI / 4;
+        //this._angle += (delta / 1000) * Math.PI / 4;
 
+        const rotScale = 0.02;
         const cameraMatrix = Mat4.MakeIdentity()
             .translate(0, 0, this._zoom)
-            .rotate(0.3, -1, 0, 0)
-            .rotate(this._angle, 0, 1, 0);
+            //.rotate(0.3, -1, 0, 0)
+            //.rotate(this._angle, 0, 1, 0);
+            .rotate(this._rotation[1] * rotScale, 1, 0, 0)
+            .rotate(this._rotation[0] * rotScale, 0, 1, 0);
         
         // Update projection and view matrixes
         this._projMatrix.assign(Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0));
@@ -249,8 +252,19 @@ class MyAppController extends AppController {
     }
 
     mouseWheel(evt) {
-        console.log("mouseWheel");
-        this._zoom += evt.delta * 0.05;
+        this._zoom += evt.delta * 0.005;
+        evt.stopPropagation();
+    }
+
+    mouseDown(evt) {
+        this._downPos = new Vec([evt.x, evt.y]);
+    }
+
+    mouseDrag(evt) {
+        const currPos = new Vec([evt.x, evt.y]);
+        const diff = Vec.Sub(this._downPos, currPos);
+        this._rotation = Vec.Add(this._rotation, diff);
+        this._downPos = currPos;
     }
 }
 

@@ -288,10 +288,17 @@ export default class Texture {
     get dataType() { return this._dataType; }
     set dataType(v) {
         this._dataType = v;
-        this.wrapModeXY = TextureWrap.CLAMP;
+        if (!this.isPowerOfTwo) {
+            this.wrapModeXY = TextureWrap.CLAMP;
+        }
         this.magFilter = TextureFilter.LINEAR;
         this.minFilter = TextureFilter.LINEAR;
         this._dirty = true;
+    }
+
+    get isPowerOfTwo() {
+        const pot = (n) => n!==0 && (n & (n - 1)) === 0;
+        return pot(this.size[0]) && pot(this.size[1]);
     }
 
     get wrapModeX() { return this._wrapModeX; }
