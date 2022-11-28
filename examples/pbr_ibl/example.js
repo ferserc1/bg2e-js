@@ -133,7 +133,8 @@ class MyAppController extends AppController {
                 diffuseScale:  scale,
                 metallicScale:  scale,
                 roughnessScale:  scale,
-                normalScale: scale
+                normalScale: scale,
+                isTransparent: true
             })),
             transform: Mat4.MakeIdentity()
         })
@@ -212,10 +213,7 @@ class MyAppController extends AppController {
         }
 
         this._skyCube.draw();
-
-        const { gl } = this.renderer;
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        
         this._renderStates.forEach(rs => rs.draw());
     }
 

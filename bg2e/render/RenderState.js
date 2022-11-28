@@ -37,6 +37,7 @@ export default class RenderState {
 
     draw() {
         this.polyListRenderer.bindBuffers();
+        this.materialRenderer.prepareRenderState(this.polyListRenderer);
         this.shader.setup(
             this.polyListRenderer,
             this.materialRenderer,

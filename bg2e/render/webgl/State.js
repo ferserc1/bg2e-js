@@ -110,6 +110,15 @@ export default class State {
             this.gl.disable(this.gl.CULL_FACE);
     }
 
+    get blendEnabled() {
+        return this.gl.getParameter(this.gl.BLEND);
+    }
+
+    set blendEnabled(b) {
+        b ? this.gl.enable(this.gl.BLEND) :
+            this.gl.disable(this.gl.BLEND);
+    }
+
     get cullFaceEnabled() {
         return this.gl.getParameter(this.gl.CULL_FACE);
     }
