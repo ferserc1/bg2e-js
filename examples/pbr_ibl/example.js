@@ -179,17 +179,9 @@ class MyAppController extends AppController {
     }
 
     frame(delta) {
-        //this._elapsed = this._elapsed || 0;
-        //this._elapsed += delta / 1000;
-        //this._angle = this._angle || 0;
-
-        //this._angle += (delta / 1000) * Math.PI / 4;
-
         const rotScale = 0.02;
         const cameraMatrix = Mat4.MakeIdentity()
             .translate(0, 0, this._zoom)
-            //.rotate(0.3, -1, 0, 0)
-            //.rotate(this._angle, 0, 1, 0);
             .rotate(this._rotation[1] * rotScale, 1, 0, 0)
             .rotate(this._rotation[0] * rotScale, 0, 1, 0);
         
