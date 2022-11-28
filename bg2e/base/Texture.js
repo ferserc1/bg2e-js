@@ -159,6 +159,8 @@ const loadImageFromFile = async fileUrl => {
     canvas.height = image.naturalHeight;
 
     const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#00000000';
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.scale(1, -1);
     ctx.drawImage(image, 0, 0, canvas.width, -canvas.height);
@@ -169,7 +171,7 @@ const loadImageFromFile = async fileUrl => {
                 flipImage._hash = generateImageHash(flipImage);
                 resolve();
             }
-            flipImage.src = canvas.toDataURL("image/png");
+            flipImage.src = canvas.toDataURL();
         })
     } 
     await loadFlipImage();    

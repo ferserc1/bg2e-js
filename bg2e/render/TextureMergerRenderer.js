@@ -5,7 +5,7 @@ export default class TextureMergerRenderer {
     constructor(renderer) {
         this._renderer = renderer;
 
-        this._shader = new TextureMergerShader(this.renderer);
+        this._shader = TextureMergerShader.GetUnique(this.renderer);
 
         this._dirty = true;
 

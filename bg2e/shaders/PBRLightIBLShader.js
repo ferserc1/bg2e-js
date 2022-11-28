@@ -62,6 +62,8 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform vec2 uNormalScale;
         uniform vec2 uMetallicScale;
         uniform vec2 uRoughnessScale;
+
+        uniform float uAlphaTresshold;
         
         uniform int uLightTypes[${numLights}];
         uniform vec3 uLightPositions[${numLights}];
@@ -81,38 +83,45 @@ function getShaderProgramForLights(renderer, numLights) {
                 vec3 B = normalize(fragBitangent);
                 mat3 TBN = mat3(T,B,N);
 
-                vec3 albedo = texture2D(uAlbedoTexture, fragTexCoord * uAlbedoScale).rgb * uAlbedo.rgb;
+                vec4 albedoRGBA = texture2D(uAlbedoTexture, fragTexCoord * uAlbedoScale);
+                vec3 albedo = albedoRGBA.rgb * uAlbedo.rgb;
+                float alpha = albedoRGBA.a * uAlbedo.a;
                 vec3 normal = texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0;
                 float metallic = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uMetallicScale).r * uMetallic;
                 float roughness = max(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uRoughnessScale).g * uRoughness, 0.01);
 
-                N = normalize(TBN * normal);
-                vec3 V = normalize(uCameraPos - fragPos);
-
-                vec3 Lo = vec3(0.0);
-                for (int i = 0; i < ${numLights}; ++i)
-                {
-                    if (uLightTypes[i] == ${ LightType.POINT }) {
-                        Lo += pbrPointLight(
-                            uLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                            albedo, roughness, metallic);
-                    }
-                    else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
-                        Lo += pbrDirectionalLight(
-                            uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                            albedo, roughness, metallic);
-                    }
+                if (alpha < uAlphaTresshold) {
+                    discard;
                 }
+                else {
+                    N = normalize(TBN * normal);
+                    vec3 V = normalize(uCameraPos - fragPos);
 
-                vec3 ambient = pbrAmbientLight(
-                    fragPos, N, V, albedo, metallic, roughness, uIrradianceMap, uSpecularMap, uEnvMap, uBRDFIntegrationMap
-                );
+                    vec3 Lo = vec3(0.0);
+                    for (int i = 0; i < ${numLights}; ++i)
+                    {
+                        if (uLightTypes[i] == ${ LightType.POINT }) {
+                            Lo += pbrPointLight(
+                                uLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
+                                albedo, roughness, metallic);
+                        }
+                        else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
+                            Lo += pbrDirectionalLight(
+                                uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
+                                albedo, roughness, metallic);
+                        }
+                    }
 
-                vec3 color = ambient + Lo;
-                color = color / (color + vec3(1.0));
-                color = pow(color, vec3(1.0/2.2));
+                    vec3 ambient = pbrAmbientLight(
+                        fragPos, N, V, albedo, metallic, roughness, uIrradianceMap, uSpecularMap, uEnvMap, uBRDFIntegrationMap
+                    );
 
-                gl_FragColor = vec4(color,1.0);
+                    vec3 color = ambient + Lo;
+                    color = color / (color + vec3(1.0));
+                    color = pow(color, vec3(1.0/2.2));
+
+                    gl_FragColor = vec4(color,alpha);
+                }
             }`, [pbrPointLight, pbrDirectionalLight, pbrAmbientLight])
         ]);
 
@@ -228,8 +237,7 @@ export default class PBRLightIBLShader extends Shader {
         materialRenderer.bindTexture(this._program, 'diffuse', 'uAlbedoTexture', 0);
         materialRenderer.bindTexture(this._program, 'normal', 'uNormalTexture', 1, normalTexture(this.renderer));
         materialRenderer.bindMetallicRoughnessHeightAOTexture(this._program, 'uMetallicRoughnessHeightAOTexture', 2);
-        //materialRenderer.bindTexture(this._program, 'metallic', 'uMetallicTexture', 2);
-        //materialRenderer.bindTexture(this._program, 'roughness', 'uRoughnessTexture', 3);
+        this._program.uniform1f('uAlphaTresshold', material.alphaCutoff);
 
         materialRenderer.bindColor(this._program, 'diffuse', 'uAlbedo');
         materialRenderer.bindValue(this._program, 'metallic', 'uMetallic');

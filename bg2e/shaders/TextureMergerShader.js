@@ -60,7 +60,16 @@ const g_code = {
     }
 }
 
+const g_renderers = {};
 export default class TextureMergerShader extends Shader {
+    static GetUnique(renderer) {
+        if (!g_renderers[renderer.uniqueId]) {
+            g_renderers[renderer.uniqueId] = new TextureMergerShader(renderer);
+            g_renderers[renderer.uniqueId].load();
+        }
+        return g_renderers[renderer.uniqueId];
+    }
+
     constructor(renderer) {
         super(renderer);
 

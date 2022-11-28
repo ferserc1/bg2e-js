@@ -16,6 +16,7 @@ import { createCube, createSphere, createCylinder, createCone, createPlane } fro
 
 import PBRLightIBLShader from "bg2e/shaders/PBRLightIBLShader";
 import Light, { LightType } from "bg2e/base/Light";
+import { PolyListCullFace } from "bg2e/base/PolyList";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -120,8 +121,10 @@ class MyAppController extends AppController {
         }));
 
         const scale = [1, 1];
+        const cube = createCube(1,1,1);
+        cube.enableCullFace = false;
         this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createCube(1,1,1)),
+            plistRenderer: this.renderer.factory.polyList(cube),
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
                 diffuse: "../resources/logo.png",
                 metallic: "../resources/logo.png",
@@ -210,6 +213,9 @@ class MyAppController extends AppController {
 
         this._skyCube.draw();
 
+        const { gl } = this.renderer;
+        gl.enable(gl.BLEND);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         this._renderStates.forEach(rs => rs.draw());
     }
 
