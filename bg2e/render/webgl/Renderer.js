@@ -7,6 +7,7 @@ import RenderBuffer from "./RenderBuffer";
 import SkySphere from "./SkySphere";
 import SkyCube from "./SkyCube";
 import FrameBuffer from "./FrameBuffer";
+import Pipeline from "./Pipeline";
 
 function enableExtensions(gl) {
     // Enable all available extensions
@@ -104,6 +105,10 @@ export default class WebGLRenderer extends Renderer {
 
     skyCubeFactory() {
         return new SkyCube(this);
+    }
+
+    pipelineFactory() {
+        return new Pipeline(this);
     }
     
     presentTexture(texture, { clearBuffers = true, shader = null, viewport = null } = {}) {

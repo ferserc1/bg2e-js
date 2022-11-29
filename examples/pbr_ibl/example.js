@@ -17,6 +17,7 @@ import { createCube, createSphere, createCylinder, createCone, createPlane } fro
 import PBRLightIBLShader from "bg2e/shaders/PBRLightIBLShader";
 import Light, { LightType } from "bg2e/base/Light";
 import { PolyListCullFace, RenderLayer } from "bg2e/base/PolyList";
+import { BlendFunction } from "bg2e/render/Pipeline";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -126,7 +127,7 @@ class MyAppController extends AppController {
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(cube),
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: "../resources/logo.png",
+                diffuse: "../resources/logo_transparent.png",
                 metallic: "../resources/logo.png",
                 roughness: "../resources/logo.png",
                 normal: "../resources/logo_nm.png",
@@ -145,6 +146,21 @@ class MyAppController extends AppController {
         this._worldMatrix = Mat4.MakeIdentity();
         this._viewMatrix = Mat4.MakeIdentity();
         this._projMatrix = Mat4.MakeIdentity();
+
+        this._opaquePipeline = this.renderer.factory.pipeline();
+        this._opaquePipeline.setBlendState({
+            enabled: false
+        });
+        this._opaquePipeline.create();
+        this._transparentPipeline = this.renderer.factory.pipeline();
+        this._transparentPipeline.setBlendState({
+            enabled: true,
+            blendFuncSrc: BlendFunction.SRC_ALPHA,
+            blendFuncDst: BlendFunction.ONE_MINUS_SRC_ALPHA,
+            blendFuncSrcAlpha: BlendFunction.ONE,
+            blendFuncDstAlpha: BlendFunction.ONE_MINUS_SRC_ALPHA
+        });
+        this._transparentPipeline.create();
 
         this._renderStates = [];
         this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
@@ -206,14 +222,12 @@ class MyAppController extends AppController {
 
         this._skyCube.draw();
         
-        const { state, gl } = this.renderer;
         this._renderStates.forEach(rs => {
             if (rs.isLayerEnabled(RenderLayer.OPAQUE_DEFAULT)) {
-                state.blendEnabled = false;
+                this._opaquePipeline.activate();
             }
             else if (rs.isLayerEnabled(RenderLayer.TRANSPARENT_DEFAULT)) {
-                state.blendEnabled = true;
-                gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                this._transparentPipeline.activate();
             }
             rs.draw()
         });
