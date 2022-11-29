@@ -16,7 +16,7 @@ import { createCube, createSphere, createCylinder, createCone, createPlane } fro
 
 import PBRLightIBLShader from "bg2e/shaders/PBRLightIBLShader";
 import Light, { LightType } from "bg2e/base/Light";
-import { PolyListCullFace } from "bg2e/base/PolyList";
+import { PolyListCullFace, RenderLayer } from "bg2e/base/PolyList";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -206,7 +206,17 @@ class MyAppController extends AppController {
 
         this._skyCube.draw();
         
-        this._renderStates.forEach(rs => rs.draw());
+        const { state, gl } = this.renderer;
+        this._renderStates.forEach(rs => {
+            if (rs.isLayerEnabled(RenderLayer.OPAQUE_DEFAULT)) {
+                state.blendEnabled = false;
+            }
+            else if (rs.isLayerEnabled(RenderLayer.TRANSPARENT_DEFAULT)) {
+                state.blendEnabled = true;
+                gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            }
+            rs.draw()
+        });
     }
 
     destroy() {

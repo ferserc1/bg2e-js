@@ -12,6 +12,8 @@ export default class RenderQueue {
             RenderLayer.TRANSPARENT_DEFAULT
         ];
 
+        this._layerOperations = {};
+
         this.newFrame();
     }
 
@@ -25,6 +27,15 @@ export default class RenderQueue {
 
     get enabledLayers() {
         return this._enabledLayers;
+    }
+
+    // operation = (layer) => {}
+    // This function will be called before render the queue
+    // for the layer 'layer'
+    setEnableLayerOperation(layer, operation) {
+        if (this._enabledLayers.indexOf(layer) === -1) {
+            this._layerOperations[layer] = operation;
+        }
     }
 
     enableLayer(layer) {
@@ -54,6 +65,9 @@ export default class RenderQueue {
     addRenderState(rs) {
         for (const layer in this._queues) {
             const queue = this._queues[layer];
+            if (this._layerOperations[layer]) {
+                this._layerOperations[layer](layer);
+            }
             if (rs.isLayerEnabled(Number(layer))) {
                 queue.push(rs);
             }

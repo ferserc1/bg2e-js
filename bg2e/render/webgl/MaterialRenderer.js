@@ -42,17 +42,6 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
         return this._textureMerger.mergedTexture;
     }
 
-    prepareRenderState(plistRenderer) {
-        const { state, gl } = this.renderer;
-        if (this.material.isTransparent) {
-            state.blendEnabled = true;
-            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        }
-        else {
-            state.blendEnabled = false;
-        }
-    }
-
     destroy() {
         console.log("Destroy material renderer");
         if (this.material) {

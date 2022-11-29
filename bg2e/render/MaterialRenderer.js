@@ -24,9 +24,5 @@ export default class MaterialRenderer {
         return null;
     }
 
-    prepareRenderState(plist) {
-        throw new Error("MaterialRenderer.prepareRenderState(): unexpected use of base class function.");   
-    }
-
 }
 

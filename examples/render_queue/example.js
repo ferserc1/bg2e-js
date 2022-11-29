@@ -148,6 +148,12 @@ class MyAppController extends AppController {
         this._projMatrix = Mat4.MakeIdentity();
 
         this._renderQueue = new RenderQueue(this.renderer);
+        this._renderQueue.setEnableLayerOperation(RenderLayer.OPAQUE_DEFAULT, (layer) => {
+
+        });
+        this._renderQueue.setEnableLayerOperation(RenderLayer.TRANSPARENT_DEFAULT, (layer) => {
+
+        });
         
         this._env = this.renderer.factory.environment();
         await this._env.load({ textureUrl: '../resources/equirectangular-env3.jpg' });
