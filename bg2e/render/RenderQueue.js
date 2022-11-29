@@ -1,20 +1,21 @@
 
 import { RenderLayer } from "../base/PolyList";
+import Mat4 from "../math/Mat4";
+import RenderState from "./RenderState";
 
+const getLayers = (polyList,material) => {
+    return polyList.renderLayers === RenderLayer.AUTO ?
+        (material.isTransparent ? RenderLayer.TRANSPARENT_DEFAULT : RenderLayer.OPAQUE_DEFAULT) :
+        (polyList.renderLayers);
+}
 export default class RenderQueue {
     constructor(renderer) {
         this._renderer = renderer;
 
-        this._queues = {};
+        this._queues = [];
 
-        this._enabledLayers = [
-            RenderLayer.OPAQUE_DEFAULT,
-            RenderLayer.TRANSPARENT_DEFAULT
-        ];
-
-        this._layerOperations = {};
-
-        this.newFrame();
+        this._viewMatrix = Mat4.MakeIdentity();
+        this._projectionMatrix = Mat4.MakeIdentity();
     }
 
     get renderer() {
@@ -25,59 +26,78 @@ export default class RenderQueue {
         return this._queues;
     }
 
-    get enabledLayers() {
-        return this._enabledLayers;
+    get viewMatrix() {
+        return this._viewMatrix;
     }
 
-    // operation = (layer) => {}
-    // This function will be called before render the queue
-    // for the layer 'layer'
-    setEnableLayerOperation(layer, operation) {
-        if (this._enabledLayers.indexOf(layer) === -1) {
-            this._layerOperations[layer] = operation;
+    set viewMatrix(m) {
+        this._viewMatrix.assign(m);
+    }
+
+    get projectionMatrix() {
+        return this._projectionMatrix;
+    }
+
+    set projectionMatrix(m) {
+        this._projectionMatrix.assign(m);
+    }
+
+    getQueue(layer) {
+        return this._queues.find(l => l.layer === layer);
+    }
+
+    enableQueue(layer, shader, { beginOperation = null, enabled = true } = {}) {
+        const queue = this.getQueue(layer);
+        if (!queue) {
+            this._queues.push({
+                layer,
+                shader,
+                beginOperation,
+                enabled,
+                queue: []
+            });
+        }
+        else {
+            queue.enabled = true;
         }
     }
 
-    enableLayer(layer) {
-        if (this._enabledLayers.indexOf(layer) === -1) {
-            this._enabledLayers.push(layer);
+    disableQueue(layer) {
+        const queue = this.getQueue(layer);
+        if (queue) {
+            queue.enabled = true;
         }
     }
 
-    disableLayer(layer) {
-        const i = this._enabledLayers.indexOf(layer);
-        if (i !== -1) {
-            this._enabledLayers.splice(i, 1);
-        }
-    }
-
-    isLayerEnabled(layer) {
-        return this._enabledLayers.indexOf(layer) !== -1;
+    isQueueEnabled(layer) {
+        return this.getQueue(layer)?.enabled || false;
     }
 
     newFrame() {
-        this._queues = {};
-        for (const layer of this._enabledLayers) {
-            this._queues[layer] = [];
-        }
+        this._queues.forEach(q => q.queue = []);
     }
 
-    addRenderState(rs) {
-        for (const layer in this._queues) {
-            const queue = this._queues[layer];
-            if (this._layerOperations[layer]) {
-                this._layerOperations[layer](layer);
+    addPolyList(polyListRenderer, materialRenderer, modelMatrix) {
+        const plistLayers = getLayers(polyListRenderer.polyList, materialRenderer.material);
+        this._queues.forEach(({ layer, shader, queue }) => {
+            if (plistLayers & layer) {
+                queue.push(new RenderState({
+                    shader,
+                    polyListRenderer,
+                    materialRenderer,
+                    modelMatrix,
+                    viewMatrix: this.viewMatrix,
+                    projectionMatrix: this.projectionMatrix
+                }))
             }
-            if (rs.isLayerEnabled(Number(layer))) {
-                queue.push(rs);
-            }
-        }
+        });
     }
 
     draw(layer) {
-        const queue = this._queues[layer];
+        const queue = this.getQueue(layer);
         if (queue) {
-            queue.forEach(rs => rs.draw());
+            queue.beginOperation(layer);
+            queue.queue.forEach(rs => rs.draw());
         }
         else {
             console.warn(`No render queue found for layer ${layer}`);

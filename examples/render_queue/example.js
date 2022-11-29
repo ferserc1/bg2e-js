@@ -148,11 +148,17 @@ class MyAppController extends AppController {
         this._projMatrix = Mat4.MakeIdentity();
 
         this._renderQueue = new RenderQueue(this.renderer);
-        this._renderQueue.setEnableLayerOperation(RenderLayer.OPAQUE_DEFAULT, (layer) => {
-
+        const { gl } = this.renderer;
+        this._renderQueue.enableQueue(RenderLayer.OPAQUE_DEFAULT, this._shader, {
+            beginOperation: () => {
+                state.blendEnabled = false;
+            }
         });
-        this._renderQueue.setEnableLayerOperation(RenderLayer.TRANSPARENT_DEFAULT, (layer) => {
-
+        this._renderQueue.enableQueue(RenderLayer.TRANSPARENT_DEFAULT, this._shader, {
+            beginOperation: () => {
+                state.blendEnabled = true;
+                gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            }
         });
         
         this._env = this.renderer.factory.environment();
@@ -185,18 +191,11 @@ class MyAppController extends AppController {
         
         this._shader.cameraPosition = Mat4.GetPosition(cameraMatrix);
 
+        this._renderQueue.viewMatrix = this._viewMatrix;
+        this._renderQueue.projectionMatrix = this._projMatrix;
         this._renderQueue.newFrame();
         this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
-            this._renderQueue.addRenderState(new RenderState({
-                shader: this._shader,
-                materialRenderer,
-                polyListRenderer: plistRenderer,
-                modelMatrix: (new Mat4(transform)).mult(this._worldMatrix),
-
-                viewMatrix: this._viewMatrix,
-                projectionMatrix: this._projMatrix
-
-            }))
+            this._renderQueue.addPolyList(plistRenderer,materialRenderer,transform);
         });
 
         this._skyCube.updateRenderState({
