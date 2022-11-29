@@ -24,6 +24,7 @@ export const DrawMode = {
 
 export const RenderLayer = {
     LAYER_0:  0x1 << 0,
+    OPAQUE_DEFAULT: 0x1 << 0,   // layer 0 is the default layer for opaque objects
     LAYER_1:  0x1 << 1,
     LAYER_2:  0x1 << 2,
     LAYER_3:  0x1 << 3,
@@ -39,6 +40,7 @@ export const RenderLayer = {
     LAYER_13: 0x1 << 13,
     LAYER_14: 0x1 << 14,
     LAYER_15: 0x1 << 15,
+    TRANSPARENT_DEFAULT: 0x1 << 15, // Layer 15 is the default layer for transparent objects
     LAYER_16: 0x1 << 16,
     LAYER_17: 0x1 << 17,
     LAYER_18: 0x1 << 18,
@@ -56,7 +58,9 @@ export const RenderLayer = {
     LAYER_30: 0x1 << 30,
     LAYER_31: 0x1 << 31,
 
-    ALL: 0xFFFFFFFF
+    ALL: 0xFFFFFFFF,
+
+    AUTO: 0
 };
 
 export const PolyListFrontFace = {
@@ -163,7 +167,9 @@ function buildTangents(plist) {
 
 export default class PolyList {
     constructor() {
-        this._renderLayers = RenderLayer.ALL;
+        // The object will be rendered in the default layer for
+        // transparent or opaque objects
+        this._renderLayers = RenderLayer.AUTO;
 
         this._drawMode = DrawMode.TRIANGLES;
 
@@ -209,7 +215,7 @@ export default class PolyList {
     }
 
     // render layers aren't serialized/deserialized, they are used only by the graphics engine
-    get renderLayers() { this._renderLayers; }
+    get renderLayers() { return this._renderLayers; }
     set renderLayers(layers) { this._renderLayers = layers; }
     enableLayer(layer) { this._renderLayers = this._renderLayers | layer; }
     disableLayer(layer) { this._renderLayers = this._renderLayers & ~layer; }

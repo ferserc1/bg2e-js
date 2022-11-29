@@ -1,4 +1,5 @@
 
+import { RenderLayer } from "../base/PolyList";
 import Mat4 from "../math/Mat4";
 
 export default class RenderState {
@@ -34,6 +35,16 @@ export default class RenderState {
     get viewMatrix() { return this._viewMatrix; }
     set projectionMatrix(projection) { this._projectionMatrix = projection; }
     get projectionMatrix() { return this._projectionMatrix; }
+
+    isLayerEnabled(layer) {
+        const { polyList } = this._polyListRenderer;
+        const { material } = this._materialRenderer;
+        const renderLayers = polyList.renderLayers === RenderLayer.AUTO ?
+            (material.isTransparent ? RenderLayer.TRANSPARENT_DEFAULT : RenderLayer.OPAQUE_DEFAULT) :
+            (polyList.renderLayers);
+        
+        return renderLayers & layer;
+    }
 
     draw() {
         this.polyListRenderer.bindBuffers();
