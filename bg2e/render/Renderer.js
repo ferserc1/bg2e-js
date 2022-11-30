@@ -34,6 +34,14 @@ export default class Renderer {
         throw new Error("Calling Renderer.frameBuffer base implementation.");
     }
 
+    set viewport(vp) {
+        throw new Error("Calling Renderer.viewport setter base implementation.");
+    }
+
+    get viewport() {
+        throw new Error("Calling Renderer.viewport getter base implementation.");
+    }
+
     get presentTextureSurfaceRenderer() {
         if (!this._presentTextureSurface) {
             const plist = new PolyList();

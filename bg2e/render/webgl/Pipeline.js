@@ -4,11 +4,11 @@ import Pipeline, { BlendEquation, BlendFunction } from "../Pipeline";
 const getBlendEquation = (gl, blendEquation) => {
     switch (blendEquation) {
     case BlendEquation.ADD:
-        return gl.ADD; 
-    case BlendEquation.SUBTRACT:
+        return gl.FUNC_ADD; 
+    case BlendEquation.FUNC_SUBTRACT:
         return gl.SUBTRACT; 
     case BlendEquation.REVERSE_SUBTRACT:
-        return gl.REVERSE_SUBTRACT; 
+        return gl.FUNC_REVERSE_SUBTRACT; 
     }
     throw new Error(`Invalid blend equation specified in WebGLPipeline: ${ blendEquation }`);
 }
@@ -60,14 +60,16 @@ export default class WebGLPipeline extends Pipeline {
     }
 
     activate() {
-        const { gl } = this.renderer;
+        const { gl, state } = this.renderer;
         this.blendState.enabled ? gl.enable(gl.BLEND) : gl.disable(gl.BLEND);
-        //gl.blendEquation(this._blendEquation);
+        gl.blendEquation(this._blendEquation);
         this._blendFunc(
             this._blendFuncSrcColor,
             this._blendFuncDstColor,
             this._blendFuncSrcAlpha,
             this._blendFuncDstAlpha
         );
+
+        state.depthTestEnabled = this.depthTest;
     }
 }

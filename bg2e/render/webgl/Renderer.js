@@ -8,6 +8,7 @@ import SkySphere from "./SkySphere";
 import SkyCube from "./SkyCube";
 import FrameBuffer from "./FrameBuffer";
 import Pipeline from "./Pipeline";
+import Vec from "../../math/Vec";
 
 function enableExtensions(gl) {
     // Enable all available extensions
@@ -32,6 +33,14 @@ export default class WebGLRenderer extends Renderer {
             this._frameBuffer = new FrameBuffer(this);
         }
         return this._frameBuffer;
+    }
+
+    set viewport(vp) {
+        this.state.viewport = vp;
+    }
+
+    get viewport() {
+        return new Vec(this.gl.getParameter(this.gl.VIEWPORT));
     }
 
     async init(canvas) {

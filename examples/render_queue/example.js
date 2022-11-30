@@ -1,39 +1,23 @@
 import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
-import * as math from "bg2e/math/functions";
 import Canvas from "bg2e/app/Canvas";
 import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
 import Mat4 from "bg2e/math/Mat4";
+import { RenderLayer } from "bg2e/base/PolyList";
 
 import Vec from "bg2e/math/Vec";
-import Color from "bg2e/base/Color";
-import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
-import Bg2LoaderPlugin from "bg2e/db/Bg2LoaderPlugin";
-import { registerComponents } from "bg2e/scene";
 import Material from "bg2e/base/Material";
-import RenderState from "bg2e/render/RenderState";
-import { createCube, createSphere, createCylinder, createCone, createPlane } from 'bg2e/primitives';
+import { createCube, createSphere } from 'bg2e/primitives';
 import RenderQueue from "bg2e/render/RenderQueue";
 
 import PBRLightIBLShader from "bg2e/shaders/PBRLightIBLShader";
 import Light, { LightType } from "bg2e/base/Light";
-import { PolyListCullFace, RenderLayer } from "bg2e/base/PolyList";
-import { BlendFunction } from "bg2e/render/Pipeline";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
  */
 class MyAppController extends AppController {
     async init() {
-        if (!this.renderer instanceof WebGLRenderer) {
-            throw new Error("This example works only with WebGL Renderer");
-        }
-
-        const { state } = this.renderer;
-
-        state.depthTestEnabled = true;
-        state.clearColor = new Color([0.1, 0.1, 0.112, 1]);
-
         this._zoom = 10;
 
         this._shader = new PBRLightIBLShader(this.renderer);
@@ -164,8 +148,8 @@ class MyAppController extends AppController {
     }
 
     reshape(width,height) {
-        const { state } = this.renderer;
-        state.viewport = new Vec(width, height);
+        this.renderer.viewport = new Vec(width,height);
+        console.log(this.renderer.viewport);
         this.renderer.canvas.updateViewportSize();
     }
 
@@ -203,8 +187,7 @@ class MyAppController extends AppController {
         }
 
         this._skyCube.draw();
-        
-        ///this._renderStates.forEach(rs => rs.draw());
+
         this._renderQueue.draw(RenderLayer.OPAQUE_DEFAULT);
         this._renderQueue.draw(RenderLayer.TRANSPARENT_DEFAULT);
     }

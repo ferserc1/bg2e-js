@@ -25,6 +25,8 @@ export default class Pipeline {
 
         // Initialize default blend state
         this.setBlendState({});
+
+        this._depthTestEnabled = true;
     }
 
     get renderer() {
@@ -51,6 +53,14 @@ export default class Pipeline {
 
     get blendState() {
         return this._blendState;
+    }
+
+    get depthTest() {
+        return this._depthTestEnabled;
+    }
+
+    set depthTest(dt) {
+        this._depthTestEnabled = dt;
     }
 
     create() {
