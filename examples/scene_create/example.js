@@ -8,9 +8,12 @@ import Transform from "bg2e/scene/Transform";
 import { registerComponents } from "bg2e/scene";
 import LightComponent from "bg2e/scene/LightComponent";
 import { LightType } from "bg2e/base/Light";
+import { createSphere } from "bg2e/primitives";
+import Drawable from "bg2e/scene/Drawable";
+import Material from "bg2e/base/Material";
 
 class MyAppController extends AppController {
-    createScene() {
+    async createScene() {
         const root = new Node("scene root");
 
         const addLight = ({ color, position, type, intensity }) => {
@@ -20,17 +23,30 @@ class MyAppController extends AppController {
             return lightNode;
         }
 
-        root.addChild(addLight({ position: [10.0, 10.0, -10.0], color: [1, 0.3, 0.1], intensity:300, lightType: LightType.POINT }));
+        const addSphere = async (roughness, metallic, diffuse, position) => {
+            this._sphereModel = this._sphereModel || createSphere(0.3);
+            const sphereNode = new Node("Sphere");
+            sphereNode.addComponent(new Drawable());
+            sphereNode.drawable.addPolyList(this._sphereModel, await Material.Deserialize({
+                diffuse, roughness, metallic
+            }));
+            sphereNode.addComponent(new Transform(Mat4.MakeTranslation(position[0], position[1], position[2])));
+            return sphereNode;
+        }
+
+        root.addChild(addLight({ position: [ 10.0, 10.0, -10.0], color: [1, 0.3, 0.1], intensity:300, lightType: LightType.POINT }));
         root.addChild(addLight({ position: [-10.0, 10.0, -10.0], color: [0.3, 1, 0.1], intensity:300, lightType: LightType.POINT }));
         root.addChild(addLight({ position: [-10.0,-10.0, -10.0], color: [0.1, 0.3, 1], intensity:300, lightType: LightType.POINT }));
         root.addChild(addLight({ position: [ 10.0,-10.0, -10.0], color: [0.1, 1, 0.3], intensity:300, lightType: LightType.POINT }));
 
-        
+        root.addChild(await addSphere(0.1, 0.8, [0.93, 0.95, 0.95, 1], [0, 0, 0]));
+
+        return root;
     }
 
     async init() {
         registerComponents();
-        this._sceneRoot = this.createScene();
+        this._sceneRoot = await this.createScene();
 
         console.log(this._sceneRoot);
     }
