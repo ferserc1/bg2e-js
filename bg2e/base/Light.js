@@ -64,7 +64,17 @@ export default class Light {
     set position(p) { this._position = p; }
     
     get color() { return this._color; }
-    set color(c) { this._color = c; }
+    set color(c) {
+        if (c.length === 3) {
+            this._color = new Vec([c[0], c[1], c[2], 1]);
+        }
+        else if (c.length === 4) {
+            this._color = new Vec(c);
+        }
+        else {
+            throw new Error(`Invalid light color assignment. Parameter must be a three or four component array.`);
+        }
+    }
     get intensity() { return this._intensity; }
     set intensity(i) { this._intensity = i; }
     

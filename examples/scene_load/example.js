@@ -9,6 +9,7 @@ import Drawable from "bg2e/scene/Drawable";
 // using Rollup)
 registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist/" }));
 
+
 registerComponents();
 
 const loader = new Loader();
@@ -22,3 +23,7 @@ if (drawable instanceof Drawable) {
 
 const prefab = await loader.loadNode("../resources/cubes.bg2");
 console.log(prefab);
+
+
+const scene = await loader.loadNode("../resources/test-scene/test-scene.vitscnj");
+console.log(scene);

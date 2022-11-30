@@ -144,4 +144,17 @@ export default class Node {
             nodeVisitor.visit(this);
         }
     }
+
+    // Most usual components
+    get transform() {
+        return this.component("Transform");
+    }
+
+    get lightComponent() {
+        return this.component("Light");
+    }
+
+    get drawable() {
+        return this.component("Drawable");
+    }
 }
