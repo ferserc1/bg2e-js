@@ -1,6 +1,7 @@
 
 import { RenderLayer } from "../base/PolyList";
 import Mat4 from "../math/Mat4";
+import { BlendFunction } from "./Pipeline";
 import RenderState from "./RenderState";
 
 const getLayers = (polyList,material) => {
@@ -46,14 +47,30 @@ export default class RenderQueue {
         return this._queues.find(l => l.layer === layer);
     }
 
-    enableQueue(layer, shader, { beginOperation = null, enabled = true } = {}) {
+    enableQueue(layer, shader, { beginOperation = null, endOperation = null, enabled = true, pipeline = null } = {}) {
+        if (!pipeline) {
+            pipeline = this.renderer.factory.pipeline();
+            if (layer === RenderLayer.TRANSPARENT_DEFAULT) {
+                pipeline.setBlendState({
+                    enabled: true,
+                    blendFuncSrc: BlendFunction.SRC_ALPHA,
+                    blendFuncDst: BlendFunction.ONE_MINUS_SRC_ALPHA,
+                    blendFuncSrcAlpha: BlendFunction.ONE,
+                    blendFuncDstAlpha: BlendFunction.ONE_MINUS_SRC_ALPHA
+                });
+            }
+            pipeline.create();
+        }
+
         const queue = this.getQueue(layer);
         if (!queue) {
             this._queues.push({
                 layer,
                 shader,
                 beginOperation,
+                endOperation,
                 enabled,
+                pipeline,
                 queue: []
             });
         }
@@ -96,8 +113,14 @@ export default class RenderQueue {
     draw(layer) {
         const queue = this.getQueue(layer);
         if (queue) {
-            queue.beginOperation(layer);
+            if (typeof(queue.beginOperation) === "function") {
+                queue.beginOperation(layer);
+            }
+            queue.pipeline.activate();
             queue.queue.forEach(rs => rs.draw());
+            if (typeof(queue.endOperation) === "function") {
+                queue.endOperation(layer);
+            }
         }
         else {
             console.warn(`No render queue found for layer ${layer}`);

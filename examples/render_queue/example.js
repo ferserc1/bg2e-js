@@ -18,6 +18,7 @@ import RenderQueue from "bg2e/render/RenderQueue";
 import PBRLightIBLShader from "bg2e/shaders/PBRLightIBLShader";
 import Light, { LightType } from "bg2e/base/Light";
 import { PolyListCullFace, RenderLayer } from "bg2e/base/PolyList";
+import { BlendFunction } from "bg2e/render/Pipeline";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -127,7 +128,7 @@ class MyAppController extends AppController {
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(cube),
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: "../resources/logo.png",
+                diffuse: "../resources/logo_transparent.png",
                 metallic: "../resources/logo.png",
                 roughness: "../resources/logo.png",
                 normal: "../resources/logo_nm.png",
@@ -148,18 +149,8 @@ class MyAppController extends AppController {
         this._projMatrix = Mat4.MakeIdentity();
 
         this._renderQueue = new RenderQueue(this.renderer);
-        const { gl } = this.renderer;
-        this._renderQueue.enableQueue(RenderLayer.OPAQUE_DEFAULT, this._shader, {
-            beginOperation: () => {
-                state.blendEnabled = false;
-            }
-        });
-        this._renderQueue.enableQueue(RenderLayer.TRANSPARENT_DEFAULT, this._shader, {
-            beginOperation: () => {
-                state.blendEnabled = true;
-                gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-            }
-        });
+        this._renderQueue.enableQueue(RenderLayer.OPAQUE_DEFAULT, this._shader);
+        this._renderQueue.enableQueue(RenderLayer.TRANSPARENT_DEFAULT, this._shader);
         
         this._env = this.renderer.factory.environment();
         await this._env.load({ textureUrl: '../resources/equirectangular-env3.jpg' });
