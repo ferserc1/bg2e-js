@@ -11,6 +11,8 @@ import { LightType } from "bg2e/base/Light";
 import { createSphere } from "bg2e/primitives";
 import Drawable from "bg2e/scene/Drawable";
 import Material from "bg2e/base/Material";
+import SceneRenderer from "bg2e/render/SceneRenderer";
+import Vec from "bg2e/math/Vec";
 
 class MyAppController extends AppController {
     async createScene() {
@@ -48,23 +50,36 @@ class MyAppController extends AppController {
         registerComponents();
         this._sceneRoot = await this.createScene();
 
+        this._env = this.renderer.factory.environment();
+        await this._env.load({
+            textureUrl: '../resources/equirectangular-env3.jpg'
+        });
+
+        this._sceneRenderer = new SceneRenderer(this.renderer);
+        this._sceneRenderer.environment = this._env;
+
         console.log(this._sceneRoot);
+
+        this._viewMatrix = Mat4.MakeIdentity();
+        this._projMatrix = Mat4.MakeIdentity();
     }
 
     reshape(width,height) {
-
+        this.renderer.viewport = new Vec(width, height);
+        this.renderer.canvas.updateViewportSize();
     }
 
     frame(delta) {
-
+        this._sceneRenderer.frame(this._sceneRoot, delta);
     }
 
     display() {
-
+        this.renderer.frameBuffer.clear();
+        this._sceneRenderer.draw();
     }
 
     destroy() {
-
+        this._sceneRenderer.destroy();
     }
 
     keyUp(evt) {
