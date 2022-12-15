@@ -164,6 +164,6 @@ export default class Node {
         const drawComponents = this._componentMap.filter(comp => comp.requireDraw);
 
         updateComponents.forEach(comp => comp.update(delta, modelMatrix));
-        drawComponents.forEach(comp => comp.draw(renderQueue));
+        drawComponents.forEach(comp => comp.draw(renderQueue, modelMatrix));
     }
 }

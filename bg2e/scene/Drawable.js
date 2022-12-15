@@ -82,4 +82,14 @@ export default class Drawable extends Component {
         await super.serialize(sceneData,writer);
         throw new Error("Drawable.serialice() not implemented");
     }
+
+    draw(renderQueue,modelMatrix) {
+        const { renderer } = renderQueue;
+        this._items.forEach(({polyList,material,transform}) => {
+            renderQueue.addPolyList(
+                renderer.factory.polyList(polyList),
+                renderer.factory.material(material),
+                Mat4.Mult(modelMatrix,transform));
+        });
+    }
 }

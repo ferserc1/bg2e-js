@@ -36,4 +36,8 @@ export default class Transform extends Component {
         await super.serialize(sceneData,writer);
         throw new Error("Transform.serialice() not implemented");
     }
+
+    update(delta,modelMatrix) {
+        this._matrix.mult(modelMatrix);
+    }
 }

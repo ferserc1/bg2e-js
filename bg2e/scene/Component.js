@@ -82,6 +82,6 @@ export default class Component extends LifeCycle {
     // The following functions can be implemented in component classes to complete the 
     // life cycle functions
     // update(delta,modelMatrix) {}
-    // draw(renderQueue) {}
+    // draw(renderQueue,modelMatrix) {}
 }
 
