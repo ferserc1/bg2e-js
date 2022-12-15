@@ -74,5 +74,14 @@ export default class Component extends LifeCycle {
     async serialize(sceneData,writer) {
         sceneData.type = this.typeId;
     }
+
+    // Life cycle functions and properties
+    get requireUpdate() { return typeof(this.update) === "function" }
+    get requireDraw() { return typeof(this.draw) === "function"; }
+
+    // The following functions can be implemented in component classes to complete the 
+    // life cycle functions
+    // update(delta,modelMatrix) {}
+    // draw(renderQueue) {}
 }
 

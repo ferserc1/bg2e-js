@@ -1,3 +1,4 @@
+import Mat4 from '../math/Mat4';
 import ComponentMap from './ComponentMap';
 
 export default class Node {
@@ -156,5 +157,13 @@ export default class Node {
 
     get drawable() {
         return this.component("Drawable");
+    }
+
+    frame(delta, modelMatrix, renderQueue) {
+        const updateComponents = this._componentMap.filter(comp => comp.requireUpdate);
+        const drawComponents = this._componentMap.filter(comp => comp.requireDraw);
+
+        updateComponents.forEach(comp => comp.update(delta, modelMatrix));
+        drawComponents.forEach(comp => comp.draw(renderQueue));
     }
 }

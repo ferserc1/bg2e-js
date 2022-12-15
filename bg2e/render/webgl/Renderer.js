@@ -8,6 +8,7 @@ import SkySphere from "./SkySphere";
 import SkyCube from "./SkyCube";
 import FrameBuffer from "./FrameBuffer";
 import Pipeline from "./Pipeline";
+import SceneRenderer from "./SceneRenderer";
 import Vec from "../../math/Vec";
 
 function enableExtensions(gl) {
@@ -118,6 +119,10 @@ export default class WebGLRenderer extends Renderer {
 
     pipelineFactory() {
         return new Pipeline(this);
+    }
+
+    sceneRendererFactory() {
+        return new SceneRenderer(this);
     }
     
     presentTexture(texture, { clearBuffers = true, shader = null, viewport = null } = {}) {

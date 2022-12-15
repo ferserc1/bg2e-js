@@ -129,6 +129,10 @@ export default class Renderer {
         throw new Error("Calling base implementation of Renderer.pipelineFactory()");
     }
 
+    sceneRendererFactory() {
+        throw new Error("Calling base implementation of Renderer.sceneRendererFactory()");
+    }
+
     get factory() {
         const renderer = this;
         return {
@@ -158,6 +162,9 @@ export default class Renderer {
             },
             pipeline() {
                 return renderer.pipelineFactory();
+            },
+            scene() {
+                return renderer.sceneRendererFactory();
             }
         }
     }

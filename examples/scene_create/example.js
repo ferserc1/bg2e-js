@@ -55,7 +55,7 @@ class MyAppController extends AppController {
             textureUrl: '../resources/equirectangular-env3.jpg'
         });
 
-        this._sceneRenderer = new SceneRenderer(this.renderer);
+        this._sceneRenderer = this.renderer.factory.scene();
         this._sceneRenderer.environment = this._env;
 
         console.log(this._sceneRoot);

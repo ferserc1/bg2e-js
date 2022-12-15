@@ -70,6 +70,10 @@ export default class ComponentMap {
         return this._array.map(cb);
     }
 
+    filter(cb) {
+        return this._array.filter(cb);
+    }
+
     clone(parentNode) {
         const result = new Components(parentNode);
         result.assign(this);
