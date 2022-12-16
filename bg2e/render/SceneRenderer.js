@@ -96,7 +96,10 @@ export default class SceneRenderer {
         this._renderQueue.viewMatrix = this.defaultViewMatrix;
         this._renderQueue.projectionMatrix = this.defaultProjectionMatrix;
 
+        // TODO: This visitor must extract the lights from the scene
         sceneRoot.accept(this._frameVisitor);
+
+        // Set the extracted lights to the shader (in WebGLSceneRenderer class)
     }
 
     draw() {

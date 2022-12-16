@@ -13,6 +13,7 @@ import Drawable from "bg2e/scene/Drawable";
 import Material from "bg2e/base/Material";
 import SceneRenderer from "bg2e/render/SceneRenderer";
 import Vec from "bg2e/math/Vec";
+import { RenderLayer } from "bg2e/base/PolyList";
 
 class MyAppController extends AppController {
     async createScene() {
@@ -76,7 +77,17 @@ class MyAppController extends AppController {
 
     display() {
         this.renderer.frameBuffer.clear();
-        this._sceneRenderer.draw();
+
+        if (!this._env.updated) {
+            this._env.updateMaps();
+        }
+
+        // TODO: draw sky cube if present
+        // TODO: Create a new render layer to use with the background
+
+        this._sceneRenderer._renderQueue.draw(RenderLayer.OPAQUE_DEFAULT);
+        this._sceneRenderer._renderQueue.draw(RenderLayer.TRANSPARENT_DEFAULT);
+        //this._sceneRenderer.draw();
     }
 
     destroy() {
