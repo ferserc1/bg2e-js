@@ -6,6 +6,7 @@ import Mat4 from "../math/Mat4";
 
 export class FrameVisitor extends NodeVisitor {
     constructor(renderQueue) {
+        super();
         this._renderQueue = renderQueue;
         this._delta = 0;
         this._modelMatrix = Mat4.MakeIdentity();
@@ -67,15 +68,39 @@ export default class SceneRenderer {
     get environment() {
         return this._environment;
     }
+
+    get defaultViewMatrix() {
+        return this._defaultViewMatrix || Mat4.MakeIdentity();
+    }
+
+    set defaultViewMatrix(mat) {
+        this._defaultViewMatrix = mat;
+    }
+
+    get defaultProjectionMatrix() {
+        return this._defaultProjectionMatrix || Mat4.MakePerspective(55,this.renderer.viewport.aspectRatio, 0.2, 100.0);
+    }
+
+    set defaultProjectionMatrix(mat) {
+        this._defaultProjectionMatrix = mat;
+    }
     
     frame(sceneRoot,delta) {
+        this._renderQueue.newFrame();
         this._frameVisitor.delta = delta;
         this._frameVisitor.modelMatrix.identity();
-        sceneRoot.apply(this._frameVisitor);
+
+        // TODO: extract view and proyection matrixes from cameras in scene using
+        // a node component visitor to find the main camera. If there is no camera in
+        // the scene, use the default values 
+        this._renderQueue.viewMatrix = this.defaultViewMatrix;
+        this._renderQueue.projectionMatrix = this.defaultProjectionMatrix;
+
+        sceneRoot.accept(this._frameVisitor);
     }
 
     draw() {
-
+        console.log(this._renderQueue);
     }
 
     destroy() {

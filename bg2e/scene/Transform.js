@@ -38,6 +38,6 @@ export default class Transform extends Component {
     }
 
     update(delta,modelMatrix) {
-        this._matrix.mult(modelMatrix);
+        modelMatrix.mult(this._matrix);
     }
 }

@@ -198,11 +198,25 @@ export default class Vec extends NumericArray {
     }
 
     get width() {
-        return this[0];
+        switch (this.length) {
+        case 2:
+            return this[0];
+        case 4:
+            return this[2];
+        default:
+            throw new Error("Vec.width function used on non size or viewport vectors (two or four elements)");
+        }
     }
 
     get height() {
-        return this[1];
+        switch (this.length) {
+            case 2:
+                return this[1];
+            case 4:
+                return this[3];
+            default:
+                throw new Error("Vec.width function used on non size or viewport vectors (two or four elements)");
+            }
     }
 
     set width(w) {
@@ -358,6 +372,10 @@ export default class Vec extends NumericArray {
 
     get cssColor() {
         // Return rgb(x,y,z) or rgba(x,y,z,w);
+    }
+
+    get aspectRatio() {
+        return this.width / this.height;
     }
 
     toString() {

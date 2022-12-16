@@ -1,6 +1,4 @@
 
-import LifeCycle from "./LifeCycle";
-
 const g_componentClasses = {}
 
 export const registerComponent = (typeId,componentClass) => {
@@ -31,10 +29,8 @@ export const deserializeComponent = async (sceneData,loader) => {
     return componentInstance;
 }
 
-export default class Component extends LifeCycle {
+export default class Component {
     constructor(typeId) {
-        super();
-
         this._node = null;
         if (!typeId) {
             const e = new Error("Invalid typeId specified creating component.");

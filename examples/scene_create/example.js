@@ -41,7 +41,7 @@ class MyAppController extends AppController {
         root.addChild(addLight({ position: [-10.0,-10.0, -10.0], color: [0.1, 0.3, 1], intensity:300, lightType: LightType.POINT }));
         root.addChild(addLight({ position: [ 10.0,-10.0, -10.0], color: [0.1, 1, 0.3], intensity:300, lightType: LightType.POINT }));
 
-        root.addChild(await addSphere(0.1, 0.8, [0.93, 0.95, 0.95, 1], [0, 0, 0]));
+        root.addChild(await addSphere(0.1, 0.8, [0.93, 0.95, 0.95, 1], [0, 0, -2.0]));
 
         return root;
     }
@@ -57,6 +57,7 @@ class MyAppController extends AppController {
 
         this._sceneRenderer = this.renderer.factory.scene();
         this._sceneRenderer.environment = this._env;
+        await this._sceneRenderer.init();
 
         console.log(this._sceneRoot);
 

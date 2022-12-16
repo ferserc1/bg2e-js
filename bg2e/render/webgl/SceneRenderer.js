@@ -1,9 +1,10 @@
 import PBRLightIBLShader from "../../shaders/PBRLightIBLShader";
 import SceneRenderer from "../SceneRenderer";
+import { RenderLayer } from "../../base/PolyList";
 
 export default class WebGLSceneRenderer extends SceneRenderer {
-    constructor() {
-        super();
+    constructor(renderer) {
+        super(renderer);
         this._shader = new PBRLightIBLShader(this);
     }
 
