@@ -100,6 +100,8 @@ export default class SceneRenderer {
         sceneRoot.accept(this._frameVisitor);
 
         // Set the extracted lights to the shader (in WebGLSceneRenderer class)
+        console.log(this._renderQueue.lights);
+        
     }
 
     draw() {

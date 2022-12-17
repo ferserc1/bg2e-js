@@ -29,6 +29,10 @@ function getShaderProgramForLights(renderer, numLights) {
         varying vec2 fragTexCoord;
         varying vec3 fragTangent;
         varying vec3 fragBitangent;
+        varying vec3 fragLightPositions[${numLights}];
+
+        uniform vec3 uLightPositions[${numLights}];
+        uniform mat4 uLightTransforms[${numLights}];
         `,
         [
             new ShaderFunction('void','main','',`{
@@ -37,6 +41,12 @@ function getShaderProgramForLights(renderer, numLights) {
                 fragTangent = normalize(uNormMatrix * inTangent);
                 fragBitangent = normalize(fragNorm * fragTangent);
                 fragTexCoord = inTexCoord;
+
+                for (int i = 0; i < ${numLights}; ++i)
+                {
+                    fragLightPositions[i] = (uLightTransforms[i] * vec4(uLightPositions[i], 1.0)).xyz;
+                }
+
                 gl_Position = uProj * uView * uWorld * vec4(inPosition,1.0);
             }`)
         ]);
@@ -47,6 +57,7 @@ function getShaderProgramForLights(renderer, numLights) {
         varying vec2 fragTexCoord;
         varying vec3 fragTangent;
         varying vec3 fragBitangent;
+        varying vec3 fragLightPositions[${numLights}];
 
         uniform vec3 uCameraPos;
 
@@ -66,10 +77,10 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform float uAlphaTresshold;
         
         uniform int uLightTypes[${numLights}];
-        uniform vec3 uLightPositions[${numLights}];
         uniform vec3 uLightDirections[${numLights}];
         uniform vec3 uLightColors[${numLights}];
         uniform float uLightIntensities[${numLights}];
+        
 
         uniform samplerCube uEnvMap;
         uniform samplerCube uSpecularMap;
@@ -102,7 +113,7 @@ function getShaderProgramForLights(renderer, numLights) {
                     {
                         if (uLightTypes[i] == ${ LightType.POINT }) {
                             Lo += pbrPointLight(
-                                uLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
+                                fragLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
                                 albedo, roughness, metallic);
                         }
                         else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
@@ -133,6 +144,7 @@ export default class PBRLightIBLShader extends Shader {
         super(renderer);
 
         this._lights = [];
+        this._lightTransforms = [];
 
         if (!renderer instanceof WebGLRenderer) {
             throw new Error("BasicDiffuseColorShader: invalid renderer");
@@ -189,6 +201,14 @@ export default class PBRLightIBLShader extends Shader {
 
     get lights() {
         return this._lights;
+    }
+
+    set lightTransforms(lt) {
+        this._lightTransforms = lt;
+    }
+
+    get lightTransforms() {
+        return this._lightTransforms;
     }
 
     updateLight(light,index) {
@@ -261,6 +281,7 @@ export default class PBRLightIBLShader extends Shader {
             this._program.bindVector(`uLightDirections[${i}]`, this._lightDirections[i]);
             this._program.bindVector(`uLightColors[${i}]`, this._lightColors[i].rgb);
             this._program.uniform1f(`uLightIntensities[${i}]`, this._lightIntensities[i]);
+            this._program.bindMatrix(`uLightTransforms[${i}]`, this._lightTransforms[i]);
         });
 
         this._program.bindAttribs(plistRenderer, {

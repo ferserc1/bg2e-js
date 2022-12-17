@@ -83,4 +83,8 @@ export default class LightComponent extends Component {
         await this._light.serialize(sceneData);
         throw new Error("LightComponent.serialize() not implemented");
     }
+
+    draw(renderQueue,modelMatrix) {
+        renderQueue.addLight(this.light, modelMatrix);
+    }
 }

@@ -35,6 +35,7 @@ class MyAppController extends AppController {
             return light;
         }));
 
+
         console.log("Loading scene...");
         const sphereColor = [0.93, 0.95, 0.95, 1];
         const spherePlist = createSphere(0.3);
@@ -127,6 +128,7 @@ class MyAppController extends AppController {
         console.log("Scene load done");
 
         this._shader.lights = this._lights;
+        this._shader.lightTransforms = this._lights.map(() => Mat4.MakeIdentity());
 
         this._worldMatrix = Mat4.MakeIdentity();
         this._viewMatrix = Mat4.MakeIdentity();

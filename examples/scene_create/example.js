@@ -19,10 +19,11 @@ class MyAppController extends AppController {
     async createScene() {
         const root = new Node("scene root");
 
-        const addLight = ({ color, position, type, intensity }) => {
+        const addLight = ({ color, position, type, intensity, transform = Mat4.MakeIdentity() }) => {
             const lightNode = new Node("Light node");
             lightNode.addComponent(new LightComponent());
             lightNode.lightComponent.setProperties({ color, position, type, intensity });
+            lightNode.addComponent(new Transform(transform));
             return lightNode;
         }
 
@@ -37,12 +38,12 @@ class MyAppController extends AppController {
             return sphereNode;
         }
 
-        root.addChild(addLight({ position: [ 10.0, 10.0, -10.0], color: [1, 0.3, 0.1], intensity:300, lightType: LightType.POINT }));
+        root.addChild(addLight({ position: [  0.0,  0.0, -10.0], color: [1, 0.3, 0.1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation(10, 10, 0) }));
         root.addChild(addLight({ position: [-10.0, 10.0, -10.0], color: [0.3, 1, 0.1], intensity:300, lightType: LightType.POINT }));
         root.addChild(addLight({ position: [-10.0,-10.0, -10.0], color: [0.1, 0.3, 1], intensity:300, lightType: LightType.POINT }));
         root.addChild(addLight({ position: [ 10.0,-10.0, -10.0], color: [0.1, 1, 0.3], intensity:300, lightType: LightType.POINT }));
 
-        root.addChild(await addSphere(0.1, 0.8, [0.93, 0.95, 0.95, 1], [0, 0, -2.0]));
+        root.addChild(await addSphere(0.8, 0.2, [0.93, 0.95, 0.95, 1], [0, 0, -2.0]));
 
         return root;
     }

@@ -17,6 +17,8 @@ export default class RenderQueue {
 
         this._viewMatrix = Mat4.MakeIdentity();
         this._projectionMatrix = Mat4.MakeIdentity();
+
+        this._lights = [];
     }
 
     get renderer() {
@@ -41,6 +43,10 @@ export default class RenderQueue {
 
     set projectionMatrix(m) {
         this._projectionMatrix.assign(m);
+    }
+
+    get lights() {
+        return this._lights;
     }
 
     getQueue(layer) {
@@ -92,6 +98,7 @@ export default class RenderQueue {
 
     newFrame() {
         this._queues.forEach(q => q.queue = []);
+        this._lights = [];
     }
 
     addPolyList(polyListRenderer, materialRenderer, modelMatrix) {
@@ -108,6 +115,10 @@ export default class RenderQueue {
                 }))
             }
         });
+    }
+
+    addLight(light, transform) {
+        this._lights.push({ light, transform });
     }
 
     draw(layer) {

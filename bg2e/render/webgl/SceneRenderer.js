@@ -5,7 +5,7 @@ import { RenderLayer } from "../../base/PolyList";
 export default class WebGLSceneRenderer extends SceneRenderer {
     constructor(renderer) {
         super(renderer);
-        this._shader = new PBRLightIBLShader(this);
+        this._shader = new PBRLightIBLShader(this.renderer);
     }
 
     get shader() {
@@ -24,5 +24,12 @@ export default class WebGLSceneRenderer extends SceneRenderer {
 
         this.renderQueue.enableQueue(RenderLayer.OPAQUE_DEFAULT, this._shader);
         this.renderQueue.enableQueue(RenderLayer.TRANSPARENT_DEFAULT, this._shader);
+    }
+
+    frame(sceneRoot,delta) {
+        super.frame(sceneRoot,delta);
+
+        this.shader.lights = this.renderQueue.lights.map(({light}) => light);
+        this.shader.lightTransforms = this.renderQueue.lights.map(({transform}) => transform);
     }
 }
