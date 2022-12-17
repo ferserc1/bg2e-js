@@ -20,12 +20,14 @@ export class FrameVisitor extends NodeVisitor {
     
     visit(node) {
         this._matrixStack.push(new Mat4(this._modelMatrix));
+        const spaces = this._matrixStack.map(() => "----");
         node.frame(this._delta, this._modelMatrix, this._renderQueue);
     }
 
     didVisit(node) {
+        const spaces = this._matrixStack.map(() => "----");
+        this._modelMatrix = this._matrixStack[this._matrixStack.length - 1] || Mat4.MakeIdentity();
         this._matrixStack.pop();
-        this._modelMatrix = this._matrixStack[this._matrixStack.length - 1] || this._modelMatrix;
     }
 }
 
@@ -96,12 +98,7 @@ export default class SceneRenderer {
         this._renderQueue.viewMatrix = this.defaultViewMatrix;
         this._renderQueue.projectionMatrix = this.defaultProjectionMatrix;
 
-        // TODO: This visitor must extract the lights from the scene
         sceneRoot.accept(this._frameVisitor);
-
-        // Set the extracted lights to the shader (in WebGLSceneRenderer class)
-        console.log(this._renderQueue.lights);
-        
     }
 
     draw() {
