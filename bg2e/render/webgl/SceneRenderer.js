@@ -1,6 +1,7 @@
 import PBRLightIBLShader from "../../shaders/PBRLightIBLShader";
 import SceneRenderer from "../SceneRenderer";
 import { RenderLayer } from "../../base/PolyList";
+import Mat4 from "../../math/Mat4";
 
 export default class WebGLSceneRenderer extends SceneRenderer {
     constructor(renderer) {
@@ -31,5 +32,6 @@ export default class WebGLSceneRenderer extends SceneRenderer {
 
         this.shader.lights = this.renderQueue.lights.map(({light}) => light);
         this.shader.lightTransforms = this.renderQueue.lights.map(({transform}) => transform);
+        this.shader.cameraPosition = Mat4.GetPosition(this._renderQueue.viewMatrix);
     }
 }

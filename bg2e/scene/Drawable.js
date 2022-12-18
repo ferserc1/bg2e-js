@@ -45,7 +45,7 @@ export default class Drawable extends Component {
         });
     }
 
-    addPolyList(polyList,material,transform = Mat4.MakeIdentity()) {
+    addPolyList(polyList,material,transform = Mat4.MakeIdentity(),r) {
         if (!polyList instanceof PolyList) {
             throw new Error("Error adding polyList to drawable object: polyList is not an instance of PolyList");
         }
@@ -55,7 +55,11 @@ export default class Drawable extends Component {
         if (!transform instanceof Mat4) {
             throw new Error("Error adding polyList to drawable object: transform is not an instance of Mat4");
         }
-        this._items.push({ polyList, material, transform });
+        this._items.push({
+            polyList, material, transform,
+            polyListRenderer: r.factory.polyList(polyList),
+            materialRenderer: r.factory.material(material)
+         });
     }
 
     removePolyList(plist) {
@@ -83,12 +87,17 @@ export default class Drawable extends Component {
         throw new Error("Drawable.serialice() not implemented");
     }
 
+    // TODO: Add a callback to bind renderable objects to the renderer (for example, to create the plist and material renderers)
+    // The callback will be asynchronous
+
     draw(renderQueue,modelMatrix) {
         const { renderer } = renderQueue;
-        this._items.forEach(({polyList,material,transform}) => {
+        this._items.forEach(({polyList,material,transform,polyListRenderer,materialRenderer}) => {
             renderQueue.addPolyList(
-                renderer.factory.polyList(polyList),
-                renderer.factory.material(material),
+                //renderer.factory.polyList(polyList),
+                //renderer.factory.material(material),
+                polyListRenderer,
+                materialRenderer,
                 Mat4.Mult(modelMatrix,transform));
         });
     }

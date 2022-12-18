@@ -20,12 +20,10 @@ export class FrameVisitor extends NodeVisitor {
     
     visit(node) {
         this._matrixStack.push(new Mat4(this._modelMatrix));
-        const spaces = this._matrixStack.map(() => "----");
         node.frame(this._delta, this._modelMatrix, this._renderQueue);
     }
 
     didVisit(node) {
-        const spaces = this._matrixStack.map(() => "----");
         this._modelMatrix = this._matrixStack[this._matrixStack.length - 1] || Mat4.MakeIdentity();
         this._matrixStack.pop();
     }

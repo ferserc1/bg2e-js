@@ -52,7 +52,7 @@ export default class TextureMergerRenderer {
                 this.renderer.presentTexture(null, { clear: true, shader: this._shader });
                 this.renderer.presentTexture(null, { shader: this._shader });
             });
-            //this._dirty = false;
+            this._dirty = false;
         }
     }
 }
