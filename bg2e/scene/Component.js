@@ -1,3 +1,4 @@
+import Renderer from "../render/Renderer";
 
 const g_componentClasses = {}
 
@@ -69,6 +70,18 @@ export default class Component {
 
     async serialize(sceneData,writer) {
         sceneData.type = this.typeId;
+    }
+
+    bindRenderer(renderer) {
+        if (!renderer instanceof Renderer) {
+            throw Error("Component.bindRenderer(): invalid renderer. Object is not instance of render.Renderer");
+        }
+
+        this._renderer = renderer;
+    }
+
+    get ready() {
+        return this._renderer !== null;
     }
 
     // Life cycle functions and properties

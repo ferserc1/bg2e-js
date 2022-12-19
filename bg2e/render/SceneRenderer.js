@@ -29,6 +29,17 @@ export class FrameVisitor extends NodeVisitor {
     }
 }
 
+export class BindRendererVisitor extends NodeVisitor {
+    constructor(renderer) {
+        super(renderer);
+        this._renderer = renderer;
+    }
+
+    visit(node) {
+        node.components.forEach(comp => comp.bindRenderer(this._renderer));
+    }
+}
+
 export default class SceneRenderer {
     constructor(renderer) {
         this._renderer = renderer;
@@ -85,6 +96,11 @@ export default class SceneRenderer {
         this._defaultProjectionMatrix = mat;
     }
     
+    bindRenderer(sceneRoot) {
+        const bindRendererVisitor = new BindRendererVisitor(this.renderer);
+        sceneRoot.accept(bindRendererVisitor);
+    }
+
     frame(sceneRoot,delta) {
         this._renderQueue.newFrame();
         this._frameVisitor.delta = delta;
