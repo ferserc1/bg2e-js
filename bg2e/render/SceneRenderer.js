@@ -70,10 +70,13 @@ export default class SceneRenderer {
 
         this._renderQueue = new RenderQueue(this.renderer);
         this._frameVisitor = new FrameVisitor(this._renderQueue);
+
+        this._skyCube = this.renderer.factory.skyCube();
     }
 
-    set environment(env) {
+    async setEnvironment(env) {
         this._environment = env;
+        this._skyCube.load(this._environment.environmentMap);
     }
 
     get environment() {
@@ -108,15 +111,36 @@ export default class SceneRenderer {
 
         // TODO: extract view and proyection matrixes from cameras in scene using
         // a node component visitor to find the main camera. If there is no camera in
-        // the scene, use the default values 
-        this._renderQueue.viewMatrix = this.defaultViewMatrix;
-        this._renderQueue.projectionMatrix = this.defaultProjectionMatrix;
+        // the scene, use the default values
+        const viewMatrix = this.defaultViewMatrix;
+        const projectionMatrix = this.defaultProjectionMatrix;
+
+        this._renderQueue.viewMatrix = viewMatrix;
+        this._renderQueue.projectionMatrix = projectionMatrix;
 
         sceneRoot.accept(this._frameVisitor);
+
+        this._skyCube.updateRenderState({
+            viewMatrix: viewMatrix,
+            projectionMatrix: projectionMatrix
+        });
     }
 
-    draw() {
-        console.log(this._renderQueue);
+    draw({ clearBuffers = true, drawSky = true } = {}) {
+        if (clearBuffers) {
+            this.renderer.frameBuffer.clear();
+        }
+
+        if (this.environment && !this.environment.updated) {
+            this.environment.updateMaps();
+        }
+
+        if (drawSky) {
+            this._skyCube.draw();
+        }
+
+        this._renderQueue.draw(RenderLayer.OPAQUE_DEFAULT);
+        this._renderQueue.draw(RenderLayer.TRANSPARENT_DEFAULT);
     }
 
     destroy() {

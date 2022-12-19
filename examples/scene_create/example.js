@@ -108,8 +108,8 @@ class MyAppController extends AppController {
         });
 
         this._sceneRenderer = this.renderer.factory.scene();
-        this._sceneRenderer.environment = this._env;
         await this._sceneRenderer.init();
+        await this._sceneRenderer.setEnvironment(this._env);
 
 
         this._viewMatrix = Mat4.MakeIdentity();
@@ -128,18 +128,7 @@ class MyAppController extends AppController {
     }
 
     display() {
-        this.renderer.frameBuffer.clear();
-
-        if (!this._env.updated) {
-            this._env.updateMaps();
-        }
-
-        // TODO: draw sky cube if present
-        // TODO: Create a new render layer to use with the background
-
-        this._sceneRenderer._renderQueue.draw(RenderLayer.OPAQUE_DEFAULT);
-        this._sceneRenderer._renderQueue.draw(RenderLayer.TRANSPARENT_DEFAULT);
-        //this._sceneRenderer.draw();
+        this._sceneRenderer.draw();
     }
 
     destroy() {
