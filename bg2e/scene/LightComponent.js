@@ -25,6 +25,7 @@ export default class LightComponent extends Component {
     setProperties({
         enabled,
         type,
+        lightType,  // alias of type
         direction,
         position,
         color,
@@ -41,6 +42,9 @@ export default class LightComponent extends Component {
         }
         if (type !== undefined) {
             this.light.type = type;
+        }
+        if (lightType !== undefined) {
+            this.light.type = lightType;
         }
         if (direction !== undefined) {
             this.light.direction = direction;
