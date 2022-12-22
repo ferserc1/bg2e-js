@@ -1,7 +1,31 @@
 import Component from './Component';
 import Mat4 from "../math/Mat4";
+import NodeVisitor from './NodeVisitor';
+
+export class TransformVisitor extends NodeVisitor {
+    constructor() {
+        super();
+        this._matrix = Mat4.MakeIdentity();
+    }
+
+    get matrix() {
+        return this._matrix;
+    }
+
+    visit(node) {
+        if (node.transform) {
+            this._matrix = Mat4.Mult(node.transform.matrix, this._matrix);
+        }
+    }
+}
 
 export default class Transform extends Component {
+    static GetWorldMatrix(node) {
+        const visitor = new TransformVisitor();
+        node.acceptReverse(visitor);
+        return visitor.matrix;
+    }
+
     constructor(mat = Mat4.MakeIdentity()) {
         super("Transform");
         if (!mat instanceof Mat4) {

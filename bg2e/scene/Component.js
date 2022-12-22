@@ -84,6 +84,10 @@ export default class Component {
         return this._renderer !== null;
     }
 
+    get renderer() {
+        return this._renderer;
+    }
+
     // Life cycle functions and properties
     get requireUpdate() { return typeof(this.update) === "function" }
     get requireDraw() { return typeof(this.draw) === "function"; }

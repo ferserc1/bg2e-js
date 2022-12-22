@@ -145,7 +145,7 @@ export default class Node {
             nodeVisitor.visit(this);
         }
     }
-
+    
     // Most usual components
     get transform() {
         return this.component("Transform");
@@ -157,6 +157,10 @@ export default class Node {
 
     get drawable() {
         return this.component("Drawable");
+    }
+
+    get camera() {
+        return this.component("Camera");
     }
 
     frame(delta, modelMatrix, renderQueue) {

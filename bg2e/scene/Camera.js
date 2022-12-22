@@ -3,6 +3,7 @@ import Component from "./Component";
 import MatrixStrategy from "../math/MatrixStrategy";
 import Vec from "../math/Vec";
 import { radiansToDegrees } from "../math/functions";
+import NodeVisitor from "./NodeVisitor";
 
 export class ProjectionStrategy extends MatrixStrategy {
     static Factory(jsonData) {
@@ -66,7 +67,7 @@ export class ProjectionStrategy extends MatrixStrategy {
     }
 }
 
-export class PerspectiveProjectionStrategy extends CameraProjectionStrategy {
+export class PerspectiveProjectionStrategy extends ProjectionStrategy {
     constructor(target) {
         super(target);
         this._fov = 60;
@@ -104,7 +105,7 @@ export class PerspectiveProjectionStrategy extends CameraProjectionStrategy {
     }
 }
 
-export class OpticalProjectionStrategy extends CameraProjectionStrategy {
+export class OpticalProjectionStrategy extends ProjectionStrategy {
     constructor(target) {
         super(target);
         this._focalLength = 50;
@@ -153,7 +154,7 @@ export class OpticalProjectionStrategy extends CameraProjectionStrategy {
     }
 }
 
-export class OrtographicProjectionStrategy extends CameraProjectionStrategy {
+export class OrtographicProjectionStrategy extends ProjectionStrategy {
     constructor(target) {
         super(target);
         this._viewWidth = 100;
@@ -194,29 +195,117 @@ export class OrtographicProjectionStrategy extends CameraProjectionStrategy {
     }
 }
 
+class SetMainCameraVisitor extends NodeVisitor {
+    constructor(mainCamera) {
+        super();
+        if (!mainCamera instanceof Camera) {
+            throw Error("Set main camera: invalid parameter. The object is not an instance of Camera class.")
+        }
+        this._mainCamera = mainCamera;
+    }
+
+    visit(node) {
+        const cam = node.camera;
+        if (cam && cam === this._mainCamera) {
+            cam._isMain = true;
+        }
+        else if (cam && cam !== this._mainCamera) {
+            cam._isMain = false;
+        }
+    }
+}
+
 export default class Camera extends Component {
+    static SetMain(sceneRoot,camera) {
+        if (!sceneRoot instanceof Node || sceneRoot.parent !== null) {
+            throw Error("Camera.setMain(): invalid parameter. Object is not a scene root");
+        }
+        const visitor = new SetMainCameraVisitor(camera);
+        sceneRoot.accept(visitor);
+        sceneRoot.__mainCamera__ = camera;
+    }
+
+    static GetMain(sceneRoot) {
+        if (!sceneRoot.__mainCamera__) {
+            const visitor = new GetMainCameraVisitor();
+            sceneRoot.accept(visitor);
+            sceneRoot.__mainCamera__ = visitor.result;
+        }
+        return sceneRoot.__mainCamera__;
+    }
+
+    setMain(sceneRoot) {
+        Camera.SetMain(sceneRoot,this);
+    }
+
     constructor() {
         super("Camera");
 
-        this._projectionMethod = null;
+        this._projectionStrategy = null;
         this._isMain = false;
 
         this._projectionMatrix = Mat4.MakePerspective(45.0, 1, 0.1, 100.0);
+        this._viewport = new Vec(0, 0, 512, 512);
     }
 
     clone() {
-
+        const other = new Camera();
+        other.assign(this);
+        return other;
     }
 
-    assign() {
+    assign(other) {
+        other._projectionStrategy = this._projectionStrategy?.clone() || null;
+        // This attribute cannot be assigned, because there can only be one main camera.
+        other._isMain = false;
+        other._projectionMatrix = new Mat4(this._projectionMatrix);
+        other._viewport = new Vec(this._viewport);
+    }
 
+    get isMain() {
+        return this._isMain;
+    }
+
+    get projectionMatrix() {
+        return this._projectionMatrix;
+    }
+
+    set projectionMatrix(p) {
+        this._projectionStrategy = null;
+        this._projectionMatrix = p;
+    }
+
+    get viewport() {
+        return this._viewport;
+    }
+
+    set viewport(vp) {
+        this._viewport = vp;
+    }
+
+    get projectionStrategy() {
+        return this._projectionStrategy;
+    }
+
+    set projectionStrategy(ps) {
+        this._projectionStrategy = ps;
     }
 
     async deserialize(sceneData,loader) {
-
+        sceneData.isMain = sceneData.isMain || false;
+        if (sceneData.projectionMethod) {
+            this.projectionStrategy = ProjectionStrategy.Factory(sceneData.projectionMethod || {});
+        }
     }
 
     async serialize(sceneData,writer) {
-
+        super.serialize(sceneData,writer);
+        sceneData.isMain = this._isMain;
+        if (this.projectionStrategy) {
+            const projMethod = {};
+            sceneData.projectionMethod = projMethod;
+            this.projectionStrategy.serialize(projMethod);
+        }
     }
 }
+

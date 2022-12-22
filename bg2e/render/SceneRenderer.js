@@ -3,6 +3,7 @@ import { BlendFunction } from "./Pipeline";
 import RenderQueue from "./RenderQueue";
 import NodeVisitor from "../scene/NodeVisitor";
 import Mat4 from "../math/Mat4";
+import Camera from "../scene/Camera";
 
 export class FrameVisitor extends NodeVisitor {
     constructor(renderQueue) {
@@ -36,7 +37,9 @@ export class BindRendererVisitor extends NodeVisitor {
     }
 
     visit(node) {
-        node.components.forEach(comp => comp.bindRenderer(this._renderer));
+        node.components.forEach(comp => {
+            comp.bindRenderer(this._renderer);
+        });
     }
 }
 
@@ -112,8 +115,13 @@ export default class SceneRenderer {
         // TODO: extract view and proyection matrixes from cameras in scene using
         // a node component visitor to find the main camera. If there is no camera in
         // the scene, use the default values
-        const viewMatrix = this.defaultViewMatrix;
-        const projectionMatrix = this.defaultProjectionMatrix;
+        const mainCamera = Camera.GetMain(sceneRoot);
+
+        let viewMatrix = this.defaultViewMatrix;
+        let projectionMatrix = this.defaultProjectionMatrix;
+        if (mainCamera) {
+            projectionMatrix = mainCamera.projectionMatrix;
+        }
 
         this._renderQueue.viewMatrix = viewMatrix;
         this._renderQueue.projectionMatrix = projectionMatrix;
