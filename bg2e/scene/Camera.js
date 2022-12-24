@@ -315,10 +315,11 @@ export default class Camera extends Component {
     // This function regenerate the projection matrix with the new
     // aspect ratio, if the projectionStrategy is set.
     resize(width,height) {
+        this._viewport = new Vec([0, 0, width, height]);
         if (this._projectionStrategy) {
+            this._projectionStrategy.viewport = this._viewport;
             this._projectionStrategy.apply();
         }
-        this._viewport = new Vec([0, 0, width, height]);
     }
 
     async deserialize(sceneData,loader) {

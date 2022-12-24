@@ -164,10 +164,79 @@ export default class Node {
     }
 
     frame(delta, modelMatrix, renderQueue) {
-        const updateComponents = this._components.filter(comp => comp.requireUpdate);
-        const drawComponents = this._components.filter(comp => comp.requireDraw);
+        const willUpdateComponents = [];
+        const updateComponents = [];
+        const drawComponents = [];
+        this._components.forEach(comp => {
+            if (comp.requireWillUpdate) {
+                willUpdateComponents.push(comp);
+            }
+            if (comp.requireUpdate) {
+                updateComponents.push(comp);
+            }
+            if (comp.requireDraw) {
+                drawComponents.push(comp);
+            }
+        })
 
+        willUpdateComponents.forEach(comp => comp.willUpdate(delta));
         updateComponents.forEach(comp => comp.update(delta, modelMatrix));
         drawComponents.forEach(comp => comp.draw(renderQueue, modelMatrix));
+    }
+
+    keyDown(evt) {
+        this._components.forEach(comp => {
+            comp.keyDown(evt);
+        })
+    }
+    keyUp(evt) {
+        this._components.forEach(comp => {
+            comp.keyUp(evt);
+        })
+    }
+    mouseUp(evt) {
+        this._components.forEach(comp => {
+            comp.mouseUp(evt);
+        })
+    }
+    mouseDown(evt) {
+        this._components.forEach(comp => {
+            comp.mouseDown(evt);
+        })
+    }
+    mouseMove(evt) {
+        this._components.forEach(comp => {
+            comp.mouseMove(evt);
+        })
+    }
+    mouseOut(evt) {
+        this._components.forEach(comp => {
+            comp.mouseOut(evt);
+        })
+    }
+    mouseDrag(evt) {
+        this._components.forEach(comp => {
+            comp.mouseDrag(evt);
+        })
+    }
+    mouseWheel(evt) {
+        this._components.forEach(comp => {
+            comp.mouseWheel(evt);
+        })
+    }
+    touchStart(evt) {
+        this._components.forEach(comp => {
+            comp.touchStart(evt);
+        })
+    }
+    touchMove(evt) {
+        this._components.forEach(comp => {
+            comp.touchMove(evt);
+        })
+    }
+    touchEnd(evt) {
+        this._components.forEach(comp => {
+            comp.touchEnd(evt);
+        })
     }
 }

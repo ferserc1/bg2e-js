@@ -62,6 +62,7 @@ export default class Transform extends Component {
     }
 
     update(delta,modelMatrix) {
-        modelMatrix.mult(this._matrix);
+        //modelMatrix.mult(this._matrix);
+        modelMatrix.assign(Mat4.Mult(this._matrix, modelMatrix));
     }
 }

@@ -88,13 +88,49 @@ export default class Component {
         return this._renderer;
     }
 
+    // Access to brother components
+    component(identifier) {
+        return this.node.component(identifier);
+    }
+
+    get transform() {
+        return this.component("Transform");
+    }
+
+    get lightComponent() {
+        return this.component("Light");
+    }
+
+    get drawable() {
+        return this.component("Drawable");
+    }
+
+    get camera() {
+        return this.component("Camera");
+    }
+
     // Life cycle functions and properties
+    get requireWillUpdate() { return typeof(this.willUpdate) === "function" }
     get requireUpdate() { return typeof(this.update) === "function" }
     get requireDraw() { return typeof(this.draw) === "function"; }
 
     // The following functions can be implemented in component classes to complete the 
     // life cycle functions
+    // willUpdate(delta) {}
     // update(delta,modelMatrix) {}
     // draw(renderQueue,modelMatrix) {}
+
+    // Event callbacks
+    keyDown(evt) {}
+    keyUp(evt) {}
+    mouseUp(evt) {}
+    mouseDown(evt) {}
+    mouseMove(evt) {}
+    mouseOut(evt) {}
+    mouseDrag(evt) {}
+    mouseWheel(evt) {}
+    touchStart(evt) {}
+    touchMove(evt) {}
+    touchEnd(evt) {}
 }
 

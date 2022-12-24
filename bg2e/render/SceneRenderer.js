@@ -45,9 +45,40 @@ export class BindRendererVisitor extends NodeVisitor {
     }
 }
 
+export class EventCallbackVisitor extends NodeVisitor {
+    constructor(callbackName)  {
+        super();
+        this._callbackName = callbackName;
+        this._event = null;
+    }
+
+    set event(evt) {
+        this._event = evt;
+    }
+
+    get event() {
+        return this._event;
+    }
+
+    visit(node) {
+        node[this._callbackName](this._event);
+    }
+}
+
 export default class SceneRenderer {
     constructor(renderer) {
         this._renderer = renderer;
+        this._keyDownVisitor = new EventCallbackVisitor('keyDown');
+        this._keyUpVisitor = new EventCallbackVisitor('keyUp');
+        this._mouseUpVisitor = new EventCallbackVisitor('mouseUp');
+        this._mouseDownVisitor = new EventCallbackVisitor('mouseDown');
+        this._mouseMoveVisitor = new EventCallbackVisitor('mouseMove');
+        this._mouseOutVisitor = new EventCallbackVisitor('mouseOut');
+        this._mouseDragVisitor = new EventCallbackVisitor('mouseDrag');
+        this._mouseWheelVisitor = new EventCallbackVisitor('mouseWheel');
+        this._touchStartVisitor = new EventCallbackVisitor('touchStart');
+        this._touchMoveVisitor = new EventCallbackVisitor('touchMove');
+        this._touchEndVisitor = new EventCallbackVisitor('touchEnd');
     }
 
     get renderer() {
@@ -163,4 +194,60 @@ export default class SceneRenderer {
     destroy() {
 
     }
+
+    keyDown(sceneRoot, evt) {
+        this._keyDownVisitor.event = evt;
+        sceneRoot.accept(this._keyDownVisitor);
+    }
+
+    keyUp(sceneRoot, evt) {
+        this._keyUpVisitor.event = evt;
+        sceneRoot.accept(this._keyUpVisitor);
+    }
+
+    mouseUp(sceneRoot, evt) {
+        this._mouseUpVisitor.event = evt;
+        sceneRoot.accept(this._mouseUpVisitor);
+    }
+
+    mouseDown(sceneRoot, evt) {
+        this._mouseDownVisitor.event = evt;
+        sceneRoot.accept(this._mouseDownVisitor);
+    }
+
+    mouseMove(sceneRoot, evt) {
+        this._mouseMoveVisitor.event = evt;
+        sceneRoot.accept(this._mouseMoveVisitor);
+    }
+
+    mouseOut(sceneRoot, evt) {
+        this._mouseOutVisitor.event = evt;
+        sceneRoot.accept(this._mouseOutVisitor);
+    }
+
+    mouseDrag(sceneRoot, evt) {
+        this._mouseDragVisitor.event = evt;
+        sceneRoot.accept(this._mouseDragVisitor);
+    }
+
+    mouseWheel(sceneRoot, evt) {
+        this._mouseWheelVisitor.event = evt;
+        sceneRoot.accept(this._mouseWheelVisitor);
+    }
+
+    touchStart(sceneRoot, evt) {
+        this._touchStartVisitor.event = evt;
+        sceneRoot.accept(this._touchStartVisitor);
+    }
+
+    touchMove(sceneRoot, evt) {
+        this._touchMoveVisitor.event = evt;
+        sceneRoot.accept(this._touchMoveVisitor);
+    }
+
+    touchEnd(sceneRoot, evt) {
+        this._touchEndVisitor.event = evt;
+        sceneRoot.accept(this._touchEndVisitor);
+    }
+
 }
