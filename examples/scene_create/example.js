@@ -100,8 +100,8 @@ class MyAppController extends AppController {
         const cameraNode = new Node("Camera");
         cameraNode.addComponent(new Camera());
         cameraNode.camera.setMain(root);
-        cameraNode.addComponent(new Transform(Mat4.MakeTranslation(0, 0, 5)));
         this._camera = cameraNode.camera;
+        cameraNode.addComponent(new Transform(Mat4.MakeTranslation(0, 0, 5)));
         root.addChild(cameraNode);
 
         // The projection strategy allows to update the projection matrix aspect
@@ -115,7 +115,9 @@ class MyAppController extends AppController {
     }
 
     async init() {
+        // Call this method before use any scene class
         registerComponents();
+
         this._sceneRoot = await this.createScene();
 
         this._env = this.renderer.factory.environment();
@@ -127,10 +129,9 @@ class MyAppController extends AppController {
         await this._sceneRenderer.init();
         await this._sceneRenderer.setEnvironment(this._env);
 
-
-        this._viewMatrix = Mat4.MakeIdentity();
-        this._projMatrix = Mat4.MakeIdentity();
-
+        // This function binds the current renderer to the scene. You can skip this
+        // function if you only going to use the scene functions to read or write
+        // scenes, but you don't need to render it.
         this._sceneRenderer.bindRenderer(this._sceneRoot);
     }
 
