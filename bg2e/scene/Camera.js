@@ -1,7 +1,7 @@
 import Mat4 from "../math/Mat4";
+import Vec from "../math/Vec";
 import Component from "./Component";
 import MatrixStrategy from "../math/MatrixStrategy";
-import Vec from "../math/Vec";
 import { radiansToDegrees } from "../math/functions";
 import NodeVisitor from "./NodeVisitor";
 
@@ -215,6 +215,26 @@ class SetMainCameraVisitor extends NodeVisitor {
     }
 }
 
+class GetMainCameraVisitor extends NodeVisitor {
+    constructor() {
+        super();
+        this._mainCamera;
+    }
+
+    get mainCamera() {
+        return this._mainCamera;
+    }
+
+    visit(node) {
+        if (node.camera && node.camera.isMain) {
+            if (this._mainCamera) {
+                console.warn("More than one main cameras found in the scene");
+            }
+            this._mainCamera = node.camera;
+        }
+    }
+}
+
 export default class Camera extends Component {
     static SetMain(sceneRoot,camera) {
         if (!sceneRoot instanceof Node || sceneRoot.parent !== null) {
@@ -289,6 +309,16 @@ export default class Camera extends Component {
 
     set projectionStrategy(ps) {
         this._projectionStrategy = ps;
+        this._projectionStrategy.target = this._projectionMatrix;
+    }
+
+    // This function regenerate the projection matrix with the new
+    // aspect ratio, if the projectionStrategy is set.
+    resize(width,height) {
+        if (this._projectionStrategy) {
+            this._projectionStrategy.apply();
+        }
+        this._viewport = new Vec([0, 0, width, height]);
     }
 
     async deserialize(sceneData,loader) {

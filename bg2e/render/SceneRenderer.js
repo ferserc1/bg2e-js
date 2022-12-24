@@ -3,7 +3,9 @@ import { BlendFunction } from "./Pipeline";
 import RenderQueue from "./RenderQueue";
 import NodeVisitor from "../scene/NodeVisitor";
 import Mat4 from "../math/Mat4";
+import Vec from "../math/Vec";
 import Camera from "../scene/Camera";
+import Transform from "../scene/Transform";
 
 export class FrameVisitor extends NodeVisitor {
     constructor(renderQueue) {
@@ -107,20 +109,27 @@ export default class SceneRenderer {
         sceneRoot.accept(bindRendererVisitor);
     }
 
+    resize(sceneRoot, width,height) {
+        this.renderer.viewport = new Vec([0, 0, width, height]);
+        this.renderer.canvas.updateViewportSize();
+        const mainCamera = Camera.GetMain(sceneRoot);
+        if (mainCamera) {
+            mainCamera.resize(width,height);
+        }
+    }
+
     frame(sceneRoot,delta) {
         this._renderQueue.newFrame();
         this._frameVisitor.delta = delta;
         this._frameVisitor.modelMatrix.identity();
 
-        // TODO: extract view and proyection matrixes from cameras in scene using
-        // a node component visitor to find the main camera. If there is no camera in
-        // the scene, use the default values
         const mainCamera = Camera.GetMain(sceneRoot);
 
         let viewMatrix = this.defaultViewMatrix;
         let projectionMatrix = this.defaultProjectionMatrix;
         if (mainCamera) {
             projectionMatrix = mainCamera.projectionMatrix;
+            viewMatrix = Mat4.GetInverted(Transform.GetWorldMatrix(mainCamera.node));
         }
 
         this._renderQueue.viewMatrix = viewMatrix;
