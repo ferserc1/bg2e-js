@@ -5,6 +5,7 @@ import NodeVisitor from "../scene/NodeVisitor";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
 import Camera from "../scene/Camera";
+import FindNodeVisitor from "../scene/FindNodeVisitor";
 import Transform from "../scene/Transform";
 
 export class FrameVisitor extends NodeVisitor {
@@ -45,6 +46,19 @@ export class BindRendererVisitor extends NodeVisitor {
     }
 }
 
+export class InitVisitor extends NodeVisitor {
+    constructor() {
+        super();
+    }
+
+    async asyncVisit(node) {
+        for (const i in node.components.array) {
+            const comp = node.components.array[i];
+            await comp.init();
+        }
+    }
+}
+
 export class EventCallbackVisitor extends NodeVisitor {
     constructor(callbackName)  {
         super();
@@ -79,6 +93,9 @@ export default class SceneRenderer {
         this._touchStartVisitor = new EventCallbackVisitor('touchStart');
         this._touchMoveVisitor = new EventCallbackVisitor('touchMove');
         this._touchEndVisitor = new EventCallbackVisitor('touchEnd');
+
+        // This will be the EnvironmentComponent component, if one is defined in the scene.
+        this._sceneEnvironment = null;
     }
 
     get renderer() {
@@ -135,9 +152,21 @@ export default class SceneRenderer {
         this._defaultProjectionMatrix = mat;
     }
     
-    bindRenderer(sceneRoot) {
+    async bindRenderer(sceneRoot) {
         const bindRendererVisitor = new BindRendererVisitor(this.renderer);
         sceneRoot.accept(bindRendererVisitor);
+
+        const initVisitor = new InitVisitor();
+        await sceneRoot.asyncAccept(initVisitor);
+
+        const findVisitor = new FindNodeVisitor();
+        findVisitor.hasComponents("Environment");
+        sceneRoot.accept(findVisitor);
+        if (findVisitor.result.length) {
+            const comp = findVisitor.result[0].component("Environment");
+            this.setEnvironment(comp.environment);
+            this._sceneEnvironment = comp;
+        }
     }
 
     resize(sceneRoot, width,height) {
@@ -183,7 +212,7 @@ export default class SceneRenderer {
             this.environment.updateMaps();
         }
 
-        if (drawSky) {
+        if (drawSky && (!this._sceneEnvironment || this._sceneEnvironment.showSkybox)) {
             this._skyCube.draw();
         }
 

@@ -10,9 +10,9 @@ import { createSphere } from "bg2e/primitives";
 import Drawable from "bg2e/scene/Drawable";
 import Material from "bg2e/base/Material";
 import Camera, { OpticalProjectionStrategy } from "bg2e/scene/Camera";
-import Component from "bg2e/scene/Component";
 import SceneAppController from "bg2e/render/SceneAppController";
 import OrbitCameraController from "bg2e/scene/OrbitCameraController";
+import EnvironmentComponent from "bg2e/scene/EnvironmentComponent";
 
 class MyAppController extends SceneAppController {
     async loadScene() {
@@ -112,15 +112,12 @@ class MyAppController extends SceneAppController {
         cameraProjection.frameSize = 35;
         this._camera.projectionStrategy = cameraProjection;
 
-        return root;
-    }
+        const env = new EnvironmentComponent();
+        env.equirectangularTexture = '../resources/equirectangular-env3.jpg';
+        env.showSkybox = true;
+        root.addComponent(env);
 
-    async loadEnvironment() {
-        //const env = this.renderer.factory.environment();
-        //await env.load({
-        //    textureUrl: '../resources/equirectangular-env3.jpg'
-        //});
-        //return env;
+        return root;
     }
 }
 

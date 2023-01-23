@@ -16,6 +16,10 @@ export default class ComponentMap {
         this._array = [];
     }
 
+    get array() {
+        return this._array;
+    }
+
     add(comp) {
         const typeId = comp.typeId;
         const existingComp = this._obj[typeId];

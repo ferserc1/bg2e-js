@@ -46,7 +46,7 @@ export default class SceneAppController extends AppController {
             await this.sceneRenderer.setEnvironment(this.environment);
         }
 
-        this.sceneRenderer.bindRenderer(this.sceneRoot);
+        await this.sceneRenderer.bindRenderer(this.sceneRoot);
     }
 
     reshape(width,height) {

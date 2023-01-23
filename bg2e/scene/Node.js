@@ -145,6 +145,15 @@ export default class Node {
             nodeVisitor.visit(this);
         }
     }
+
+    async asyncAccept(nodeVisitor) {
+        if (!nodeVisitor.ignoreDisabled || this.enabled) {
+            await nodeVisitor.asyncVisit(this);
+            for (const ch in this._children) {
+                await this._children[ch].asyncAccept(nodeVisitor);
+            }
+        }
+    }
     
     // Most usual components
     get transform() {

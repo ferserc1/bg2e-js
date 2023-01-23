@@ -6,6 +6,8 @@ import Chain from "./Chain";
 import { InputChainJoint, OutputChainJoint } from "./ChainJoint";
 import Light from "./LightComponent";
 import Camera from "./Camera";
+import OrbitCameraController from "./OrbitCameraController";
+import EnvironmentComponent from "./EnvironmentComponent";
 import { registerComponent } from "./Component";
 
 export const registerComponents = () => {
@@ -16,5 +18,7 @@ export const registerComponents = () => {
     registerComponent("InputChainJoint", InputChainJoint);
     registerComponent("OutputChainJoint", OutputChainJoint);
     registerComponent("Camera", Camera);
+    registerComponent("OrbitCameraController", OrbitCameraController);
+    registerComponent("Environment", EnvironmentComponent);
     // TODO: Register more components
 }
