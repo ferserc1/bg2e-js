@@ -116,11 +116,11 @@ class MyAppController extends SceneAppController {
     }
 
     async loadEnvironment() {
-        const env = this.renderer.factory.environment();
-        await env.load({
-            textureUrl: '../resources/equirectangular-env3.jpg'
-        });
-        return env;
+        //const env = this.renderer.factory.environment();
+        //await env.load({
+        //    textureUrl: '../resources/equirectangular-env3.jpg'
+        //});
+        //return env;
     }
 }
 

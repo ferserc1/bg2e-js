@@ -35,6 +35,11 @@ export default class SceneAppController extends AppController {
 
         this._environment = await this.loadEnvironment();
 
+        if (!this._environment) {
+            this._environment = this.renderer.factory.environment();
+            await this._environment.load();   // Load black environment
+        }
+
         this._sceneRenderer = this.renderer.factory.scene();
         await this.sceneRenderer.init();
         if (this.environment) {

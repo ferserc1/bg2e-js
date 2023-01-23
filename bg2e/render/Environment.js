@@ -61,11 +61,11 @@ export default class Environment {
     }
 
     async load({ 
-        textureUrl, 
+        textureUrl = null,
         environmentMapSize = [ 512, 512 ],
         specularMapSize = [ 128, 128 ],
         irradianceMapSize = [32, 32]
-    }) {
+    } = {}) {
         this._envMapSize = environmentMapSize;
         this._specMapSize = specularMapSize;
         this._irrMapSize = irradianceMapSize;

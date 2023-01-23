@@ -2,9 +2,10 @@ import { createSphere } from "../primitives";
 import SkySphereShader from "../shaders/SkySphereShader";
 import RenderState from "./RenderState";
 import Material from "../base/Material";
-import Texture from "../base/Texture";
+import Texture, { ProceduralTextureFunction, TextureFilter, TextureWrap } from "../base/Texture";
 import Mat4 from "../math/Mat4";
 import { PolyListCullFace, PolyListFrontFace } from "../base/PolyList";
+import Color from "../base/Color";
 
 export default class SkySphere {
     constructor(renderer) {
@@ -15,7 +16,18 @@ export default class SkySphere {
 
     async load(equirectangularTextureUrl, Shader = null) {
         this._texture = new Texture();
-        this._texture.fileName = equirectangularTextureUrl;
+        if (equirectangularTextureUrl) {
+            this._texture.fileName = equirectangularTextureUrl;
+        }
+        else {
+            // Load black texture
+            this._texture.magFilter = TextureFilter.NEAREST;
+            this._texture.minFilter = TextureFilter.NEAREST;
+            this._texture.wrapModeXY = TextureWrap.REPEAT;
+            this._texture.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
+            this._texture.proceduralParameters = Color.Black();
+            this._texture.size = [2, 2];
+        }
         await this._texture.loadImageData();
 
         this._material = new Material();
