@@ -12,22 +12,7 @@ import Material from "bg2e/base/Material";
 import Camera, { OpticalProjectionStrategy } from "bg2e/scene/Camera";
 import Component from "bg2e/scene/Component";
 import SceneAppController from "bg2e/render/SceneAppController";
-
-class RotateComponent extends Component {
-    constructor() {
-        super("RotateComponent");
-    }
-
-    clone() {
-        return new RotateComponent();
-    }
-
-    willUpdate(delta) {
-        if (this.transform) {
-            this.transform.matrix.rotate(delta / 1000, 0, 1, 0);
-        }
-    }
-}
+import OrbitCameraController from "bg2e/scene/OrbitCameraController";
 
 class MyAppController extends SceneAppController {
     async loadScene() {
@@ -60,7 +45,6 @@ class MyAppController extends SceneAppController {
 
         const spheres = new Node("Spheres");
         spheres.addComponent(new Transform());
-        spheres.addComponent(new RotateComponent());
         root.addChild(spheres);
 
         spheres.addChild(await addSphere(0.0, 1.0, [0.93, 0.95, 0.95, 1], [ -3, 3, 0 ]));
@@ -118,6 +102,7 @@ class MyAppController extends SceneAppController {
         cameraNode.camera.setMain(root);
         this._camera = cameraNode.camera;
         cameraNode.addComponent(new Transform(Mat4.MakeTranslation(0, 0, 5)));
+        cameraNode.addComponent(new OrbitCameraController());
         root.addChild(cameraNode);
 
         // The projection strategy allows to update the projection matrix aspect

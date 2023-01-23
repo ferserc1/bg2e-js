@@ -32,8 +32,40 @@ export const createMouseEvent = (evt,mainLoop,buttonType) => {
     return new MouseEvent(evt.button, mainLoop.mouseStatus.pos.x, mainLoop.mouseStatus.pos.y, 0, evt);
 }
 
+const g_mouseButtons = [false,false,false];
+export const leftMouseButton = () => {
+    return g_mouseButtons[0];
+}
+
+export const middleMouseButton = () => {
+    return g_mouseButtons[1];
+}
+
+export const rightMouseButton = () => {
+    return g_mouseButtons[2];
+}
+
+export const clearMouseButtons = () => {
+    g_mouseButtons[0] = false;
+    g_mouseButtons[1] = false;
+    g_mouseButtons[2] = false;
+}
+
+export const setMouseButton = (event, status) => {
+    switch (event.button) {
+    case MouseButton.LEFT:
+        g_mouseButtons[0] = status;
+        break;
+    case MouseButton.MIDDLE:
+        g_mouseButtons[1] = status;
+        break;
+    case MouseButton.RIGHT:
+        g_mouseButtons[2] = status;
+        break;
+    }
+}
 export default class MouseEvent extends EventBase {
-    
+
     constructor(button = MouseButton.NONE, x=-1, y=-1, delta=0,event=null) {
         super();
         this.button = button;

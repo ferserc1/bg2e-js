@@ -154,7 +154,7 @@ export class OpticalProjectionStrategy extends ProjectionStrategy {
     }
 }
 
-export class OrtographicProjectionStrategy extends ProjectionStrategy {
+export class OrthographicProjectionStrategy extends ProjectionStrategy {
     constructor(target) {
         super(target);
         this._viewWidth = 100;
@@ -164,7 +164,7 @@ export class OrtographicProjectionStrategy extends ProjectionStrategy {
     get viewWidth() { return this._viewWidth; }
 
     clone() {
-        const other = new OrtographicProjectionStrategy(this._target);
+        const other = new OrthographicProjectionStrategy(this._target);
         other.assign(this);
         return other;
     }
@@ -184,7 +184,7 @@ export class OrtographicProjectionStrategy extends ProjectionStrategy {
     }
 
     serialize(jsonData) {
-        jsonData.type = "OrtographicProjectionStrategy";
+        jsonData.type = "OrthographicProjectionStrategy";
         jsonData.viewWidth = this.viewWidth;
         super.serialize(jsonData);
     }

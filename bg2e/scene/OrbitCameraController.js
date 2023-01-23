@@ -1,8 +1,42 @@
 import Color from "../base/Color";
 import Vec from "../math/Vec";
-import { ProjectionStrategy } from "./Camera";
+import { ProjectionStrategy, OrthographicProjectionStrategy } from "./Camera";
 import Component from "./Component";
+import { SpecialKey } from "../app/KeyboardEvent";
+import MouseEvent, {
+    leftMouseButton, 
+    middleMouseButton, 
+    rightMouseButton
+} from "../app/MouseEvent";
+import { degreesToRadians } from "../math/functions";
 
+export const Action = {
+    NONE: 0,
+    ROTATE: 1,
+    PAN: 2,
+    ZOOM: 3
+};
+
+function getOrbitAction(cameraCtrl) {
+    let left = leftMouseButton(),
+        middle = middleMouseButton(),
+        right = rightMouseButton();
+            
+    switch (true) {
+        case left==cameraCtrl._rotateButtons.left &&
+             middle==cameraCtrl._rotateButtons.middle &&
+             right==cameraCtrl._rotateButtons.right:
+             return Action.ROTATE;
+        case left==cameraCtrl._panButtons.left &&
+             middle==cameraCtrl._panButtons.middle &&
+             right==cameraCtrl._panButtons.right:
+             return Action.PAN;
+        case left==cameraCtrl._zoomButtons.left &&
+             middle==cameraCtrl._zoomButtons.middle &&
+             right==cameraCtrl._zoomButtons.right:
+             return Action.ZOOM;
+    }
+}
 export default class OrbitCameraController extends Component {
     constructor() {
         super("OrbitCameraController");
@@ -11,7 +45,7 @@ export default class OrbitCameraController extends Component {
         this._panButtons = { left:false, middle:false, right:true };
         this._zoomButtons = { left:false, middle:true, right:false };
         
-        this._rotation = new Vec([0, 0, 0]);
+        this._rotation = new Vec([0, 0]);
         this._distance = 5;
         this._center = new Vec([0, 0, 0]);
         this._rotationSpeed = 0.2;
@@ -20,17 +54,17 @@ export default class OrbitCameraController extends Component {
         this._wheelSpeed = 1;
         this._minFocus = 2;
 
-        this._minPitch = 0.1;
+        this._minPitch = -85.0;
         this._maxPitch = 85.0;
         this._minDistance = 0.4;
         this._maxDistance = 24.0;
         
-        this._maxX = 15;
-        this._minX = -15;
-        this._minY = 0.1;
-        this._maxY = 2.0;
-        this._maxZ = 15;
-        this._minZ = -15;
+        this._maxX = 45;
+        this._minX = -45;
+        this._minY = -45;
+        this._maxY = 45;
+        this._maxZ = 45;
+        this._minZ = -45;
 
         this._displacementSpeed = 0.1;
 
@@ -199,13 +233,12 @@ export default class OrbitCameraController extends Component {
         let orthoStrategy = this.camera && this.camera.projectionStrategy instanceof OrthographicProjectionStrategy ?
             this.camera.projectionStrategy : null;
         
-        // TODO: Update the following code to the v2.0 API
         if (this.transform && this.enabled) {
             let forward = this.transform.matrix.forwardVector;
             let left = this.transform.matrix.leftVector;
             forward.scale(this._forward);
             left.scale(this._left);
-            this._center.add(forward).add(left);
+            this._center = Vec.Add(Vec.Add(this._center, forward), left);
             
             let pitch = this._rotation.x>this._minPitch ? this._rotation.x:this._minPitch;
             pitch = pitch<this._maxPitch ? pitch : this._maxPitch;
@@ -215,25 +248,21 @@ export default class OrbitCameraController extends Component {
             this._distance = this._distance<this._maxDistance ? this._distance:this._maxDistance;
 
             if (this._mouseButtonPressed) {
-                let displacement = new bg.Vector3();
-                if (this._keys[bg.app.SpecialKey.UP_ARROW]) {
-                    displacement.add(this.transform.matrix.backwardVector);
-                    bg.app.MainLoop.singleton.windowController.postRedisplay();
+                let displacement = new Vec([0,0,0]);
+                if (this._keys[SpecialKey.UP_ARROW]) {
+                    displacement = Vec.Add(displacement, this.transform.matrix.backwardVector);
                 }
-                if (this._keys[bg.app.SpecialKey.DOWN_ARROW]) {
-                    displacement.add(this.transform.matrix.forwardVector);
-                    bg.app.MainLoop.singleton.windowController.postRedisplay();
+                if (this._keys[SpecialKey.DOWN_ARROW]) {
+                    displacement = Vec.Add(displacement, this.transform.matrix.forwardVector);
                 }
-                if (this._keys[bg.app.SpecialKey.LEFT_ARROW]) {
-                    displacement.add(this.transform.matrix.leftVector);
-                    bg.app.MainLoop.singleton.windowController.postRedisplay();
+                if (this._keys[SpecialKey.LEFT_ARROW]) {
+                    displacement = Vec.Add(displacement, this.transform.matrix.leftVector);
                 }
-                if (this._keys[bg.app.SpecialKey.RIGHT_ARROW]) {
-                    displacement.add(this.transform.matrix.rightVector);
-                    bg.app.MainLoop.singleton.windowController.postRedisplay();
+                if (this._keys[SpecialKey.RIGHT_ARROW]) {
+                    displacement = Vec.Add(displacement, this.transform.matrix.rightVector);
                 }
                 displacement.scale(this._displacementSpeed);
-                this._center.add(displacement);
+                this._center = Vec.Add(this._center, displacement);
             }
 
             if (this._center.x<this._minX) this._center.x = this._minX;
@@ -245,11 +274,8 @@ export default class OrbitCameraController extends Component {
             if (this._center.z<this._minZ) this._center.z = this._minZ;
             else if (this._center.z>this._maxZ) this._center.z = this._maxZ;
 
-            this.transform.matrix
-                    .identity()
-                    .translate(this._center)
-                    .rotate(bg.Math.degreesToRadians(this._rotation.y), 0,1,0)
-                    .rotate(bg.Math.degreesToRadians(pitch), -1,0,0);
+            
+            this.transform.matrix.identity();
 
             if (orthoStrategy) {
                 orthoStrategy.viewWidth = this._viewWidth;
@@ -257,19 +283,18 @@ export default class OrbitCameraController extends Component {
             else {
                 this.transform.matrix.translate(0,0,this._distance);
             }
+            this.transform.matrix.rotate(degreesToRadians(pitch), -1,0,0)
+                        .rotate(degreesToRadians(this._rotation.y), 0,1,0)
+                        .translate(this._center);
         }
-        
-        if (this.camera) {
-            this.camera.focus = this._distance>this._minFocus ? this._distance:this._minFocus;
-            
-        }
+
     }
 
     // TODO; Update the following code to the v2.0 API
     mouseDown(evt) {
         if (!this.enabled) return;
         this._mouseButtonPressed = true;
-        this._lastPos = new bg.Vector2(evt.x,evt.y);
+        this._lastPos = new Vec(evt.x,evt.y);
     }
 
     mouseUp(evt) {
@@ -278,17 +303,15 @@ export default class OrbitCameraController extends Component {
     
     mouseDrag(evt) {
         if (this.transform && this._lastPos && this.enabled) {
-            let delta = new bg.Vector2(this._lastPos.y - evt.y,
-                                     this._lastPos.x - evt.x);
+            let delta = new Vec(this._lastPos.y - evt.y,
+                                this._lastPos.x - evt.x);
             this._lastPos.set(evt.x,evt.y);
-            let orthoStrategy = this.camera && typeof(this.camera.projectionStrategy)=="object" &&
-                            this.camera.projectionStrategy instanceof bg.scene.OrthographicProjectionStrategy ?
-                            true : false;
+            let orthoStrategy = this.camera && this.camera.projectionStrategy instanceof OrthographicProjectionStrategy || false;
 
             switch (getOrbitAction(this)) {
                 case Action.ROTATE:
                     delta.x = delta.x * -1;
-                    this._rotation.add(delta.scale(0.5));
+                    this._rotation = Vec.Add(this._rotation, delta.scale(0.5));
                     break;
                 case Action.PAN:
                     let up = this.transform.matrix.upVector;
@@ -302,7 +325,7 @@ export default class OrbitCameraController extends Component {
                         up.scale(delta.x * -0.001 * this._distance);
                         left.scale(delta.y * -0.001 * this._distance);
                     }
-                    this._center.add(up).add(left);
+                    this._center = Vec.Add(Vec.Add(this._center, up), left);
                     break;
                 case Action.ZOOM:
                     this._distance += delta.x * 0.01 * this._distance;
@@ -328,49 +351,49 @@ export default class OrbitCameraController extends Component {
     }
     
     touchMove(evt) {
-        if (this._lastTouch.length==evt.touches.length && this.transform && this.enabled) {
-            if (this._lastTouch.length==1) {
-                // Rotate
-                let last = this._lastTouch[0];
-                let t = evt.touches[0];
-                let delta = new bg.Vector2((last.y - t.y)  * -1.0, last.x - t.x);
-                
-                this._rotation.add(delta.scale(0.5));
-            }
-            else if (this._lastTouch.length==2) {
-                // Pan/zoom
-                let l0 = this._lastTouch[0];
-                let l1 = this._lastTouch[1];
-                let t0 = null;
-                let t1 = null;
-                evt.touches.forEach((touch) => {
-                    if (touch.identifier==l0.identifier) {
-                        t0 = touch;
-                    }
-                    else if (touch.identifier==l1.identifier) {
-                        t1 = touch;
-                    }
-                });
-                let dist0 = Math.round((new bg.Vector2(l0.x,l0.y)).sub(new bg.Vector3(l1.x,l1.y)).magnitude());
-                let dist1 = Math.round((new bg.Vector2(t0.x,t0.y)).sub(new bg.Vector3(t1.x,t1.y)).magnitude());
-                let delta = new bg.Vector2(l0.y - t0.y, l1.x - t1.x);
-                let up = this.transform.matrix.upVector;
-                let left = this.transform.matrix.leftVector;
-                
-                up.scale(delta.x * -0.001 * this._distance);
-                left.scale(delta.y * -0.001 * this._distance);
-                this._center.add(up).add(left);
-                    
-                this._distance += (dist0 - dist1) * 0.005 * this._distance;
-            }
-        }
-        this._lastTouch = evt.touches;
+        // TODO: Update this code to v2.0 API
+        //if (this._lastTouch.length==evt.touches.length && this.transform && this.enabled) {
+        //    if (this._lastTouch.length==1) {
+        //        // Rotate
+        //        let last = this._lastTouch[0];
+        //        let t = evt.touches[0];
+        //        let delta = new bg.Vec((last.y - t.y)  * -1.0, last.x - t.x);
+        //        
+        //        this._rotation = Vec.Add(this._rotation, delta.scale(0.5));
+        //    }
+        //    else if (this._lastTouch.length==2) {
+        //        // Pan/zoom
+        //        let l0 = this._lastTouch[0];
+        //        let l1 = this._lastTouch[1];
+        //        let t0 = null;
+        //        let t1 = null;
+        //        evt.touches.forEach((touch) => {
+        //            if (touch.identifier==l0.identifier) {
+        //                t0 = touch;
+        //            }
+        //            else if (touch.identifier==l1.identifier) {
+        //                t1 = touch;
+        //            }
+        //        });
+        //        let dist0 = Math.round((new Vec(l0.x,l0.y)).sub(new bg.Vector3(l1.x,l1.y)).magnitude());
+        //        let dist1 = Math.round((new Vec(t0.x,t0.y)).sub(new bg.Vector3(t1.x,t1.y)).magnitude());
+        //        let delta = new bg.Vector2(l0.y - t0.y, l1.x - t1.x);
+        //        let up = this.transform.matrix.upVector;
+        //        let left = this.transform.matrix.leftVector;
+        //        
+        //        up.scale(delta.x * -0.001 * this._distance);
+        //        left.scale(delta.y * -0.001 * this._distance);
+        //        this._center.add(up).add(left);
+        //            
+        //        this._distance += (dist0 - dist1) * 0.005 * this._distance;
+        //    }
+        //}
+        //this._lastTouch = evt.touches;
     }
 
     keyDown(evt) {
         if (!this.enabled) return;
         this._keys[evt.key] = true;
-        bg.app.MainLoop.singleton.windowController.postRedisplay();
     }
 
     keyUp(evt) {

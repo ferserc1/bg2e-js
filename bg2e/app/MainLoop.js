@@ -1,5 +1,12 @@
 
-import { MouseButtonEventType, createMouseEvent } from "./MouseEvent";
+import { 
+    MouseButtonEventType, 
+    createMouseEvent, 
+    leftMouseButton,
+    middleMouseButton,
+    clearMouseButtons,
+    setMouseButton
+} from "./MouseEvent";
 import { createTouchEvent } from "./TouchEvent";
 import { createKeyboardEvent } from "./KeyboardEvent";
 
@@ -166,6 +173,7 @@ function onUpdate(mainLoop, elapsed) {
 
 function onMouseDown(evt,mainLoop) {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.DOWN);
+    setMouseButton(bg2Event, true);
     mainLoop.appController.mouseDown(bg2Event);
     return bg2Event;
 }
@@ -181,6 +189,7 @@ function onMouseMove(evt,mainLoop) {
 
 function onMouseOut(evt,mainLoop) {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.NONE);
+    clearMouseButtons();
     mainLoop.appController.mouseOut(bg2Event);
     return bg2Event;
 }
@@ -191,6 +200,7 @@ function onMouseOver(evt,mainLoop) {
 
 function onMouseUp(evt,mainLoop) {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.UP);
+    setMouseButton(bg2Event, false);
     mainLoop.appController.mouseUp(bg2Event);
     return bg2Event;
 }
