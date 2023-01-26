@@ -1,12 +1,9 @@
 import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
-import * as math from "bg2e/math/functions";
 import Canvas from "bg2e/app/Canvas";
 import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
 import Mat4 from "bg2e/math/Mat4";
 import ShaderProgram from "bg2e/render/webgl/ShaderProgram";
-import VertexBuffer, { BufferTarget } from "bg2e/render/webgl/VertexBuffer";
-import { SpecialKey } from "bg2e/app/KeyboardEvent";
 import Vec from "bg2e/math/Vec";
 import Color from "bg2e/base/Color";
 import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
@@ -15,8 +12,6 @@ import { registerComponents } from "bg2e/scene";
 import Shader from "bg2e/render/Shader";
 import Material from "bg2e/base/Material";
 import RenderState from "bg2e/render/RenderState";
-import Texture, { TextureTargetName, ProceduralTextureFunction } from "bg2e/base/Texture";
-import { RenderLayer } from "bg2e/base/PolyList";
 import { createCube, createSphere, createCylinder, createCone, createPlane } from 'bg2e/primitives';
 
 window.Mat4 = Mat4;

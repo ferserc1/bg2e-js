@@ -53,8 +53,6 @@ class MyAppController extends AppController {
 
         const viewMatrix = Mat4.GetInverted(this._cameraMatrix);
 
-        //this._skySphere.updateRenderState({ viewMatrix, projectionMatrix: this._projectionMatrix });
-
         this._skyCube.updateRenderState({ viewMatrix, projectionMatrix: this._projectionMatrix });
     }
 

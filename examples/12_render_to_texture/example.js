@@ -2,7 +2,7 @@ import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
 import Canvas from "bg2e/app/Canvas";
 import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
-import Texture, { TextureComponentFormat, TextureDataType, TextureRenderTargetAttachment } from "bg2e/base/Texture";
+import Texture, { TextureComponentFormat, TextureDataType, TextureRenderTargetAttachment, TextureWrap } from "bg2e/base/Texture";
 import Vec from "bg2e/math/Vec";
 import BasicDiffuseColorShader from "bg2e/shaders/BasicDiffuseColorShader";
 import { createCube, createPlane, createSphere } from "bg2e/primitives";
@@ -30,6 +30,9 @@ class MyAppController extends AppController {
         // In this case we use an unsigned byte texture, but it also can be used a floating point texture,
         // if the engine supports it
         this._rttTarget.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
+        // If the texture is not a power of two (in this case it is not, because it is the size of
+        // the viewport), you have to set the wrap mode to clamp
+        this._rttTarget.wrapModeXY = TextureWrap.CLAMP;
 
         // Create a render buffer and attach the texture renderer
         this._renderBuffer = this.renderer.factory.renderBuffer();
@@ -43,6 +46,7 @@ class MyAppController extends AppController {
         this._rttDepth = new Texture();
         this._rttDepth.renderTargetAttachment = TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
         this._rttDepth.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
+        this._rttDepth.wrapModeXY = TextureWrap.CLAMP;
         await this._renderBuffer.attachTexture(this._rttDepth);
 
         this.renderer.state.depthTestEnabled = true;

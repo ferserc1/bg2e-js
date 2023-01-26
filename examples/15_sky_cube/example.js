@@ -4,12 +4,8 @@ import AppController from "bg2e/app/AppController";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
 import Vec from "bg2e/math/Vec";
 import Mat4 from "bg2e/math/Mat4";
-import { createCube, createSphere } from "bg2e/primitives";
-import Material from "bg2e/base/Material";
-import RenderState from "bg2e/render/RenderState";
-import BasicDiffuseColorShader from "bg2e/shaders/BasicDiffuseColorShader";
 import Texture, { TextureRenderTargetAttachment, TextureTarget, TextureTargetName } from "bg2e/base/Texture";
-import IrradianceMapCubeShader from "bg2e/shaders/IrradianceMapCubeShader";
+import SpecularMapCubeShader from "bg2e/shaders/SpecularMapCubeShader";
 
 class MyAppController extends AppController {
     async init() {
@@ -45,7 +41,10 @@ class MyAppController extends AppController {
         this._renderBuffer.size = new Vec(512, 512);
 
         this._skyCube = this.renderer.factory.skyCube();
-        await this._skyCube.load(this._cubemapTexture, IrradianceMapCubeShader);
+        // SpecularMapCubeShader is the shader used to render the sky cube.
+        // 0.2 is the roughness shader parameter. The shader parameters are passed to
+        // the `load()` function of the SpecularMapCubeShader
+        await this._skyCube.load(this._cubemapTexture, SpecularMapCubeShader, [0.2]);
 
         this._mouseOffset = new Vec([0,0]);
     }
