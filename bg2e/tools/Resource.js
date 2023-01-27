@@ -50,6 +50,23 @@ export const removeFileName = (url) => {
     return url;
 }
 
+export const isAbsolute = (url) => {
+    return /^http|^\//i.test(url);
+}
+
+export const jointUrl = (base,append) => {
+    if (base[base.length - 1] !== '/' && append[0] !== '/') {
+        return `${base}/${append}`;
+    }
+    else if ((base[base.length - 1] === '/' && append[0] !== '/') ||
+             (base[base.length - 1] !== '/' && append[0] === '/')) {
+        return `${base}${append}`;
+    }
+    else {
+        return `${base}${append.slice(1)}`;
+    }
+}
+
 export const isFormat = (url,formats) => formats.some(fmt => (new RegExp(`\.${fmt}`,'i')).test(url));
 
 export const addFormats = (fmts, dst) => {

@@ -219,10 +219,20 @@ class GetMainCameraVisitor extends NodeVisitor {
     constructor() {
         super();
         this._mainCamera;
+        this._firstCameraFound;
     }
 
     get mainCamera() {
         return this._mainCamera;
+    }
+
+    get firstCameraFound() {
+        return this._firstCameraFound;
+    }
+
+    clear() {
+        this._mainCamera = null;
+        this._firstCameraFound = null;
     }
 
     visit(node) {
@@ -231,6 +241,9 @@ class GetMainCameraVisitor extends NodeVisitor {
                 console.warn("More than one main cameras found in the scene");
             }
             this._mainCamera = node.camera;
+        }
+        else if (node.camera && !this._firstCameraFound) {
+            this._firstCameraFound = node.camera;
         }
     }
 }
@@ -249,7 +262,7 @@ export default class Camera extends Component {
         if (!sceneRoot.__mainCamera__) {
             const visitor = new GetMainCameraVisitor();
             sceneRoot.accept(visitor);
-            sceneRoot.__mainCamera__ = visitor.result;
+            sceneRoot.__mainCamera__ = visitor.result || visitor.firstCameraFound;
         }
         return sceneRoot.__mainCamera__;
     }

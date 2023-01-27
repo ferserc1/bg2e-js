@@ -1,7 +1,7 @@
 import Canvas from "bg2e/app/Canvas";
 import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
-import Camera from "bg2e/scene/Camera";
+import Camera, { OpticalProjectionStrategy } from "bg2e/scene/Camera";
 import SceneAppController from "bg2e/render/SceneAppController";
 import OrbitCameraController from "bg2e/scene/OrbitCameraController";
 import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
@@ -22,10 +22,11 @@ class MyAppController extends SceneAppController {
         const root = await loader.loadNode("../resources/test-scene/test-scene.vitscnj");
 
         // Get main camera
-        const mainCamera = Camera.GetMain(root);
-        console.log(mainCamera);
-
         // Add Orbit camera controller component to the camera node
+        const mainCamera = Camera.GetMain(root);
+        mainCamera.projectionStrategy = new OpticalProjectionStrategy();
+        //mainCamera.node.addComponent(new OrbitCameraController());
+
         return root;
     }
 }

@@ -82,7 +82,7 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
         this._resource = new Resource();
     }
 
-    get supportedExtensions() { return ["bg2"]; }
+    get supportedExtensions() { return ["bg2","vwglb"]; }
 
     get resourceTypes() {
         return [

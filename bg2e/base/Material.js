@@ -235,6 +235,10 @@ const deserializeValueTexture = (obj,relativePath) => {
     else if (typeof(obj) === "number") {
         return obj;
     }
+    else if (Array.isArray(obj)) {
+        // Obsolete option. Return the mean array value
+        return obj.reduce((a,b) => a + b) / obj.length;
+    }
     else if (obj.type === "Texture") {
         const tex = new Texture();
         tex.deserialize(obj.data);

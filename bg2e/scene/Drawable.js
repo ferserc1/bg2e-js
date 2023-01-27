@@ -75,7 +75,22 @@ export default class Drawable extends Component {
     }
 
     async deserialize(sceneData,loader) {
-        throw new Error("Drawable.deserialize() not implemented");
+        const tryload = async (drawablePath) => {
+            try {
+                const result = await loader.loadDrawable(drawablePath);
+                return result;
+            }
+            catch (err) {
+
+            }
+        }
+
+        const drw = await tryload(sceneData.name + '.bg2') || await tryload(sceneData.name + '.vwglb');
+        if (!drw) {
+            throw new Error(`Drawable.deserialize(): could not load drawable with name ${sceneData.name}`);
+        }
+        drw.items.forEach(({polyList,material,transform}) => this.addPolyList(polyList,material,transform));
+        this.name = drw.name;
     }
 
     async serialize(sceneData,writer) {

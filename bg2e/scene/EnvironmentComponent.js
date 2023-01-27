@@ -1,3 +1,4 @@
+import { jointUrl } from "../tools/Resource";
 import Component from "./Component";
 
 export default class EnvironmentComponent extends Component {
@@ -94,7 +95,9 @@ export default class EnvironmentComponent extends Component {
 
     async deserialize(sceneData,loader) {
         super.deserialize(sceneData,loader);
-        this.equirectangularTexture = sceneData.equirectangularTexture || this.equirectangularTexture;
+        if (loader.currentPath && sceneData.equirectangularTexture) {
+            this.equirectangularTexture = jointUrl(loader.currentPath,sceneData.equirectangularTexture);
+        }
         this.irradianceIntensity = sceneData.irradianceIntensity || this.irradianceIntensity;
         this.showSkybox = sceneData.showSkybox || this.showSkybox;
         this.cubemapSize = sceneData.cubemapSize || this.cubemapSize;

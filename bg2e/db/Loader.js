@@ -1,5 +1,5 @@
 
-import { ResourceType } from '../tools/Resource';
+import { isAbsolute, jointUrl, ResourceType } from '../tools/Resource';
 import { 
     PluginOperationType,
     createPluginDatabase, 
@@ -30,6 +30,15 @@ const getClearedCache = () => {
 export default class Loader {
     constructor() {
         this._cache = getClearedCache();
+        this._currentPath = "";
+    }
+
+    get currentPath() {
+        return this._currentPath;
+    }
+
+    set currentPath(p) {
+        this._currentPath = p;
     }
 
     clearCache() {
@@ -41,6 +50,9 @@ export default class Loader {
     }
 
     async loadResource(path,type) {
+        if (!isAbsolute(path) && this.currentPath !== "") {
+            path = jointUrl(this.currentPath, path);
+        }
         let result = this.findCache(path, type);
         if (!result) {
             const plugin = getLoaderPlugin(path, type);
