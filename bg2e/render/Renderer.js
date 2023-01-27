@@ -4,7 +4,6 @@ import Material from "../base/Material";
 import PolyList from "../base/PolyList";
 import Environment from "./Environment";
 import TextureMergerRenderer from "./TextureMergerRenderer";
-import Pipeline from "./Pipeline";
 
 export const EngineFeatures = {
     RENDER_TARGET_TEXTURES:         0x1 << 0,
@@ -20,6 +19,10 @@ export default class Renderer {
 
     get uniqueId() {
         throw new Error("Calling Renderer.uniqueId base implementation.");
+    }
+
+    get typeId() {
+        throw new Error("Calling Renderer.typeId base implementation");
     }
 
     async init(canvas) {

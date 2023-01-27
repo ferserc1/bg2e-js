@@ -29,6 +29,10 @@ export default class WebGLRenderer extends Renderer {
         return this._uuid;
     }
 
+    get typeId() {
+        return "WebGL";
+    }
+
     get frameBuffer() {
         if (!this._frameBuffer) {
             this._frameBuffer = new FrameBuffer(this);

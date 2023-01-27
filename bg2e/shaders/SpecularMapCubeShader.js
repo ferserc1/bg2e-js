@@ -1,5 +1,4 @@
 import Shader from "../render/Shader";
-import WebGLRenderer from "../render/webgl/Renderer";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
@@ -102,8 +101,8 @@ export default class SpecularMapCubeShader extends Shader {
     constructor(renderer) {
         super(renderer);
 
-        if (!renderer instanceof WebGLRenderer) {
-            throw new Error("SpecularMapCubeShader: invalid renderer");
+        if (renderer.typeId !== "WebGL") {
+            throw Error("SpecularMapCubeShader is only compatible with WebGL renderer");
         }
     }
 

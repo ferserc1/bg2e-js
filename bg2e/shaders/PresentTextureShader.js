@@ -1,7 +1,6 @@
 
 import Texture, { TextureTargetName } from '../base/Texture';
 import Shader from '../render/Shader';
-import WebGLRenderer from '../render/webgl/Renderer';
 import ShaderProgram from '../render/webgl/ShaderProgram';
 
 const g_code = {
@@ -35,9 +34,8 @@ export default class PresentTextureShader extends Shader {
     constructor(renderer) {
         super(renderer);
 
-        // This shader is compatible with WebGL renderer
-        if (!renderer instanceof WebGLRenderer) {
-            throw new Error("shader.PresentTextureShader: invalid renderer. This shader is compatible with WebGLRenderer");
+        if (renderer.typeId !== "WebGL") {
+            throw Error("PresentTextureShader is only compatible with WebGL renderer");
         }
     }
 

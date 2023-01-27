@@ -1,7 +1,6 @@
 
-import Texture, { TextureTargetName, TextureChannel } from '../base/Texture';
+import { TextureChannel } from '../base/Texture';
 import Shader from '../render/Shader';
-import WebGLRenderer from '../render/webgl/Renderer';
 import ShaderProgram from '../render/webgl/ShaderProgram';
 
 const g_code = {
@@ -73,9 +72,8 @@ export default class TextureMergerShader extends Shader {
     constructor(renderer) {
         super(renderer);
 
-        // This shader is compatible with WebGL renderer
-        if (!renderer instanceof WebGLRenderer) {
-            throw new Error("shader.TextureMergerShader: invalid renderer. This shader is compatible with WebGLRenderer");
+        if (renderer.typeId !== "WebGL") {
+            throw Error("TextureMergerShader is only compatible with WebGL renderer");
         }
 
         this._textures = {};
