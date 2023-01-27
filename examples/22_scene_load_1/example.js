@@ -1,11 +1,12 @@
 import Canvas from "bg2e/app/Canvas";
 import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
-import Camera, { OpticalProjectionStrategy } from "bg2e/scene/Camera";
+import Camera from "bg2e/scene/Camera";
 import SceneAppController from "bg2e/render/SceneAppController";
 import OrbitCameraController from "bg2e/scene/OrbitCameraController";
 import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
 import Bg2LoaderPlugin from "bg2e/db/Bg2LoaderPlugin";
+import VitscnjLoaderPlugin from "bg2e/db/VitscnjLoaderPlugin";
 import { registerComponents } from "bg2e/scene";
 
 class MyAppController extends SceneAppController {
@@ -13,6 +14,7 @@ class MyAppController extends SceneAppController {
 
         // Register loader plugins
         registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist/" }));
+        registerLoaderPlugin(new VitscnjLoaderPlugin());
         registerComponents();
 
         // Load scene
