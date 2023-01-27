@@ -80,7 +80,7 @@ function getShaderProgramForLights(renderer, numLights) {
                 vec3 albedo = texture2D(uAlbedoTexture, fragTexCoord * uAlbedoScale).rgb * uAlbedo.rgb;
                 vec3 normal = texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0;
                 float metallic = texture2D(uMetallicTexture, fragTexCoord * uMetallicScale).r * uMetallic;
-                float roughness = max(texture2D(uRoughnessTexture, fragTexCoord * uRoughnessScale).r * uRoughness, 0.01);
+                float roughness = max(texture2D(uRoughnessTexture, fragTexCoord * uRoughnessScale).r * uRoughness, 0.05);
 
                 N = normalize(TBN * normal);
                 vec3 V = normalize(uCameraPos - fragPos);

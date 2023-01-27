@@ -87,7 +87,7 @@ export const pbrDirectionalLight = new ShaderFunction('vec3','pbrDirectionalLigh
     float G = geometrySmith(fragNorm, viewPos, L, roughness);
 
     vec3 numerator = NDF * G * F;
-    float denom = 4.0 * max(dot(fragNorm,viewPos), 0.0) * max(dot(fragNorm,L), 0.0) + 0.0001;
+    float denom = 4.0 * max(dot(fragNorm,viewPos), 0.0) * max(dot(fragNorm,L), 0.1) + 0.0001;
     vec3 specular = numerator / denom;
 
     vec3 kS = F;
@@ -124,7 +124,7 @@ export const pbrAmbientLight = new ShaderFunction('vec3','pbrAmbientLight','vec3
 
     vec3 R = reflect(-V, N);
     vec3 prefilteredColor = getPrefilteredColor(roughness, R, irradianceMap, specularMap, envMap);
-    float NdotV = max(dot(N,V), 0.0);
+    float NdotV = min(max(dot(N,V), 0.0),  0.95);
     vec2 envBRDF = texture2D(brdfMap, vec2(NdotV,roughness)).xy;
     vec3 indirectSpecular = prefilteredColor * (kS * envBRDF.x + envBRDF.y);
 
