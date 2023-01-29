@@ -273,7 +273,7 @@ export default class PolyList {
     get validTangents() {
         return this._tangent &&
             this._tangent.length === this._vertex.length &&
-            this._tangent.length / 3 === this._texCoord0.length / 3;
+            this._tangent.length / 3 === this._texCoord0.length / 2;
     }
 
     destroy() {
