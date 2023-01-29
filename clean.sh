@@ -2,8 +2,10 @@
 
 clean_example() {
     name=$1
+    echo cleaning directory examples/$name
     rm -rf examples/$name/dist
     rm -rf examples/$name/node_modules
+    rm -rf examples/$name/package-lock.json
 }
 
 clean_example 00_math
