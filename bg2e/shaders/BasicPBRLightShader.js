@@ -1,7 +1,6 @@
 import Shader from "../render/Shader";
 import { pbrPointLight, pbrDirectionalLight } from './webgl_shader_lib';
 import ShaderFunction from "./ShaderFunction";
-import WebGLRenderer from "../render/webgl/Renderer";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
@@ -118,8 +117,8 @@ export default class BasicPBRLightShader extends Shader {
 
         this._lights = [];
 
-        if (!renderer instanceof WebGLRenderer) {
-            throw new Error("BasicDiffuseColorShader: invalid renderer");
+        if (renderer.typeId !== "WebGL") {
+            throw Error("PresentTextureShader is only compatible with WebGL renderer");
         }
 
         this._programs = {};

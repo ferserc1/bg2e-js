@@ -58,6 +58,10 @@ const g_code = {
 export default class IrradianceMapCubeShader extends Shader {
     constructor(renderer) {
         super(renderer);
+
+        if (renderer.typeId !== "WebGL") {
+            throw Error("PresentTextureShader is only compatible with WebGL renderer");
+        }
     }
 
     async load() {

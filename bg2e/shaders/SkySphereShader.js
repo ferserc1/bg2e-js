@@ -1,5 +1,4 @@
 import Shader from "../render/Shader";
-import WebGLRenderer from "../render/webgl/Renderer";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import { TextureTargetName } from "../base/Texture";
 import Vec from "../math/Vec";
@@ -38,8 +37,8 @@ export default class SkySphereShader extends Shader {
     constructor(renderer) {
         super(renderer);
 
-        if (!renderer instanceof WebGLRenderer) {
-            throw new Error("SkySphereShader: invalid renderer");
+        if (renderer.typeId !== "WebGL") {
+            throw Error("PresentTextureShader is only compatible with WebGL renderer");
         }
     }
 

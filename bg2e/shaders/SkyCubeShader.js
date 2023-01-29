@@ -1,8 +1,6 @@
-import { TextureTargetName } from "../base/Texture";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
 import Shader from "../render/Shader";
-import WebGLRenderer from "../render/webgl/Renderer";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 
 const g_code = {
@@ -40,8 +38,8 @@ export default class SkyCubeShader extends Shader {
     constructor(renderer) {
         super(renderer);
 
-        if (!renderer instanceof WebGLRenderer) {
-            throw new Error("SkyCubeShader: invalid renderer");
+        if (renderer.typeId !== "WebGL") {
+            throw Error("PresentTextureShader is only compatible with WebGL renderer");
         }
     }
 
