@@ -7,12 +7,6 @@ build_example() {
     cd -
 }
 
-cd bg2e
-npm ci
-cd -
-
-./clean.sh
-
 
 build_example 00_math
 build_example 01_tools
