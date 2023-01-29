@@ -1,5 +1,6 @@
 import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
 import Bg2LoaderPlugin from "bg2e/db/Bg2LoaderPlugin";
+import VitscnjLoaderPlugin from "bg2e/db/VitscnjLoaderPlugin";
 import { registerComponents } from "bg2e/scene";
 import Drawable from "bg2e/scene/Drawable";
 
@@ -8,7 +9,7 @@ import Drawable from "bg2e/scene/Drawable";
 // this path is different from the compiled js file (generated from this file, in this case, 
 // using Rollup)
 registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist/" }));
-
+registerLoaderPlugin(new VitscnjLoaderPlugin());
 
 registerComponents();
 
