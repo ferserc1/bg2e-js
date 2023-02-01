@@ -1,5 +1,4 @@
 import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
-import Bg2LoaderPlugin from "bg2e/db/Bg2LoaderPlugin";
 import VitscnjLoaderPlugin from "bg2e/db/VitscnjLoaderPlugin";
 import { registerComponents } from "bg2e/scene";
 import Drawable from "bg2e/scene/Drawable";
