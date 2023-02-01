@@ -10,6 +10,7 @@ import {
 const g_loadPluginDatabase = createPluginDatabase(PluginOperationType.Read);
 
 export const registerLoaderPlugin = (pluginInstance) => {
+    pluginInstance.dependencies.forEach(dep => registerPluginInDatabase(dep, g_loadPluginDatabase));
     registerPluginInDatabase(pluginInstance, g_loadPluginDatabase);
 }
 

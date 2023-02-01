@@ -2,6 +2,7 @@ import Resource, { removeFileName, ResourceType } from "../tools/Resource";
 import LoaderPlugin from "./LoaderPlugin";
 import Node from "../scene/Node";
 import { deserializeComponent } from "../scene/Component";
+import Bg2LoaderPlugin from "./Bg2LoaderPlugin";
 
 const deserializeNode = async (nodeData, loader) => {
     nodeData.children = nodeData.children || [];
@@ -30,8 +31,10 @@ const deserializeNode = async (nodeData, loader) => {
 }
 
 export default class VitscnjLoaderPlugin extends LoaderPlugin {
-    constructor() {
+    constructor({ bg2ioPath = null }) {
         super();
+
+        this._bg2ioPath = bg2ioPath;
     }
 
     get supportedExtensions() { return ["vitscnj"]; }
@@ -63,5 +66,9 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
         loader.currentPath = prevPath;
 
         return root;
+    }
+
+    get dependencies() {
+        return [new Bg2LoaderPlugin({ bg2ioPath: this._bg2ioPath })];
     }
 }
