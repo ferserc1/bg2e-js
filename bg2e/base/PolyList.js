@@ -291,14 +291,14 @@ export default class PolyList {
         }
 
         for (let i = 0; i < plist.vertex.length - 2; i += 3) {
-            const vertex = new Vec(plist.vertex[i], plist.vertex[i+1], plist.vertex[i+2], 1.0);
+            let vertex = new Vec(plist.vertex[i], plist.vertex[i+1], plist.vertex[i+2], 1.0);
             vertex = transform.multVector(vertex);
             plist.vertex[i] = vertex.x;
             plist.vertex[i + 1] = vertex.y;
             plist.vertex[i + 2] = vertex.z;
     
             if (plist.normal.length) {
-                const normal = new Vec(plist.normal[i], plist.normal[i+1], plist.normal[i+2], 1.0);
+                let normal = new Vec(plist.normal[i], plist.normal[i+1], plist.normal[i+2], 1.0);
                 normal = rotation.multVector(normal);
                 plist.normal[i] = normal.x;
                 plist.normal[i + 1] = normal.y;
