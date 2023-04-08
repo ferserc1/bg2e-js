@@ -171,4 +171,8 @@ export default class RenderBuffer {
             }
         }
     }
+
+    readPixels(x, y, width, height, format, type) {
+        
+    }
  }

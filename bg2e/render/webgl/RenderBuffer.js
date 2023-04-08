@@ -218,4 +218,15 @@ export default class WebGLRenderBuffer extends RenderBuffer {
             this._depthBuffers = null;
         }
     }
+
+    readPixels(x, y, width, height) {
+        const textureRenderer = this.attachments[0];
+        const texture = textureRenderer?.texture;
+        if (texture) {
+            const { gl } = this.renderer;
+            const data = new Uint8Array(width * height * 4);
+            gl.readPixels(x, texture.size.height - y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            return data;
+        }
+    }
 }

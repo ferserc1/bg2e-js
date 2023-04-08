@@ -1,5 +1,6 @@
 import Vec from "../math/Vec";
 import Mat4 from "../math/Mat4";
+import Color from "./Color";
 
 
 export const BufferType = {
@@ -57,11 +58,20 @@ export const RenderLayer = {
     LAYER_29: 0x1 << 29,
     LAYER_30: 0x1 << 30,
     LAYER_31: 0x1 << 31,
+    SELECTION_DEFAULT: 0x1 << 31,   // Layer 31 is the default layer for mouse pick selection
 
     ALL: 0xFFFFFFFF,
 
     AUTO: 0
 };
+
+// Process the default layer if RenderLayer is set to AUTO. To do it, you need
+// the object material to know if the layer must be set to transparent or opaque
+export const getLayers = (polyList,material) => {
+    return polyList.renderLayers === RenderLayer.AUTO ?
+        (material.isTransparent ? RenderLayer.TRANSPARENT_DEFAULT : RenderLayer.OPAQUE_DEFAULT) | RenderLayer.SELECTION_DEFAULT :
+        (polyList.renderLayers);
+}
 
 export const PolyListFrontFace = {
     CW: 0,
@@ -189,6 +199,9 @@ export default class PolyList {
         this._texCoord2 = [];
         this._color = [];
         this._index = [];
+
+        // Internal use: the following properties will not be serialized
+        this._colorCode = Color.Black();
     }
 
     clone() {
@@ -253,6 +266,15 @@ export default class PolyList {
     set color(v) { this._color = v; }
     get index() { return this._index; }
     set index(v) { this._index = v; }
+
+    // Internal use: non serializable properties
+    set colorCode(c) {
+        this._colorCode = c;
+    }
+
+    get colorCode() {
+        return this._colorCode;
+    }
 
     // The this._renderer variable is initialized by the polyListRenderer factory
     get renderer() {

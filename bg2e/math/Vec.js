@@ -585,6 +585,31 @@ export default class Vec extends NumericArray {
         }
     }
 
+    static Distance(v1,v2) {
+        if (v1.length != v2.length) {
+            throw new Error(`Different vector sizes calculating distance`);
+        }
+        else {
+            switch (v1.length) {
+            case 2:
+            {
+                const a = v1[0] - v2[0];
+                const b = v1[1] - v2[1];
+                return Math.sqrt(a * a +  b * b);
+            }
+            case 3:
+            {
+                const a = v1[0] - v2[0];
+                const b = v1[1] - v2[1];
+                const c = v1[2] - v2[2];
+                return Math.sqrt(a * a +  b * b + c * c);
+            }
+            default:
+                throw new Error(`Invalid vector size: ${ v1.length }`);
+            }
+        }
+    }
+
     static Equals(v1,v2) {
         if (v1.length != v2.length) {
             return false;

@@ -1,14 +1,9 @@
 
-import { RenderLayer } from "../base/PolyList";
+import { getLayers, RenderLayer } from "../base/PolyList";
 import Mat4 from "../math/Mat4";
 import { BlendFunction } from "./Pipeline";
 import RenderState from "./RenderState";
 
-const getLayers = (polyList,material) => {
-    return polyList.renderLayers === RenderLayer.AUTO ?
-        (material.isTransparent ? RenderLayer.TRANSPARENT_DEFAULT : RenderLayer.OPAQUE_DEFAULT) :
-        (polyList.renderLayers);
-}
 export default class RenderQueue {
     constructor(renderer) {
         this._renderer = renderer;
