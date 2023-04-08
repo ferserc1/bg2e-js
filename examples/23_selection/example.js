@@ -26,7 +26,8 @@ class MyAppController extends SceneAppController {
         // Add Orbit camera controller component to the camera node
         const mainCamera = Camera.GetMain(root);
         mainCamera.projectionStrategy = new OpticalProjectionStrategy();
-        //mainCamera.node.addComponent(new OrbitCameraController());
+        mainCamera.projectionStrategy.focalLength = 55;
+        mainCamera.projectionStrategy.frameSize = 35;
 
 
         return root;

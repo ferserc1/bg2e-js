@@ -45,11 +45,11 @@ export class ProjectionStrategy extends MatrixStrategy {
         this.viewport = new Vec(other.viewport);
     }
 
-    set near(v) { this._near = v; }
+    set near(v) { this._near = v; this.apply(); }
     get near() { return this._near; }
-    set far(v) { this._far = v; }
+    set far(v) { this._far = v; this.apply(); }
     get far() { return this._far; }
-    set viewport(v) { this._viewport = v; }
+    set viewport(v) { this._viewport = v; this.apply(); }
     get viewport() { return this._viewport; }
 
     get fov() { return 0; }
@@ -73,7 +73,7 @@ export class PerspectiveProjectionStrategy extends ProjectionStrategy {
         this._fov = 60;
     }
 
-    set fov(f) { this._fov = f; }
+    set fov(f) { this._fov = f; this.apply(); }
     get fov() { return this._fov; }
 
     clone() {
@@ -112,9 +112,9 @@ export class OpticalProjectionStrategy extends ProjectionStrategy {
         this._frameSize = 35;
     }
 
-    set focalLength(v) { this._focalLength; }
+    set focalLength(v) { this._focalLength; this.apply(); }
     get focalLength() { return this._focalLength; }
-    set frameSize(v) { this._frameSize; }
+    set frameSize(v) { this._frameSize; this.apply(); }
     get frameSize() { return this._frameSize; }
 
     get fov() {
@@ -160,7 +160,7 @@ export class OrthographicProjectionStrategy extends ProjectionStrategy {
         this._viewWidth = 100;
     }
 
-    set viewWidth(v) { this._viewWidth = v; }
+    set viewWidth(v) { this._viewWidth = v; this.apply(); }
     get viewWidth() { return this._viewWidth; }
 
     clone() {
@@ -236,13 +236,16 @@ class GetMainCameraVisitor extends NodeVisitor {
     }
 
     visit(node) {
+        // Note: The _isMain flag is set in Cmaer.SetMain() function
         if (node.camera && node.camera.isMain) {
+            node.camera._isMain = false;
             if (this._mainCamera) {
                 console.warn("More than one main cameras found in the scene");
             }
             this._mainCamera = node.camera;
         }
         else if (node.camera && !this._firstCameraFound) {
+            node.camera._isMain = false;
             this._firstCameraFound = node.camera;
         }
     }
@@ -263,6 +266,9 @@ export default class Camera extends Component {
             const visitor = new GetMainCameraVisitor();
             sceneRoot.accept(visitor);
             sceneRoot.__mainCamera__ = visitor.result || visitor.firstCameraFound;
+            if (sceneRoot.__mainCamera__) {
+                sceneRoot.__mainCamera__._isMain = true;
+            }
         }
         return sceneRoot.__mainCamera__;
     }
