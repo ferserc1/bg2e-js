@@ -9,6 +9,25 @@ import VitscnjLoaderPlugin from "bg2e/db/VitscnjLoaderPlugin";
 import { registerComponents } from "bg2e/scene";
 
 class MyAppController extends SceneAppController {
+    createOutputText() {
+        const textContainer = document.createElement("h1");
+        document.body.appendChild(textContainer);
+        textContainer.style.position = "absolute";
+        textContainer.style.top = "0px";
+        textContainer.style.left = "0px";
+        textContainer.style.color = "white";
+        textContainer.style.textShadow = "0px 0px 18px rgba(0,0,0,0.8)";
+        this._textContainer = textContainer;
+    }
+
+    printText(text) {
+        this._textContainer.innerHTML += `<br/>${text}`;
+    }
+
+    clearText() {
+        this._textContainer.innerHTML = "";
+    }
+
     async loadScene() {
         //this.updateOnInputEvents = false;
         // Register loader plugins
@@ -35,11 +54,14 @@ class MyAppController extends SceneAppController {
 
     async loadDone() {
         this.selectionManager.onSelectionChanged("appController", selection => {
-            console.log("Selection changed: ");
+            this.clearText();
+            this.printText("Selection changed:");
             selection.forEach(item => {
-                console.log(item.drawable.name);
-            })
-        })
+                this.printText(`&nbsp;${ item.drawable.name }`);
+            });
+        });
+
+        this.createOutputText();
     }
 }
 
