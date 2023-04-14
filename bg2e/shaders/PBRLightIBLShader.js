@@ -117,7 +117,7 @@ function getShaderProgramForLights(renderer, numLights) {
                         }
                         else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
                             Lo += pbrDirectionalLight(
-                                uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
+                                -uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
                                 albedo, roughness, metallic);
                         }
                     }
@@ -188,10 +188,14 @@ export default class PBRLightIBLShader extends Shader {
         this._lightDirections = [];
         this._lightColors = [];
         this._lightIntensities = [];
-        this._lights.forEach(light => {
+        this._lights.forEach((light,i) => {
             this._lightTypes.push(light.type);
-            this._lightPositions.push(new Vec(light.position));
-            this._lightDirections.push(new Vec(light.direction));
+            const trx = this._lightTransforms[i];
+            const rot = trx && Mat4.GetRotation(trx);
+            const position = new Vec(light.position);
+            const direction = new Vec(light.direction);
+            this._lightPositions.push(trx ? trx.multVector(position).xyz : position);
+            this._lightDirections.push(rot ? rot.multVector(direction).xyz.normalize() : direction);
             this._lightColors.push(new Vec(light.color));
             this._lightIntensities.push(light.intensity);
         });

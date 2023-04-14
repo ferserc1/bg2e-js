@@ -1,6 +1,7 @@
 import Canvas from "bg2e/app/Canvas";
 import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
 import Mat4 from "bg2e/math/Mat4";
+import Vec from "bg2e/math/Vec";
 import WebGLRenderer from "bg2e/render/webgl/Renderer";
 import Node from "bg2e/scene/Node";
 import Transform from "bg2e/scene/Transform";
@@ -38,10 +39,14 @@ class MyAppController extends SceneAppController {
             return sphereNode;
         }
 
-        root.addChild(addLight({ position: [  10.0, 10.0, -10.0], color: [1, 0.3, 0.1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation( 0, 0, 0) }));
-        root.addChild(addLight({ position: [ -10.0, 10.0, -10.0], color: [0.3, 1, 0.1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation( 0, 0, 0) }));
-        root.addChild(addLight({ position: [ -10.0,-10.0, -10.0], color: [0.1, 0.3, 1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation( 0, 0, 0) }));
-        root.addChild(addLight({ position: [  10.0,-10.0, -10.0], color: [0.1, 1, 0.3], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation( 0, 0, 0) }));
+        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [1, 0.3, 0.1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation(  10.0, 10.0, -10.0) }));
+        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.3, 1, 0.1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation( -10.0, 10.0, -10.0) }));
+        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.1, 0.3, 1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation( -10.0,-10.0, -10.0) }));
+        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.1, 1, 0.3], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation(  10.0,-10.0, -10.0) }));
+
+        const directionalLight = addLight({ lightType: LightType.DIRECTIONAL, intensity: 12, transform: Mat4.MakeRotation(0.7853, -1, 0, 0) });
+        root.addChild(directionalLight);
+        window.light = directionalLight;
 
         const spheres = new Node("Spheres");
         spheres.addComponent(new Transform());

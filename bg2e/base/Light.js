@@ -20,7 +20,7 @@ export default class Light {
         this._position = new Vec(0,0,0);
         
         this._color = new Color({ rgb: 0.9 });
-        this._intensity = 300;
+        this._intensity = 20;
         this._spotCutoff = 20;
         this._spotExponent = 30;
         this._shadowStrength = 0.7;
@@ -114,7 +114,7 @@ export default class Light {
             this._type = LightType.DIRECTIONAL;
         }
 
-        const defaultIntensity = () => this._type === LightType.DIRECTIONAL ? 1 : 300;
+        const defaultIntensity = () => this._type === LightType.DIRECTIONAL ? 10 : 200;
 
         this._position = sceneData.position || new Vec(0,0,0);
         this._direction = sceneData.direction || new Vec(0, 0, -1);
@@ -128,7 +128,6 @@ export default class Light {
             this._intensity = sceneData.intensity || defaultIntensity();
         }
         
-        this._intensity = sceneData.intensity || defaultIntensity();
         this._spotCutoff = sceneData.spotCutoff || 20;
         this._spotExponent = sceneData.spotExponent || 30;
         this._shadowStrength = sceneData.shadowStrength || 1;
