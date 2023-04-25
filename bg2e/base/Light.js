@@ -3,12 +3,12 @@ import Vec from '../math/Vec';
 import Mat4 from '../math/Mat4';
 import Color from './Color';
 
-export const LightType = {
+export const LightType = Object.freeze({
     DIRECTIONAL: 4,
     SPOT: 1,
     POINT: 5,
     DISABLED: 10
-};
+});
 
 export default class Light {
     constructor() {

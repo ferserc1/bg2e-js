@@ -3,9 +3,9 @@ import Vec from '../math/Vec';
 import Color from './Color';
 import Texture, { TextureDataType, TextureFilter, TextureWrap } from './Texture';
 
-export const MaterialType = {
+export const MaterialType = Object.freeze({
     PBR: "pbr"
-};
+});
 
 export const MaterialAttributeNames = [
     "type",

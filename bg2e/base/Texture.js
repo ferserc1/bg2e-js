@@ -4,7 +4,7 @@ import Resource from '../tools/Resource';
 import { generateImageHash } from '../tools/image';
 import Color from './Color';
 
-export const TextureDataType = {
+export const TextureDataType = Object.freeze({
     NONE: 0,
     IMAGE: 1,
     IMAGE_DATA: 2,
@@ -13,36 +13,36 @@ export const TextureDataType = {
     VIDEO: 5,
     PROCEDURAL: 6,
     RENDER_TARGET: 7
-};
+});
 
-export const TextureWrap = {
+export const TextureWrap = Object.freeze({
     REPEAT: 0,
     CLAMP: 1,
     MIRRORED_REPEAT: 2
-};
+});
 
-export const TextureFilter = {
+export const TextureFilter = Object.freeze({
     NEAREST_MIPMAP_NEAREST: 0,
     LINEAR_MIPMAP_NEAREST: 1,
     NEAREST_MIPMAP_LINEAR: 2,
     LINEAR_MIPMAP_LINEAR: 3,
     NEAREST: 4,
     LINEAR: 5
-};
+});
 
-export const TextureTarget = {
+export const TextureTarget = Object.freeze({
     TEXTURE_2D: 0,
     CUBE_MAP: 1
-};
+});
 
-export const ProceduralTextureFunction = {
+export const ProceduralTextureFunction = Object.freeze({
     PLAIN_COLOR: 0,
     RANDOM_NOISE: 1,
     DYNAMIC_CUBEMAP: 2,
     FROM_BASE64: 3
-};
+});
 
-export const TextureRenderTargetAttachment = {
+export const TextureRenderTargetAttachment = Object.freeze({
     COLOR_ATTACHMENT_0: 0,
     COLOR_ATTACHMENT_1: 1,
     COLOR_ATTACHMENT_2: 2,
@@ -61,21 +61,21 @@ export const TextureRenderTargetAttachment = {
     COLOR_ATTACHMENT_15: 15,
     DEPTH_ATTACHMENT: 100,
     STENCIL_ATTACHMENT: 200
-};
+});
 
-export const TextureComponentFormat = {
+export const TextureComponentFormat = Object.freeze({
     UNSIGNED_BYTE: 0,
     FLOAT32: 1
-};
+});
 
-export const TextureChannel = {
+export const TextureChannel = Object.freeze({
     R: 1,
     G: 2,
     B: 3,
     A: 4
-};
+});
 
-export const TextureDataTypeName = {
+export const TextureDataTypeName = Object.freeze({
     0: "NONE",
     1: "IMAGE",
     2: "IMAGE_DATA",
@@ -84,36 +84,36 @@ export const TextureDataTypeName = {
     5: "VIDEO",
     6: "PROCEDURAL",
     7: "RENDER_TARGET"
-};
+});
 
-export const TextureWrapName = {
+export const TextureWrapName = Object.freeze({
     0: "REPEAT",
     1: "CLAMP",
     2: "MIRRORED_REPEAT"
-};
+});
 
-export const TextureFilterName = {
+export const TextureFilterName = Object.freeze({
      0: "NEAREST_MIPMAP_NEAREST",
      1: "LINEAR_MIPMAP_NEAREST",
      2: "NEAREST_MIPMAP_LINEAR",
      3: "LINEAR_MIPMAP_LINEAR",
      4: "NEAREST",
      5: "LINEAR"
-};
+});
 
-export const TextureTargetName = {
+export const TextureTargetName = Object.freeze({
     0: "TEXTURE_2D",
     1: "CUBE_MAP"
-};
+});
 
-export const ProceduralTextureFunctionName = {
+export const ProceduralTextureFunctionName = Object.freeze({
     0: "PLAIN_COLOR",
     1: "RANDOM_NOISE",
     2: "DYNAMIC_CUBEMAP",
     3: "FROM_BASE64"
-};
+});
 
-export const TextureRenderTargetAttachmentNames = {
+export const TextureRenderTargetAttachmentNames = Object.freeze({
     0: "COLOR_ATTACHMENT_0",
     1: "COLOR_ATTACHMENT_1",
     2: "COLOR_ATTACHMENT_2",
@@ -132,19 +132,19 @@ export const TextureRenderTargetAttachmentNames = {
     15: "COLOR_ATTACHMENT_15",
     100: "DEPTH_ATTACHMENT",
     200: "STENCIL_ATTACHMENT"
-};
+});
 
-export const TextureComponentFormatNames = {
+export const TextureComponentFormatNames = Object.freeze({
     0: "UNSIGNED_BYTE",
     1: "FLOAT32"
-};
+});
 
-export const TextureChannelNames = {
+export const TextureChannelNames = Object.freeze({
     1: "R",
     2: "G",
     3: "B",
     4: "A"
-};
+});
 
 const g_loadedImages = {};
 let g_resource = null;

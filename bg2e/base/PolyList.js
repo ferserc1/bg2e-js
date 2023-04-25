@@ -3,7 +3,7 @@ import Mat4 from "../math/Mat4";
 import Color from "./Color";
 
 
-export const BufferType = {
+export const BufferType = Object.freeze({
     VERTEX:		    1 << 0,
     NORMAL:		    1 << 1,
     TEX_COORD_0:	1 << 2,
@@ -12,18 +12,18 @@ export const BufferType = {
     COLOR:		    1 << 5,
     TANGENT:	    1 << 6,
     INDEX:		    1 << 7
-};
+});
 
-export const DrawMode = {
+export const DrawMode = Object.freeze({
     POINTS: 0,
     TRIANGLES: 1,
     TRIANGLE_FAN: 2,
     TRIANGLE_STRIP: 3,
     LINES: 4,
     LINE_STRIP: 5
-};
+});
 
-export const RenderLayer = {
+export const RenderLayer = Object.freeze({
     LAYER_0:  0x1 << 0,
     OPAQUE_DEFAULT: 0x1 << 0,   // layer 0 is the default layer for opaque objects
     LAYER_1:  0x1 << 1,
@@ -63,7 +63,7 @@ export const RenderLayer = {
     ALL: 0xFFFFFFFF,
 
     AUTO: 0
-};
+});
 
 // Process the default layer if RenderLayer is set to AUTO. To do it, you need
 // the object material to know if the layer must be set to transparent or opaque
@@ -73,16 +73,16 @@ export const getLayers = (polyList,material) => {
         (polyList.renderLayers);
 }
 
-export const PolyListFrontFace = {
+export const PolyListFrontFace = Object.freeze({
     CW: 0,
     CCW: 1
-};
+});
 
-export const PolyListCullFace = {
+export const PolyListCullFace = Object.freeze({
     FRONT: 0,
     BACK: 1,
     FRONT_AND_BACK: 2
-};
+});
 
 function buildTangents(plist) {
     plist._tangent = [];
