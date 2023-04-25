@@ -56,7 +56,10 @@ export default class SelectionBuffer {
     }
 
     destroy() {
-        // TODO: destroy
+        this._renderBuffer.destroy();
+        this._targetTexture.destroy();
+        this._renderBuffer = null;
+        this._targetTexture = null;
     }
 }
 
