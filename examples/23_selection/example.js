@@ -28,6 +28,14 @@ class MyAppController extends SceneAppController {
         this._textContainer.innerHTML = "";
     }
 
+    get selectionManagerEnabled() {
+        return true;
+    }
+
+    get selectionHighlightEnabled() {
+        return true;
+    }
+
     async loadScene() {
         //this.updateOnInputEvents = false;
         // Register loader plugins

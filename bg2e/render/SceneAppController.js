@@ -1,6 +1,8 @@
 import AppController from "../app/AppController";
+import SelectionHighlight from "../manipulation/SelectionHighlight";
 import SelectionManager from "../manipulation/SelectionManager";
 import { registerComponents } from "../scene";
+import Camera from "../scene/Camera";
 
 export default class SceneAppController extends AppController {
     get sceneRoot() {
@@ -19,7 +21,15 @@ export default class SceneAppController extends AppController {
         return this._selectionManager;
     }
 
+    get selectionHighlight() {
+        return this._selectionHighlight;
+    }
+
     get selectionManagerEnabled() {
+        return true;
+    }
+
+    get selectionHighlightEnabled() {
         return true;
     }
 
@@ -75,12 +85,18 @@ export default class SceneAppController extends AppController {
             this._selectionManager.sceneRoot = this.sceneRoot;
         }
 
+        if (this.selectionHighlightEnabled) {
+            this._selectionHighlight = new SelectionHighlight(this.renderer);
+            await this._selectionHighlight.init();
+        }
+
         await this.loadDone();
     }
 
     reshape(width,height) {
         this.sceneRenderer.resize(this.sceneRoot,width,height);
         this.selectionManager?.setViewportSize(width,height);
+        this.selectionHighlight?.setViewportSize(width,height);
     }
 
     frame(delta) {
@@ -89,6 +105,7 @@ export default class SceneAppController extends AppController {
 
     display() {
         this.sceneRenderer.draw();
+        this.selectionHighlight.draw(this.sceneRoot, Camera.GetMain(this.sceneRoot));
     }
 
     destroy() {

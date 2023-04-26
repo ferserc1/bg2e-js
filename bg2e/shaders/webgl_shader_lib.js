@@ -130,3 +130,34 @@ export const pbrAmbientLight = new ShaderFunction('vec3','pbrAmbientLight','vec3
 
     return kD * diffuse + indirectSpecular;
 }`, [fresnelSchlickRoughness,getPrefilteredColor]);
+
+export const applyConvolution = new ShaderFunction('vec4','applyConvolution','sampler2D texture, vec2 texCoord, vec2 texSize, float[9] convMatrix, float radius',
+`
+{
+    vec2 onePixel = vec2(1.0,1.0) / texSize * radius;
+    vec4 colorSum = 
+        texture2D(texture, texCoord + onePixel * vec2(-1, -1)) * convMatrix[0] +
+        texture2D(texture, texCoord + onePixel * vec2( 0, -1)) * convMatrix[1] +
+        texture2D(texture, texCoord + onePixel * vec2( 1, -1)) * convMatrix[2] +
+        texture2D(texture, texCoord + onePixel * vec2(-1,  0)) * convMatrix[3] +
+        texture2D(texture, texCoord + onePixel * vec2( 0,  0)) * convMatrix[4] +
+        texture2D(texture, texCoord + onePixel * vec2( 1,  0)) * convMatrix[5] +
+        texture2D(texture, texCoord + onePixel * vec2(-1,  1)) * convMatrix[6] +
+        texture2D(texture, texCoord + onePixel * vec2( 0,  1)) * convMatrix[7] +
+        texture2D(texture, texCoord + onePixel * vec2( 1,  1)) * convMatrix[8];
+    float kernelWeight =
+        convMatrix[0] +
+        convMatrix[1] +
+        convMatrix[2] +
+        convMatrix[3] +
+        convMatrix[4] +
+        convMatrix[5] +
+        convMatrix[6] +
+        convMatrix[7] +
+        convMatrix[8];
+    if (kernelWeight <= 0.0) {
+        kernelWeight = 1.0;
+    }
+    return vec4((colorSum / kernelWeight).rgb, 1.0);
+}
+`,[]);
