@@ -18,9 +18,15 @@ const g_code = {
         fragment: `precision mediump float;
         
         uniform vec4 uPickColor;
+        uniform bool uSelected;
         
         void main() {
-            gl_FragColor = vec4(uPickColor);
+            if (uSelected) {
+                gl_FragColor = vec4(uPickColor);
+            }
+            else {
+                discard;
+            }
         }`
     }
 }
@@ -41,6 +47,16 @@ export default class PickSelectionShader extends Shader {
         this._program.attachVertexSource(g_code.webgl.vertex);
         this._program.attachFragmentSource(g_code.webgl.fragment);
         this._program.link();
+
+        this._forceDraw = true;
+    }
+
+    set forceDraw(d) {
+        this._forceDraw = d;
+    }
+
+    get forceDraw() {
+        return this._forceDraw;
     }
 
     setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
@@ -48,6 +64,7 @@ export default class PickSelectionShader extends Shader {
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
+        this._program.uniform1i('uSelected', this._forceDraw || plistRenderer.polyList.isSelected);
 
         const { polyList } = plistRenderer;
         this._program.uniform4fv('uPickColor', polyList.colorCode);

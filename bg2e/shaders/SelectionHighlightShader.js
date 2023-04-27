@@ -20,28 +20,6 @@ const g_code = {
             gl_Position = vec4(position, 1.0);
         }`,
 
-        fragment_: `precision mediump float;
-        
-        varying vec2 fragTexCoord;
-        
-        uniform sampler2D uTexture;
-        uniform float uConvMatrix[9];
-        uniform vec4 uBorderColor;
-        uniform float uBorderWidth;
-        uniform vec2 uTexSize;
-        
-        void main() {
-            //vec4 texColor = texture2D(uTexture, fragTexCoord);
-            vec4 texColor = applyConvolution(uTexture, fragTexCoord, uTexSize, uConvMatrix, uBorderWidth);
-            if (selectionColor.r!=0.0 && selectionColor.g!=0.0 && selectionColor.b!=0.0) {
-                gl_FragColor = uBorderColor;
-            }
-            else {
-                discard;
-            }
-            //gl_FragColor = vec4(texColor.rgb, 1.0);
-        }`,
-
         fragment: ShaderFunction.GetShaderCode(`precision mediump float;
             varying vec2 fragTexCoord;
             
@@ -53,8 +31,6 @@ const g_code = {
             `,
             [
                 new ShaderFunction('void','main','',`{
-                    //vec4 texColor = texture2D(uTexture, fragTexCoord);
-                    //gl_FragColor = vec4(texColor.rgb, 1.0);
                     vec4 selectionColor = applyConvolution(uTexture, fragTexCoord, uTexSize, uConvMatrix, uBorderWidth);
                     if (selectionColor.r!=0.0 && selectionColor.g!=0.0 && selectionColor.b!=0.0) {
                         gl_FragColor = uBorderColor;
@@ -85,7 +61,7 @@ export default class SelectionHighlightShader extends Shader {
         this._program.link();
 
         this._borderWidth = 3;
-        this._borderColor = new Vec([0.2, 0.3, 0.9, 1.0]);
+        this._borderColor = new Vec([0.0, 0.7, 1, 1.0]);
         this._convMatrix = [
             0, 1, 0,
             1,-4, 1,

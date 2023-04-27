@@ -64,6 +64,7 @@ export default class SelectionAssignVisitor extends NodeVisitor {
             let color = this.getNextColor();
             drawable.items.forEach(({polyList}, i, array) => {
                 polyList.colorCode = color;
+                polyList.selected = false;
                 const colorCode = getColor([
                     Math.round(color[0] * 255),
                     Math.round(color[1] * 255),

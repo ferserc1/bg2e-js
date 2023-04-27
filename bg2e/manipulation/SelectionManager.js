@@ -111,6 +111,8 @@ export default class SelectionManager {
                 this._selection = [];
                 this.triggerSelectionChanged();
             }
+
+            this._selection.forEach(item => item.polyList.selected = true);
         }
     }
 

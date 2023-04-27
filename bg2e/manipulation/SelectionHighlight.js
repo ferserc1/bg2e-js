@@ -26,6 +26,7 @@ export default class SelectionHighlight {
 
         this._shader = new PickSelectionShader(renderer);
         await this._shader.load();
+        this._shader.forceDraw = false;
 
         this._renderQueue = new RenderQueue(renderer);
         this._renderQueue.enableQueue(RenderLayer.SELECTION_DEFAULT, this._shader);
@@ -56,7 +57,7 @@ export default class SelectionHighlight {
 
         // TODO: Draw target texture using a border detection shader
         const shader = this._selectionDrawShader;
-        this._renderer.presentTexture(this._targetTexture, { shader });
+        this._renderer.presentTexture(this._targetTexture, { clearBuffers: false, shader });
     }
 
     destroy() {
