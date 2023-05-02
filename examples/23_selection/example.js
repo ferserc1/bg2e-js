@@ -7,6 +7,8 @@ import OrbitCameraController from "bg2e/scene/OrbitCameraController";
 import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
 import VitscnjLoaderPlugin from "bg2e/db/VitscnjLoaderPlugin";
 import { registerComponents } from "bg2e/scene";
+import FindNodeVisitor from "bg2e/scene/FindNodeVisitor";
+import Drawable from "bg2e/scene/Drawable";
 
 class MyAppController extends SceneAppController {
     createOutputText() {
@@ -49,6 +51,15 @@ class MyAppController extends SceneAppController {
         const loader = new Loader();
         const root = await loader.loadNode("../resources/test-scene/test-scene.vitscnj");
 
+        const findVisitor = new FindNodeVisitor();
+        findVisitor.name = "Ball";
+        findVisitor.hasComponents(["Drawable"]);
+        root.accept(findVisitor);
+        findVisitor.result.forEach(node => {
+            node.drawable?.makeSelectable(node.name === "Ball");
+        });
+
+
         // Get main camera
         // Add Orbit camera controller component to the camera node
         const mainCamera = Camera.GetMain(root);
@@ -56,6 +67,7 @@ class MyAppController extends SceneAppController {
         mainCamera.projectionStrategy.focalLength = 55;
         mainCamera.projectionStrategy.frameSize = 35;
 
+        window.root = root;
 
         return root;
     }

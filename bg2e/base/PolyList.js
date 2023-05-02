@@ -203,6 +203,7 @@ export default class PolyList {
         // Internal use: the following properties will not be serialized
         this._colorCode = Color.Black();
         this._selected = false;
+        this._selectable = true;
     }
 
     clone() {
@@ -283,6 +284,14 @@ export default class PolyList {
 
     get isSelected() {
         return this._selected;
+    }
+
+    get isSelectable() {
+        return this._selectable;
+    }
+
+    set selectable(s) {
+        this._selectable = s;
     }
 
     // The this._renderer variable is initialized by the polyListRenderer factory

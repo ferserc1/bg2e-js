@@ -74,6 +74,12 @@ export default class Drawable extends Component {
 
     }
 
+    makeSelectable(selectable = true) {
+        this._items.forEach(({polyList}) => {
+            polyList.selectable = selectable;
+        })
+    }
+
     async deserialize(sceneData,loader) {
         const tryload = async (drawablePath) => {
             try {

@@ -63,15 +63,17 @@ export default class SelectionAssignVisitor extends NodeVisitor {
         if (drawable) {
             let color = this.getNextColor();
             drawable.items.forEach(({polyList}, i, array) => {
-                polyList.colorCode = color;
-                polyList.selected = false;
-                const colorCode = getColor([
-                    Math.round(color[0] * 255),
-                    Math.round(color[1] * 255),
-                    Math.round(color[2] * 255)
-                ]);
-                console.log(colorCode);
-                this._elements[colorCode] = { polyList, drawable };
+                if (polyList.isSelectable) {
+                    polyList.colorCode = color;
+                    polyList.selected = false;
+                    const colorCode = getColor([
+                        Math.round(color[0] * 255),
+                        Math.round(color[1] * 255),
+                        Math.round(color[2] * 255)
+                    ]);
+                    this._elements[colorCode] = { polyList, drawable };
+                }
+
                 // Get new color code for the next polyList, only if this is not the
                 // last item, and the selection mode is POLY_LIST, otherwise we'll
                 // use the same color code for all polyList in the drawable
