@@ -39,7 +39,8 @@ export const ProceduralTextureFunction = Object.freeze({
     PLAIN_COLOR: 0,
     RANDOM_NOISE: 1,
     DYNAMIC_CUBEMAP: 2,
-    FROM_BASE64: 3
+    FROM_BASE64: 3,
+    CANVAS_2D: 4
 });
 
 export const TextureRenderTargetAttachment = Object.freeze({
@@ -110,7 +111,8 @@ export const ProceduralTextureFunctionName = Object.freeze({
     0: "PLAIN_COLOR",
     1: "RANDOM_NOISE",
     2: "DYNAMIC_CUBEMAP",
-    3: "FROM_BASE64"
+    3: "FROM_BASE64",
+    4: "CANVAS_2D"
 });
 
 export const TextureRenderTargetAttachmentNames = Object.freeze({
@@ -468,17 +470,21 @@ export default class Texture {
             }
 
             this._imageData = await loadBase64Image(this.proceduralParameters.imageData);
+            this._size = new Vec(this._imageData.width, this._imageData.height);
+            this._dirty = true;
+        }
+        else if (this.proceduralFunction == ProceduralTextureFunction.CANVAS_2D) {
+            if (this._imageData && refresh === false) {
+                return;
+            }
 
-            //const loadProceduralImage = () => {
-            //    return new Promise(resolve => {
-            //        this._imageData = new Image();
-            //        this._imageData.onload = () => {
-            //            resolve();
-            //        }
-            //        this._imageData.src = this.proceduralParameters.imageData;
-            //    })
-            //}
-            //await loadProceduralImage();
+            const canvas = this.proceduralParameters?.canvas;
+            if (!/canvas/i.test(canvas?.tagName)) {
+                throw new Error("Error generating procedural texture from HTML canvas. Invalid 'canvas' parameter.");
+            }
+
+            const imageData = canvas.toDataURL();
+            this._imageData = await loadBase64Image(imageData);
             this._size = new Vec(this._imageData.width, this._imageData.height);
             this._dirty = true;
         }
@@ -486,6 +492,12 @@ export default class Texture {
             // TODO: load other classes of procedural image data
             throw new Error("Texture: loadImageData(): not implemented");
         }
+    }
+
+    async updateImageData() {
+        // TODO: improve this function. It is possible to optimize the
+        // texture refresh in some cases
+        this.loadImageData(true);
     }
 
 };
