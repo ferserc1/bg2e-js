@@ -1,6 +1,13 @@
 import Mat4 from '../math/Mat4';
 import ComponentMap from './ComponentMap';
 
+export function bindRenderer(node, renderer) {
+    node._bindedRenderer = renderer;
+    node.components.forEach(comp => {
+        comp.bindRenderer(renderer);
+    });
+}
+
 export default class Node {
     constructor(name = "") {
         this._name = name;
@@ -82,6 +89,12 @@ export default class Node {
         node._parent = this;
         this._children.push(node);
         node.addedToNode(this);
+
+        // If this node has been binded to a renderer, we need to bind
+        // the same renderer to any node that is added as child
+        if (this._bindedRenderer) {
+            bindRenderer(node, this._bindedRenderer);
+        }
     }
 
     removeChild(node) {

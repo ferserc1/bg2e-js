@@ -7,6 +7,7 @@ import Vec from "../math/Vec";
 import Camera from "../scene/Camera";
 import FindNodeVisitor from "../scene/FindNodeVisitor";
 import Transform from "../scene/Transform";
+import { bindRenderer } from "../scene/Node";
 
 export class FrameVisitor extends NodeVisitor {
     constructor(renderQueue) {
@@ -40,9 +41,7 @@ export class BindRendererVisitor extends NodeVisitor {
     }
 
     visit(node) {
-        node.components.forEach(comp => {
-            comp.bindRenderer(this._renderer);
-        });
+        bindRenderer(node, this._renderer);
     }
 }
 
