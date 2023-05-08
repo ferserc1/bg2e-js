@@ -13,7 +13,6 @@ import Texture, {
 import Material from 'bg2e/base/Material';
 import Vec from 'bg2e/math/Vec';
 
-await Test.DoImportTest("dist/");
 
 console.log(Vec);
 
@@ -33,7 +32,7 @@ const l2 = new Light();
 await l2.deserialize(sceneData);
 console.log("Light 2 intensity: " + l2.intensity);
 
-console.log(l2.diffuse.toString()); // Red
+console.log(l2.color.toString()); // Red
 
 const c2 = new Color([0.1, 0.4, 0.5]);
 console.log(c2.toString());
@@ -77,7 +76,7 @@ console.log(plist.tangent);
 
 const t = new Texture();
 t.dataType = TextureDataType.IMAGE;
-t.fileName = "test.jpg";
+t.fileName = "../resources/logo.png";
 t.size.x = 128;
 t.size.y = 128;
 t.wrapModeXY = TextureWrap.REPEAT;
