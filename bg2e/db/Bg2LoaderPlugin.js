@@ -26,7 +26,9 @@ const createPolyList = (jsonData,loader) => {
         plist.name = plData.name
         plist.visible = plData.visible;
         if (materialData) {
+            console.log(materialData);
             plist.groupName = materialData.groupName || "";
+            plist.enableCullFace = materialData.cullFace;
         }
         plist.vertex = plData.vertex;
         plist.normal = plData.normal;

@@ -9,7 +9,8 @@ export default class RenderState {
         materialRenderer = null,
         modelMatrix = Mat4.MakeIdentity(),
         viewMatrix = Mat4.MakeIdentity(),
-        projectionMatrix = Mat4.MakeIdentity()
+        projectionMatrix = Mat4.MakeIdentity(),
+        pipeline = null
     }) {
         this._shader = shader;
         this._polyListRenderer = polyListRenderer;
@@ -17,6 +18,7 @@ export default class RenderState {
         this._modelMatrix = modelMatrix;
         this._viewMatrix = viewMatrix;
         this._projectionMatrix = projectionMatrix;
+        this._pipeline = pipeline;
     }
 
     get valid() {
@@ -35,6 +37,8 @@ export default class RenderState {
     get viewMatrix() { return this._viewMatrix; }
     set projectionMatrix(projection) { this._projectionMatrix = projection; }
     get projectionMatrix() { return this._projectionMatrix; }
+    get pipeline() { return this._pipeline; }
+    set pipeline(pl) { this._pipeline = pl; }
 
     isLayerEnabled(layer) {
         const { polyList } = this._polyListRenderer;
@@ -47,6 +51,9 @@ export default class RenderState {
     }
 
     draw() {
+        if (this.pipeline) {
+            this.pipeline.activate();
+        }
         this.polyListRenderer.bindBuffers();
         this.shader.setup(
             this.polyListRenderer,

@@ -48,20 +48,27 @@ export default class RenderQueue {
         return this._queues.find(l => l.layer === layer);
     }
 
-    enableQueue(layer, shader, { beginOperation = null, endOperation = null, enabled = true, pipeline = null } = {}) {
-        if (!pipeline) {
-            pipeline = this.renderer.factory.pipeline();
-            if (layer === RenderLayer.TRANSPARENT_DEFAULT) {
-                pipeline.setBlendState({
-                    enabled: true,
-                    blendFuncSrc: BlendFunction.SRC_ALPHA,
-                    blendFuncDst: BlendFunction.ONE_MINUS_SRC_ALPHA,
-                    blendFuncSrcAlpha: BlendFunction.ONE,
-                    blendFuncDstAlpha: BlendFunction.ONE_MINUS_SRC_ALPHA
-                });
-            }
-            pipeline.create();
+    enableQueue(layer, shader, { beginOperation = null, endOperation = null, enabled = true } = {}) {
+        // TODO: Create pipelines for different render states (cull face, front face etc.)
+        const cullBackFace = this.renderer.factory.pipeline();
+        const cullFaceDisabled = this.renderer.factory.pipeline();
+        if (layer === RenderLayer.TRANSPARENT_DEFAULT) {
+            const blendState = {
+                enabled: true,
+                blendFuncSrc: BlendFunction.SRC_ALPHA,
+                blendFuncDst: BlendFunction.ONE_MINUS_SRC_ALPHA,
+                blendFuncSrcAlpha: BlendFunction.ONE,
+                blendFuncDstAlpha: BlendFunction.ONE_MINUS_SRC_ALPHA
+            };
+            cullBackFace.setBlendState(blendState);
+            cullFaceDisabled.setBlendState(blendState);
         }
+        cullBackFace.create();
+        cullFaceDisabled.cullFace = false;
+        cullFaceDisabled.create();
+
+    
+        
 
         const queue = this.getQueue(layer);
         if (!queue) {
@@ -71,7 +78,10 @@ export default class RenderQueue {
                 beginOperation,
                 endOperation,
                 enabled,
-                pipeline,
+                pipelines: {
+                    cullBackFace,
+                    cullFaceDisabled
+                },
                 queue: []
             });
         }
@@ -98,15 +108,25 @@ export default class RenderQueue {
 
     addPolyList(polyListRenderer, materialRenderer, modelMatrix) {
         const plistLayers = getLayers(polyListRenderer.polyList, materialRenderer.material);
-        this._queues.forEach(({ layer, shader, queue }) => {
+        this._queues.forEach(({ layer, shader, queue, pipelines }) => {
             if (plistLayers & layer) {
+                const { polyList } = polyListRenderer;
+                let pipeline = null;
+                // TODO: Select pipeline based on material and polyList properties
+                if (polyList.enableCullFace) {
+                    pipeline = pipelines.cullBackFace;
+                }
+                else {
+                    pipeline = pipelines.cullFaceDisabled;
+                }
                 queue.push(new RenderState({
                     shader,
                     polyListRenderer,
                     materialRenderer,
                     modelMatrix,
                     viewMatrix: this.viewMatrix,
-                    projectionMatrix: this.projectionMatrix
+                    projectionMatrix: this.projectionMatrix,
+                    pipeline
                 }))
             }
         });
@@ -122,8 +142,11 @@ export default class RenderQueue {
             if (typeof(queue.beginOperation) === "function") {
                 queue.beginOperation(layer);
             }
-            queue.pipeline.activate();
-            queue.queue.forEach(rs => rs.draw());
+            
+            //queue.pipeline.activate();
+            queue.queue.forEach(rs => {
+                rs.draw();
+            });
             if (typeof(queue.endOperation) === "function") {
                 queue.endOperation(layer);
             }

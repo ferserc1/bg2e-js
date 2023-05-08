@@ -27,6 +27,8 @@ export default class Pipeline {
         this.setBlendState({});
 
         this._depthTestEnabled = true;
+
+        this._cullFace = true;
     }
 
     get renderer() {
@@ -63,6 +65,14 @@ export default class Pipeline {
         this._depthTestEnabled = dt;
     }
 
+    set cullFace(cf) {
+        this._cullFace = cf;
+    }
+
+    get cullFace() {
+        return this._cullFace;
+    }
+    
     create() {
         throw new Exception("Pipeline.create(): calling base class method.");
     }

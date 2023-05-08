@@ -72,6 +72,9 @@ function getShaderProgramForLights(renderer, numLights) {
         [
             new ShaderFunction('void','main','',`{
                 vec3 N = normalize(fragNorm);
+                if (!gl_FrontFacing) {
+                    N = -N;
+                }
                 vec3 T = normalize(fragTangent);
                 vec3 B = normalize(fragBitangent);
                 mat3 TBN = mat3(T,B,N);

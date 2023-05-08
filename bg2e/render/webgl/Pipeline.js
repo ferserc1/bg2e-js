@@ -71,5 +71,12 @@ export default class WebGLPipeline extends Pipeline {
         );
 
         state.depthTestEnabled = this.depthTest;
+
+        if (this.cullFace) {
+            gl.enable(gl.CULL_FACE);
+        }
+        else {
+            gl.disable(gl.CULL_FACE);
+        }
     }
 }
