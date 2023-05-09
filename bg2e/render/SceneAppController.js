@@ -99,8 +99,8 @@ export default class SceneAppController extends AppController {
         this.selectionHighlight?.setViewportSize(width,height);
     }
 
-    frame(delta) {
-        this.sceneRenderer.frame(this.sceneRoot, delta);
+    async frame(delta) {
+        await this.sceneRenderer.frame(this.sceneRoot, delta);
     }
 
     display() {

@@ -20,14 +20,14 @@ const g_animationLoop = {
     mainLoop: []
 };
 
-function animationLoop(totalTime) {
+async function animationLoop(totalTime) {
     totalTime = totalTime || 0;
     requestAnimationFrame(animationLoop);
     const elapsed = totalTime - g_animationLoop.lastTime;
     g_animationLoop.lastTime = totalTime;
-    g_animationLoop.mainLoop.forEach(ml => {
-        onUpdate(ml,elapsed);
-    });
+    for (const ml of g_animationLoop.mainLoop) {
+        await onUpdate(ml, elapsed);
+    }
 }
 
 class MouseStatus {
@@ -163,7 +163,7 @@ function onResize(mainLoop) {
     mainLoop.appController.reshape(mainLoop.canvas.width, mainLoop.canvas.height);
 }
 
-function onUpdate(mainLoop, elapsed) {
+async function onUpdate(mainLoop, elapsed) {
     if (mainLoop.redisplay) {
         if (mainLoop.updateMode === FrameUpdate.AUTO) {
             mainLoop._redisplayFrames = 1;
@@ -171,7 +171,7 @@ function onUpdate(mainLoop, elapsed) {
         else {
             mainLoop._redisplayFrames--;
         }
-        mainLoop.appController.frame(elapsed);
+        await mainLoop.appController.frame(elapsed);
         mainLoop.appController.display();
     }
 }

@@ -8,6 +8,17 @@ export function bindRenderer(node, renderer) {
     });
 }
 
+export async function init(node) {
+    for (const i in node.components.array) {
+        const comp = node.components.array[i];
+        if (!comp._initialized) {
+            await comp.init();
+            comp._initialized = true;
+        }
+    }
+    node._sceneChanged = false;
+}
+
 export default class Node {
     constructor(name = "") {
         this._name = name;
@@ -68,6 +79,7 @@ export default class Node {
 
     addComponent(component) {
         this.components.add(component);
+        this.setSceneChanged();
     }
 
     component(typeId) {
@@ -80,6 +92,19 @@ export default class Node {
 
     removedFromNode(node) {
 
+    }
+
+    // This attribute returns true if a node or component
+    // has been added or removed to this node or any child node
+    get sceneChanged() {
+        return this._sceneChanged;
+    }
+
+    setSceneChanged() {
+        this._sceneChanged = true;
+        if (this._parent) {
+            this._parent.setSceneChanged();
+        }
     }
 
     addChild(node) {
@@ -95,6 +120,8 @@ export default class Node {
         if (this._bindedRenderer) {
             bindRenderer(node, this._bindedRenderer);
         }
+
+        this.setSceneChanged();
     }
 
     removeChild(node) {
@@ -104,6 +131,7 @@ export default class Node {
             const index = this._children.indexOf(node);
             if (index !== -1) {
                 this._children.splice(index, 1);
+                this.setSceneChanged();
             }
             else {
                 console.warn(`Scene inconsistency found removing node '${ node.name }' from node '${ this.name }'. The parent node is valid, but the child is not present in the children array.`);
@@ -120,6 +148,7 @@ export default class Node {
             ch.removedFromNode(this);
         });
         this._children = [];
+        this.setSceneChanged();
     }
 
     haveChild(node) {

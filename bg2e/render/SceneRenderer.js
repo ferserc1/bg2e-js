@@ -7,7 +7,7 @@ import Vec from "../math/Vec";
 import Camera from "../scene/Camera";
 import FindNodeVisitor from "../scene/FindNodeVisitor";
 import Transform from "../scene/Transform";
-import { bindRenderer } from "../scene/Node";
+import { bindRenderer, init } from "../scene/Node";
 
 export class FrameVisitor extends NodeVisitor {
     constructor(renderQueue) {
@@ -51,10 +51,7 @@ export class InitVisitor extends NodeVisitor {
     }
 
     async asyncVisit(node) {
-        for (const i in node.components.array) {
-            const comp = node.components.array[i];
-            await comp.init();
-        }
+        await init(node);
     }
 }
 
@@ -121,6 +118,7 @@ export default class SceneRenderer {
         this._transparentPipeline.create();
 
         this._renderQueue = new RenderQueue(this.renderer);
+        this._initVisitor = new InitVisitor();
         this._frameVisitor = new FrameVisitor(this._renderQueue);
 
         this._skyCube = this.renderer.factory.skyCube();
@@ -155,8 +153,7 @@ export default class SceneRenderer {
         const bindRendererVisitor = new BindRendererVisitor(this.renderer);
         sceneRoot.accept(bindRendererVisitor);
 
-        const initVisitor = new InitVisitor();
-        await sceneRoot.asyncAccept(initVisitor);
+        await sceneRoot.asyncAccept(this._initVisitor);        
 
         const findVisitor = new FindNodeVisitor();
         findVisitor.hasComponents("Environment");
@@ -177,8 +174,11 @@ export default class SceneRenderer {
         }
     }
 
-    frame(sceneRoot,delta) {
-        this._renderQueue.newFrame();
+    async frame(sceneRoot,delta) {
+        if (sceneRoot.sceneChanged) {
+            await sceneRoot.asyncAccept(this._initVisitor);
+        }
+                this._renderQueue.newFrame();
         this._frameVisitor.delta = delta;
         this._frameVisitor.modelMatrix.identity();
 

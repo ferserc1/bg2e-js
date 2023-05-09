@@ -15,7 +15,7 @@ export default class AppController {
 
     async init() {}
     reshape(width,height) {}
-    frame(delta) {}
+    async frame(delta) {}
     display() {}
     destroy() {}
     keyDown(evt) {}
