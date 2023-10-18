@@ -99,7 +99,7 @@ export default class EnvironmentComponent extends Component {
             this.equirectangularTexture = jointUrl(loader.currentPath,sceneData.equirectangularTexture);
         }
         this.irradianceIntensity = sceneData.irradianceIntensity || this.irradianceIntensity;
-        this.showSkybox = sceneData.showSkybox || this.showSkybox;
+        this.showSkybox = sceneData.showSkybox ?? this.showSkybox;
         this.cubemapSize = sceneData.cubemapSize || this.cubemapSize;
         this.irradianceMapSize = sceneData.irradianceMapSize || this.irradianceMapSize;
         this.specularMapSize = sceneData.specularMapSize || this.specularMapSize;
