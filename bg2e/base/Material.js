@@ -197,6 +197,9 @@ const deserializeVector = (obj) => {
     else if (obj.length === 2) {
         return new Vec(obj);
     }
+    else if (obj._v && obj._v.length == 2) {
+        return new Vec(obj._v);
+    }
     else {
         throw new Error(`Invalid parameter found in material serialization`);
     }
