@@ -92,25 +92,25 @@ export const PrimitiveTypeAttributes = [
 ];
 
 
-const assertColorTexture = (v, name) => {
+export const assertColorTexture = (v, name) => {
     if (!v instanceof Color && !v instanceof Texture) {
         throw new Error(`Invalid parameter setting '${ name }' material attribute. The required parameter type is Color or Texture`);
     }
 }
 
-const assertColor = (v, name) => {
+export const assertColor = (v, name) => {
     if (!v instanceof Color) {
         throw new Error(`Invalid parameter setting '${ name }' material attribute. The required parameter type is Color`);
     }
 }
 
-const assertScale = (v, name) => {
+export const assertScale = (v, name) => {
     if (!v instanceof Vec || v.length != 2) {
         throw new Error(`Invalid parameter setting '${ name }' material attribute. The required parameter type is Vec with two elements.`);
     }
 }
 
-const assertValueTexture = (v, name) => {
+export const assertValueTexture = (v, name) => {
     if (!v instanceof Texture && typeof(v) !== "number") {
         throw new Error(`Invalid parameter setting '${ name }' material attribute. The required parameter type is Texture or numeric value.`);
     }
@@ -121,7 +121,7 @@ const assertValueTexture = (v, name) => {
 //  - Color
 //  - Texture
 // Returns the same parameter if not
-const cloneObject = (obj) => {
+export const cloneObject = (obj) => {
     if (obj instanceof Color) {
         return new Color(obj);
     }
@@ -136,7 +136,7 @@ const cloneObject = (obj) => {
     }
 }
 
-const serializeColorTexture = (obj) => {
+export const serializeColorTexture = (obj) => {
     const result = { type: "", data: {} };
     if (obj instanceof Color) {
         result.type = "Color";
@@ -153,7 +153,7 @@ const serializeColorTexture = (obj) => {
 }
 
 
-const deserializeColorTexture = (obj,relativePath = "") => {
+export const deserializeColorTexture = (obj,relativePath = "") => {
     if (obj === null || obj === undefined) {
         return null;
     }
@@ -190,14 +190,14 @@ const deserializeColorTexture = (obj,relativePath = "") => {
     }
 }
 
-const deserializeVector = (obj) => {
+export const deserializeVector = (obj) => {
     if (!obj) {
         return null;
     }
-    else if (obj.length === 2) {
+    else if (obj.length >= 2 && obj.length <= 4) {
         return new Vec(obj);
     }
-    else if (obj._v && obj._v.length == 2) {
+    else if (obj._v && obj._v.length >= 2 && obj._v.length <= 4) {
         return new Vec(obj._v);
     }
     else {
@@ -205,7 +205,7 @@ const deserializeVector = (obj) => {
     }
 }
 
-const serializeValueTexture = (obj) => {
+export const serializeValueTexture = (obj) => {
     const result = { type: "", data: "" };
     if (obj instanceof Texture) {
         result.type = "Texture";
@@ -221,7 +221,7 @@ const serializeValueTexture = (obj) => {
     return result;
 }
 
-const deserializeValueTexture = (obj,relativePath) => {
+export const deserializeValueTexture = (obj,relativePath) => {
     if (obj === null || obj === undefined) {
         return null;
     }
@@ -255,7 +255,7 @@ const deserializeValueTexture = (obj,relativePath) => {
     }
 }
 
-const serializeAttribute = (att,mat) => {
+export const serializeAttribute = (att,mat) => {
     if (ColorTextureAttributes.indexOf(att) !== -1) {
         return serializeColorTexture(mat[att]);
     }
@@ -273,7 +273,7 @@ const serializeAttribute = (att,mat) => {
     }
 }
 
-const deserializeAttribute = (att,obj, relativePath) => {
+export const deserializeAttribute = (att,obj, relativePath) => {
     if (ColorTextureAttributes.indexOf(att) !== -1) {
         return deserializeColorTexture(obj[att],relativePath);
     }

@@ -106,8 +106,13 @@ const getWebGLTexture = (gl, textureData) => {
 export default class WebGLTextureRenderer extends TextureRenderer {
     getApiObject() {
         if (this.texture.dirty) {
-            getWebGLTexture(this.renderer.gl, this.texture);
-            this.texture.setUpdated();
+            try {
+                getWebGLTexture(this.renderer.gl, this.texture);
+                this.texture.setUpdated();
+            }
+            catch (err) {
+                console.warn(err.message);
+            }
         }
         return this.texture._apiObject;
     }
