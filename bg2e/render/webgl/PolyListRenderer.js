@@ -163,6 +163,9 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
     }
     
     draw() {
+        if (!this.polyList.visible) {
+            return;
+        }
         const { gl, state } = this.renderer;
 
         state.cullFaceEnabled = this.polyList.enableCullFace;

@@ -80,6 +80,7 @@ export default class Node {
     addComponent(component) {
         this.components.add(component);
         this.setSceneChanged();
+        return component;
     }
 
     component(typeId) {
