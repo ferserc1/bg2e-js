@@ -53,6 +53,14 @@ export default class WebGLRenderer extends Renderer {
         this._canvas = canvas;
 
         this._gl = canvas.domElement.getContext("webgl", { preserveDrawingBuffer: true });
+        const requestDebug = new URLSearchParams(location.search).get("debug") == "true";
+        if (window.WebGLDebugUtils && requestDebug) {
+            console.warn("Using WebGLDebugUtils: this must cause an impact in performance");
+            function throwOnError(err, funcName, args) {
+                throw WebGLDebugUtils.glEnumToString(err) + " was caused by call to: " + funcName;
+            }
+            this._gl = WebGLDebugUtils.makeDebugContext(this._gl, throwOnError);
+        }
 
         this._state = new State(this);
 
