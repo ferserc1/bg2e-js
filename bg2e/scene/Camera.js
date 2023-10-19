@@ -118,7 +118,7 @@ export class OpticalProjectionStrategy extends ProjectionStrategy {
     get frameSize() { return this._frameSize; }
 
     get fov() {
-        return 2 * Math.atan(this.frameSize / (this.focalLength / 2));
+        return 2 * Math.atan((this.frameSize / 2.0) / this.focalLength);
     }
 
     clone() {
