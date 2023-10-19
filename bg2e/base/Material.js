@@ -163,7 +163,7 @@ export const deserializeColorTexture = (obj,relativePath = "") => {
         tex.fileName = relativePath + obj;
         tex.dataType = TextureDataType.IMAGE;
         tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-        tex.magFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+        tex.magFilter = TextureFilter.LINEAR;
         tex.wrapModeX = TextureWrap.REPEAT;
         tex.wrapModeY = TextureWrap.REPEAT;
         return tex;
@@ -232,7 +232,7 @@ export const deserializeValueTexture = (obj,relativePath) => {
         tex.wrapModeX = TextureWrap.REPEAT;
         tex.wrapModeY = TextureWrap.REPEAT;
         tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-        tex.magFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+        tex.magFilter = TextureFilter.LINEAR;
         return tex;
     }
     else if (typeof(obj) === "number") {

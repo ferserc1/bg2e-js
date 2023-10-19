@@ -332,7 +332,15 @@ export default class Texture {
         this._dirty = true; 
     }
     get magFilter() { return this._magFilter; }
-    set magFilter(v) { this._magFilter = v; this._dirty = true; }
+    set magFilter(v) {
+        if (v === TextureFilter.LINEAR || v === TextureFilter.NEAREST) {
+            this._magFilter = v;
+            this._dirty = true;
+        }
+        else {
+            console.warn(`Unsupported texture magnification filter: ${TextureFilterName[v]}. Command ignored.`);
+        }
+    }
     get minFilter() { return this._minFilter; }
     set minFilter(v) { this._minFilter = v; this._dirty = true; }
     get target() { return this._target; }
