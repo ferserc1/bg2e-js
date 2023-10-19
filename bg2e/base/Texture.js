@@ -150,35 +150,52 @@ export const TextureChannelNames = Object.freeze({
 
 const g_loadedImages = {};
 let g_resource = null;
+const g_loadPromises = {};
 const loadImageFromFile = async fileUrl => {
+    if (/\?/.test(fileUrl)) {
+        console.log("Nos han jodío");
+    }
+    console.log("loadImageFromFile");
+
     if (!g_resource) {
         g_resource = new Resource();
     }
-    const image = await g_resource.load(fileUrl);
-    // Flip image Y coord
-    const canvas = document.createElement("canvas");
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
 
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#00000000';
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.scale(1, -1);
-    ctx.drawImage(image, 0, 0, canvas.width, -canvas.height);
-    const flipImage = new Image();
-    const loadFlipImage = () => {
-        return new Promise(resolve => {
-            flipImage.onload = () => {
-                flipImage._hash = generateImageHash(flipImage);
-                resolve();
-            }
-            flipImage.src = canvas.toDataURL();
-        })
-    } 
-    await loadFlipImage();    
+    if (g_loadPromises[fileUrl]) {
+        console.log(`Image already loaded or loading: ${fileUrl}`);
+    }
+    else {
+        console.log(`Loading image: ${fileUrl}`);
+        g_loadPromises[fileUrl] = new Promise(async (resolve, reject) => {
+            const image = await g_resource.load(fileUrl);
+            // Flip image Y coord
+            const canvas = document.createElement("canvas");
+            canvas.width = image.naturalWidth;
+            canvas.height = image.naturalHeight;
     
-    return flipImage;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#00000000';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.scale(1, -1);
+            ctx.drawImage(image, 0, 0, canvas.width, -canvas.height);
+            const flipImage = new Image();
+            const loadFlipImage = () => {
+                return new Promise(resolve => {
+                    flipImage.onload = () => {
+                        flipImage._hash = generateImageHash(flipImage);
+                        resolve();
+                    }
+                    flipImage.src = canvas.toDataURL();
+                })
+            } 
+            await loadFlipImage();    
+            
+            resolve(flipImage);
+        })
+    }
+
+    return g_loadPromises[fileUrl];
 }
 const loadBase64Image = async base64Img => {
     const loadImage = () => {

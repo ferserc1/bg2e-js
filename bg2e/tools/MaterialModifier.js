@@ -3,6 +3,11 @@ import {
     deserializeVector,
     deserializeValueTexture
 } from "../base/Material";
+import Texture from "../base/Texture";
+
+const checkImageData = (texture) => {
+    return texture instanceof Texture ? texture.loadImageData() : Promise.resolve();
+}
 
 export default class MaterialModifier {
     constructor(jsonData = null) {
@@ -143,28 +148,28 @@ export default class MaterialModifier {
     async applyModifier(material, relativePath = "") {
         const promises = [];
         if (this.alphaCutoff !== undefined) {
-
+            material.alphaCutoff = this.alphaCutoff;
         }
 
         if (this.castShadows !== undefined) {
-
+            material.castShadows = this.castShadows;
         }
 
         if (this.diffuse !== undefined) {
             material.diffuse = deserializeColorTexture(this.diffuse, relativePath);
-            promises.push(material.diffuse.loadImageData());
+            promises.push(checkImageData(material.diffuse));
         }
 
         if (this.diffuseScale !== undefined) {
-            this.diffuseScale = deserializeVector(this.diffuseScale);
+            material.diffuseScale = deserializeVector(this.diffuseScale);
         }
 
         if (this.fresnel !== undefined) {
-
+            material.fresnel = deserializeVector(this.fresnel);
         }
 
         if (this.isTransparent !== undefined) {
-
+            material.isTransparent = this.isTransparent;
         }
 
         if (this.lightEmission !== undefined) {
@@ -180,39 +185,42 @@ export default class MaterialModifier {
         }
 
         if (this.metallic !== undefined) {
-
+            material.metallic = deserializeValueTexture(this.metallic, relativePath);
+            promises.push(checkImageData(material.metallic));
         }
 
         if (this.metallicChannel !== undefined) {
-
+            material.metallicChannel = this.metallicChannel;
         }
 
         if (this.metallicScale !== undefined) {
-
+            material.metallicScale = deserializeVector(this.metallicScale);
         }
 
         if (this.normal !== undefined) {
-
+            material.normal = deserializeColorTexture(this.normal, relativePath);
+            promises.push(checkImageData(material.normal));
         }
 
         if (this.normalScale !== undefined) {
-
+            material.normalScale = deserializeVector(this.normalScale);
         }
 
         if (this.roughness !== undefined) {
-
+            material.roughness = deserializeValueTexture(this.roughness, relativePath);
+            promises.push(checkImageData(material.roughness));
         }
 
         if (this.roughnessChannel !== undefined) {
-
+            material.roughnessChannel = this.roughnessChannel;
         }
 
         if (this.roughnessScale !== undefined) {
-
+            material.roughnessScale = deserializeVector(this.roughnessScale);
         }
 
         if (this.unlit !== undefined) {
-
+            material.unlit = this.unlit;
         }
         await Promise.allSettled(promises);
     }
