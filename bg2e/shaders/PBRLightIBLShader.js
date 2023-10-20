@@ -103,6 +103,7 @@ function getShaderProgramForLights(renderer, numLights) {
                 float metallic = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uMetallicScale).r * uMetallic;
                 float roughness = max(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uRoughnessScale).g * uRoughness, 0.01);
 
+                //gl_FragColor = vec4(fragTangent / 2.0 + 0.5, 1.0);
                 if (alpha < uAlphaTresshold) {
                     discard;
                 }

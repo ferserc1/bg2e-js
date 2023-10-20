@@ -31,7 +31,11 @@ const g_bufferUsageConversion = [];
 
 const g_createdBuffers = {};
 
+// DEBUG: assign an unique identifier to each buffer
+let g_bg2e_id__ = 0;
+
 export default class VertexBuffer {
+
     static Delete(buffer) {
         const gls = Symbol.for(buffer._gl);
         const buffer_s = Symbol.for(buffer._buffer);
@@ -64,19 +68,25 @@ export default class VertexBuffer {
         else if (target === BufferTarget.ELEMENT_ARRAY_BUFFER) {
             target = gl.ELEMENT_ARRAY_BUFFER_BINDING;
         }
-        const gls = Symbol.for(gl);
+        const gls = gl._bg2_id;
         g_createdBuffers[gls] = g_createdBuffers[gls] || {}
         const gl_buffer = gl.getParameter(target);
-        const buffer = g_createdBuffers[gls][Symbol.for(gl_buffer)];
+        const buffer = g_createdBuffers[gls][gl_buffer._bg2e_id_];
         return buffer;
+    }
+
+    get id() {
+        return this._buffer?._bg2e_id_;
     }
 
     constructor(gl) {
         this._gl = gl;
         this._buffer = gl.createBuffer();
-        const gls = Symbol.for(gl);
+        gl._bg2_id_ = gl._bg2_id_ ?? ++g_bg2e_id__;
+        this._buffer._bg2e_id_ = ++g_bg2e_id__;
+        const gls = gl._bg2_id;
         g_createdBuffers[gls] = g_createdBuffers[gls] || {}
-        g_createdBuffers[gls][Symbol.for(this._buffer)] = this;
+        g_createdBuffers[gls][this._buffer._bg2e_id_] = this;
 
         if (g_bufferTargetConversion.length === 0) {
             g_bufferTargetConversion.push(gl.ARRAY_BUFFER);

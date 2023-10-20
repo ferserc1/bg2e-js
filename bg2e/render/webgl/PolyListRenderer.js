@@ -163,9 +163,6 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
     }
     
     draw() {
-        if (!this.polyList.visible) {
-            return;
-        }
         const { gl, state } = this.renderer;
 
         state.cullFaceEnabled = this.polyList.enableCullFace;
@@ -214,6 +211,7 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
             mode = gl.LINE_STRIP;
             break;
         }
+
         gl.drawElements(mode, this.polyList.index.length, this._indexArrayFormat, 0);
     }
 

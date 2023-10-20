@@ -38,10 +38,10 @@ export default class Pipeline {
     setBlendState({
         enabled = false,
         blendEquation = BlendEquation.ADD,
-        blendFuncSrc = BlendFunction.ONE,
-        blendFuncDst = BlendFunction.ZERO,
-        blendFuncSrcAlpha = BlendFunction.NULL,
-        blendFuncDstAlpha = BlendFunction.NULL
+        blendFuncSrc = BlendFunction.SRC_ALPHA,
+        blendFuncDst = BlendFunction.ONE_MINUS_SRC_ALPHA,
+        blendFuncSrcAlpha = BlendFunction.SRC_ALPHA,
+        blendFuncDstAlpha = BlendFunction.ONE_MINUS_SRC_ALPHA
     }) {
         this._blendState = {
             enabled,

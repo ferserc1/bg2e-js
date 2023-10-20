@@ -133,7 +133,17 @@ export default class RenderBuffer {
         throw new Error("RenderBuffer.frameBuffer: calling base implementation");
     }
 
+    // Save and restore buffer states must save the currently binded array buffer and restore it
+    saveVertexBufferState() {
+        throw new Error("RenderBuffer.saveVertexBufferState: callig base implementation");
+    }
+
+    restoreVertexBufferState() {
+        throw new Error("RenderBuffer.restoreVertexBufferState: calling base implementation");
+    }
+
     update(drawFunc) {
+        this.saveVertexBufferState();
         if (this.type === RenderBufferType.TEXTURE) {
             this.beginUpdate();
             drawFunc();
@@ -170,6 +180,7 @@ export default class RenderBuffer {
                 this.endUpdate(face);
             }
         }
+        this.restoreVertexBufferState();
     }
 
     readPixels(x, y, width, height, format, type) {

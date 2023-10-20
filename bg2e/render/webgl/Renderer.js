@@ -10,6 +10,7 @@ import FrameBuffer from "./FrameBuffer";
 import Pipeline from "./Pipeline";
 import WebGLSceneRenderer from "./SceneRenderer";
 import Vec from "../../math/Vec";
+import VertexBuffer, { BufferTarget } from "./VertexBuffer";
 
 function enableExtensions(gl) {
     // Enable all available extensions
@@ -48,18 +49,48 @@ export default class WebGLRenderer extends Renderer {
         return new Vec(this.gl.getParameter(this.gl.VIEWPORT));
     }
 
+    get debugMode() {
+        return this._debugMode || false;
+    }
+
     async init(canvas) {
         await super.init(canvas);
         this._canvas = canvas;
 
         this._gl = canvas.domElement.getContext("webgl", { preserveDrawingBuffer: true });
         const requestDebug = new URLSearchParams(location.search).get("debug") == "true";
+        this._debugMode = requestDebug;
         if (window.WebGLDebugUtils && requestDebug) {
+            const gl = this._gl;
             console.warn("Using WebGLDebugUtils: this must cause an impact in performance");
             function throwOnError(err, funcName, args) {
                 throw WebGLDebugUtils.glEnumToString(err) + " was caused by call to: " + funcName;
             }
-            this._gl = WebGLDebugUtils.makeDebugContext(this._gl, throwOnError);
+
+            const printBufferSize = (id, arrayBufferType) => {
+                const size = gl.getBufferParameter(gl[arrayBufferType], gl.BUFFER_SIZE);
+                console.log(`   ${arrayBufferType} id: ${id}, size: ${size}`);
+            }
+
+            function logGLCall(functionName, args) {
+                console.log("gl." + functionName + "(" + 
+                   WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
+                if (/drawElements/.test(functionName)) {
+                    const elementBuffer = VertexBuffer.CurrentBuffer(gl, BufferTarget.ELEMENT_ARRAY_BUFFER);
+                    const arrayBuffer = VertexBuffer.CurrentBuffer(gl, BufferTarget.ARRAY_BUFFER);
+                    printBufferSize(elementBuffer?.id, "ELEMENT_ARRAY_BUFFER");
+                    printBufferSize(arrayBuffer?.id, "ARRAY_BUFFER");
+                }
+                else if (/bindBuffer/.test(functionName) && args[0] === gl.ELEMENT_ARRAY_BUFFER) {
+                    console.log(`   BufferID: ${args[1]._bg2e_id_}`);
+                }
+                else if (/bindBuffer/.test(functionName) && args[0] === gl.ARRAY_BUFFER) {
+                    console.log(`   BufferID: ${args[1]._bg2e_id_}`);
+                }
+
+            } 
+
+            this._gl = WebGLDebugUtils.makeDebugContext(this._gl, throwOnError, logGLCall);
         }
 
         this._state = new State(this);

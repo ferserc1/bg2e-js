@@ -25,6 +25,8 @@ export default class RenderState {
         return this._shader && this._plistRenderer && this._materialRenderer;
     }
 
+    get renderer() { return this._polyListRenderer?.renderer; }
+
     set shader(shader) { this._shader = shader; }
     get shader() { return this._shader; }
     set polyListRenderer(polyListRenderer) { this._polyListRenderer = polyListRenderer; }
@@ -51,6 +53,13 @@ export default class RenderState {
     }
 
     draw() {
+        if (!this.polyListRenderer.polyList.visible) {
+            return;
+        }
+        if (this.renderer.debugMode) {
+            console.log(`======= Begin render polyList "${this.polyListRenderer.polyList.name}"    ==============`);
+        }
+
         if (this.pipeline) {
             this.pipeline.activate();
         }
@@ -63,5 +72,8 @@ export default class RenderState {
             this.projectionMatrix
         );
         this.polyListRenderer.draw();
+        if (this.renderer.debugMode) {
+            console.log(`======= End render polyList "${this.polyListRenderer.polyList.name}"      ==============`);
+        }
     }
 }

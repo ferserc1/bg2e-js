@@ -171,6 +171,18 @@ export default class WebGLRenderBuffer extends RenderBuffer {
         return this.renderer.frameBuffer;
     }
 
+    saveVertexBufferState() {
+        const { gl } = this.renderer;
+        this._prevArrayBufferBinding = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+        this._prevElementBufferBinding = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
+    }
+
+    restoreVertexBufferState() {
+        const { gl } = this.renderer;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._prevArrayBufferBinding);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._prevElementBufferBinding);
+    }
+
     beginUpdate(textureFace = CubeMapFace.NONE) {
         if (this.type === RenderBufferType.TEXTURE) {
             beginUpdateTexture.apply(this);
