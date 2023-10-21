@@ -57,7 +57,9 @@ class MyAppController extends AppController {
                 materialRenderer: this.renderer.factory.material(await Material.Deserialize({
                     diffuse,
                     roughness,
-                    metallic
+                    metallic,
+                    normal: "../resources/vintage-tile1_normal.jpeg",
+                    normalScale: [3, 3]
                 })),
                 transform: Mat4.MakeTranslation(...position)
             }
@@ -200,10 +202,12 @@ class MyAppController extends AppController {
     mouseWheel(evt) {
         this._zoom += evt.delta * 0.005;
         evt.stopPropagation();
+        this.mainLoop.postRedisplay();
     }
 
     mouseDown(evt) {
         this._downPos = new Vec([evt.x, evt.y]);
+        this.mainLoop.postRedisplay();
     }
 
     mouseDrag(evt) {
@@ -211,6 +215,7 @@ class MyAppController extends AppController {
         const diff = Vec.Sub(this._downPos, currPos);
         this._rotation = Vec.Add(this._rotation, diff);
         this._downPos = currPos;
+        this.mainLoop.postRedisplay();
     }
 
     mouseMove(evt) {

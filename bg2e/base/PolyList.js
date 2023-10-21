@@ -85,6 +85,80 @@ export const PolyListCullFace = Object.freeze({
 });
 
 function buildTangents(plist) {
+    const result = [];
+
+    const createVertex = (index) => {
+        return {
+            pos: new Vec(plist.vertex[index] * 3, plist.vertex[index + 1] * 3, plist.vertex[index + 2] * 3 ),
+            uv: new Vec(plist.texCoord0[index] * 2, plist.texCoord0[index + 1] * 2 )
+        }
+    }
+
+    const createUV = (v1, v2) => Vec.Sub(v1.uv, v2.uv);
+
+    const calcR = (uv1, uv2) =>  1.0 / (uv1.x * uv2.y - uv1.y * uv2.x);
+
+    if (plist.index.length % 3 === 0) {
+        for (let i = 0; i < plist.index.length - 2; i += 3) {
+            let v0 = createVertex(plist.index[i + 1]);
+            let v1 = createVertex(plist.index[i]);
+            let v2 = createVertex(plist.index[i + 2]);
+
+            let edge1 = Vec.Sub(v1.pos, v0.pos);
+            let edge2 = Vec.Sub(v2.pos, v0.pos);
+
+            let uv1 = createUV(v1, v0);
+            let uv2 = createUV(v2, v0);
+            let r = calcR(uv1, uv2);
+
+            if (!isFinite(r)) {
+                v0.uv.x = v0.uv.x * 1.3;
+                v0.uv.y = v0.uv.y * 0.8;
+                uv1 = createUV(v1, v0);
+                uv2 = createUV(v2, v0);
+                r = calcR(uv1, uv2);
+            }
+
+            if (!isFinite(r)) {
+                v2.uv.x = v2.uv.x * 1.1;
+                v2.uv.y = v2.uv.y * 0.9;
+                uv1 = createUV(v1, v0);
+                uv2 = createUV(v2, v0);
+                r = calcR(uv1, uv2);
+            }
+
+            const tangent = new Vec(
+                ((edge1.x * uv2.y) - (edge2.x * uv1.y)) * r,
+                ((edge1.y * uv2.y) - (edge2.y * uv1.y)) * r,
+                ((edge1.z * uv2.y) - (edge2.z * uv1.y)) * r
+            );
+            tangent.normalize();
+            
+            result.push(tangent.x);
+            result.push(tangent.y);
+            result.push(tangent.z);
+            
+            result.push(tangent.x);
+            result.push(tangent.y);
+            result.push(tangent.z);
+            
+            result.push(tangent.x);
+            result.push(tangent.y);
+            result.push(tangent.z);
+        }
+    }
+    else {
+        for (let i=0; i<plist.vertex.length; i+=3) {
+            result.push(0,0,1);
+        }
+
+        console.warn("Could not generate tangents: invalid type of faces found.");
+    }
+
+    plist._tangent = result;
+}
+
+function _buildTangents(plist) {
     plist._tangent = [];
 
     if (!plist.texCoord0 || !plist.texCoord0.length || !plist.vertex || !plist.vertex.length) return;
@@ -140,26 +214,26 @@ function buildTangents(plist) {
                 tangent.normalize();
             }
             
-            if (generatedIndexes[v0i]===undefined) {
+            //if (generatedIndexes[v0i]===undefined) {
                 result.push(tangent.x);
                 result.push(tangent.y);
                 result.push(tangent.z);
                 generatedIndexes[v0i] = tangent;
-            }
+            //}
             
-            if (generatedIndexes[v1i]===undefined) {
+            //if (generatedIndexes[v1i]===undefined) {
                 result.push(tangent.x);
                 result.push(tangent.y);
                 result.push(tangent.z);
                 generatedIndexes[v1i] = tangent;
-            }
+            //}
             
-            if (generatedIndexes[v2i]===undefined) {
+            //if (generatedIndexes[v2i]===undefined) {
                 result.push(tangent.x);
                 result.push(tangent.y);
                 result.push(tangent.z);
                 generatedIndexes[v2i] = tangent;
-            }
+            //}
         }
     }
     else {	// other draw modes: lines, line_strip
