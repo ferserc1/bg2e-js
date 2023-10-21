@@ -16,6 +16,7 @@ function getShaderProgramForLights(renderer, numLights) {
         attribute vec3 inPosition;
         attribute vec3 inNormal;
         attribute vec2 inTexCoord;
+        attribute vec2 inTexCoord2;
         attribute vec3 inTangent;
 
         uniform mat4 uWorld;
@@ -26,6 +27,7 @@ function getShaderProgramForLights(renderer, numLights) {
         varying vec3 fragPos;
         varying vec3 fragNorm;
         varying vec2 fragTexCoord;
+        varying vec2 fragTexCoord2;
         varying vec3 fragTangent;
         varying vec3 fragBitangent;
         varying vec3 fragLightPositions[${numLights}];
@@ -40,6 +42,7 @@ function getShaderProgramForLights(renderer, numLights) {
                 fragTangent = normalize(uNormMatrix * inTangent);
                 fragBitangent = normalize(fragNorm * fragTangent);
                 fragTexCoord = inTexCoord;
+                fragTexCoord2 = inTexCoord2;
 
                 for (int i = 0; i < ${numLights}; ++i)
                 {
@@ -54,6 +57,7 @@ function getShaderProgramForLights(renderer, numLights) {
         varying vec3 fragPos;
         varying vec3 fragNorm;
         varying vec2 fragTexCoord;
+        varying vec2 fragTexCoord2;
         varying vec3 fragTangent;
         varying vec3 fragBitangent;
         varying vec3 fragLightPositions[${numLights}];
@@ -67,6 +71,8 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform vec4 uAlbedo;
         uniform float uMetallic;
         uniform float uRoughness;
+
+        uniform vec4 uFresnel;
 
         uniform vec2 uAlbedoScale;
         uniform vec2 uNormalScale;
@@ -102,8 +108,8 @@ function getShaderProgramForLights(renderer, numLights) {
                 vec3 normal = texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0;
                 float metallic = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uMetallicScale).r * uMetallic;
                 float roughness = max(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uRoughnessScale).g * uRoughness, 0.01);
-
-                //gl_FragColor = vec4(fragTangent / 2.0 + 0.5, 1.0);
+                vec3 fresnel = uFresnel.rgb;
+                
                 if (alpha < uAlphaTresshold) {
                     discard;
                 }
@@ -117,24 +123,25 @@ function getShaderProgramForLights(renderer, numLights) {
                         if (uLightTypes[i] == ${ LightType.POINT }) {
                             Lo += pbrPointLight(
                                 fragLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                                albedo, roughness, metallic);
+                                albedo, roughness, metallic, fresnel);
                         }
                         else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
                             Lo += pbrDirectionalLight(
                                 -uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                                albedo, roughness, metallic);
+                                albedo, roughness, metallic, fresnel);
                         }
                     }
 
                     vec3 ambient = pbrAmbientLight(
-                        fragPos, N, V, albedo, metallic, roughness, uIrradianceMap, uSpecularMap, uEnvMap, uBRDFIntegrationMap
+                        fragPos, N, V, albedo, metallic, roughness, uIrradianceMap, uSpecularMap, uEnvMap, uBRDFIntegrationMap, fresnel
                     );
 
                     vec3 color = ambient + Lo;
                     color = color / (color + vec3(1.0));
                     color = pow(color, vec3(1.0/2.2));
 
-                    gl_FragColor = vec4(color,alpha);
+                    float ao = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord2).a;
+                    gl_FragColor = vec4(color * ao,alpha);
                 }
             }`, [pbrPointLight, pbrDirectionalLight, pbrAmbientLight])
         ]);
@@ -275,6 +282,7 @@ export default class PBRLightIBLShader extends Shader {
         this._program.bindVector("uNormalScale", material.normalScale);
         this._program.bindVector("uMetallicScale", material.metallicScale);
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
+        this._program.bindVector("uFresnel", material.fresnel);
 
         this._program.bindTexture("uIrradianceMap", this.renderer.factory.texture(this.irradianceMap), 3);
         this._program.bindTexture("uSpecularMap", this.renderer.factory.texture(this.specularMap), 4);
@@ -295,6 +303,7 @@ export default class PBRLightIBLShader extends Shader {
             position: "inPosition",
             normal: "inNormal",
             tex0: "inTexCoord",
+            tex1: "inTexCoord2",
             tangent: "inTangent"
         });
     }
