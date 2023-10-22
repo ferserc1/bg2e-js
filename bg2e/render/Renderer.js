@@ -136,6 +136,10 @@ export default class Renderer {
         throw new Error("Calling base implementation of Renderer.sceneRendererFactory()");
     }
 
+    shadowRendererFactory() {
+        throw new Error("Calling base implementation of Renderer.shadowRendererFactory()");
+    }
+
     get factory() {
         const renderer = this;
         return {
@@ -168,6 +172,9 @@ export default class Renderer {
             },
             scene() {
                 return renderer.sceneRendererFactory();
+            },
+            shadowRenderer() {
+                return renderer.shadowRendererFactory();
             }
         }
     }

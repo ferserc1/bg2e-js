@@ -102,7 +102,14 @@ export default class SceneRenderer {
         return this._renderQueue;
     }
 
-    async init() {
+    async init({ shadowMapSize = new Vec(1024, 1024) } = {}) {
+        if (typeof(shadowMapSize) === "number") {
+            shadowMapSize = new Vec(shadowMapSize, shadowMapSize);
+        }
+
+        // TODO: Create function to resize shadow map
+        this._shadowMapSize = shadowMapSize;
+
         this._opaquePipeline = this.renderer.factory.pipeline();
         this._opaquePipeline.setBlendState({ enabled: false });
         this._opaquePipeline.create();
@@ -122,6 +129,9 @@ export default class SceneRenderer {
         this._frameVisitor = new FrameVisitor(this._renderQueue);
 
         this._skyCube = this.renderer.factory.skyCube();
+
+        this._shadowRenderer = this.renderer.factory.shadowRenderer();
+        await this._shadowRenderer.create(this._shadowMapSize);
     }
 
     async setEnvironment(env) {
@@ -203,6 +213,10 @@ export default class SceneRenderer {
     }
 
     draw({ clearBuffers = true, drawSky = true } = {}) {
+        // TODO: Get the main directional light
+        // TODO: Get the camera
+        // TODO: Update shadow map texture
+        
         if (clearBuffers) {
             this.renderer.frameBuffer.clear();
         }

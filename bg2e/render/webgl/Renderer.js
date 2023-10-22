@@ -11,6 +11,7 @@ import Pipeline from "./Pipeline";
 import WebGLSceneRenderer from "./SceneRenderer";
 import Vec from "../../math/Vec";
 import VertexBuffer, { BufferTarget } from "./VertexBuffer";
+import ShadowRenderer from "./ShadowRenderer";
 
 function enableExtensions(gl) {
     // Enable all available extensions
@@ -166,6 +167,10 @@ export default class WebGLRenderer extends Renderer {
 
     sceneRendererFactory() {
         return new WebGLSceneRenderer(this);
+    }
+
+    shadowRendererFactory() {
+        return new ShadowRenderer(this);
     }
     
     presentTexture(texture, { clearBuffers = true, shader = null, viewport = null } = {}) {

@@ -31,7 +31,7 @@ export class ProjectionStrategy extends MatrixStrategy {
         super(target);
 
         this._near = 0.1;
-        this._far = 100.0;
+        this._far = 1000.0;
         this._viewport = new Vec([0, 0, 512, 512]);
     }
 

@@ -58,6 +58,8 @@ class MyAppController extends SceneAppController {
         mainCamera.projectionStrategy = new OpticalProjectionStrategy();
         mainCamera.projectionStrategy.focalLength = 55;
         mainCamera.projectionStrategy.frameSize = 35;
+        mainCamera.projectionStrategy.near = 0.1;
+        mainCamera.projectionStrategy.far = 1000.0;
 
         // Find floor to set the canvas texture
         const findVisitor = new FindNodeVisitor();
