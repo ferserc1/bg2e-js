@@ -218,13 +218,11 @@ export default class SceneRenderer {
     }
 
     draw({ clearBuffers = true, drawSky = true } = {}) {
-        // TODO: Get the main directional light
-        // TODO: Get the camera
-        // TODO: Update shadow map texture
         const mainLight = LightComponent.GetMainDirectionalLight(this._sceneRoot);
         const camera = Camera.GetMain(this._sceneRoot);
-        const pos = this._shadowRenderer.getLightPosition(camera, mainLight);
-        // Point of view of the light shadow map render
+        this._shadowRenderer.update(camera, mainLight, () => {
+            // TODO: Render the objects that projects shadows
+        })
         
         if (clearBuffers) {
             this.renderer.frameBuffer.clear();

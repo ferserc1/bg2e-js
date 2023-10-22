@@ -80,6 +80,11 @@ export default class ShadowRenderer {
 
     update(camera, light, renderCallback) {  
 
+        // Point of view of the shadow map render camera
+        const pos = this._shadowRenderer.getLightPosition(camera, mainLight);
+        const viewMatrix = Mat4.MakeTranslation(pos.x, pos.y, pos.z);
+        // TODO: Apply light rotation to the viewMatrix
+
         const proj = light.projection;
         
         this.renderBuffer.update(() => {
