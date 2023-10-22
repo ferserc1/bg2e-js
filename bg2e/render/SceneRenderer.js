@@ -8,6 +8,7 @@ import Camera from "../scene/Camera";
 import FindNodeVisitor from "../scene/FindNodeVisitor";
 import Transform from "../scene/Transform";
 import { bindRenderer, init } from "../scene/Node";
+import LightComponent from "../scene/LightComponent";
 
 export class FrameVisitor extends NodeVisitor {
     constructor(renderQueue) {
@@ -110,6 +111,8 @@ export default class SceneRenderer {
         // TODO: Create function to resize shadow map
         this._shadowMapSize = shadowMapSize;
 
+        this._mainDirectionalLight = null;
+
         this._opaquePipeline = this.renderer.factory.pipeline();
         this._opaquePipeline.setBlendState({ enabled: false });
         this._opaquePipeline.create();
@@ -188,7 +191,9 @@ export default class SceneRenderer {
         if (sceneRoot.sceneChanged) {
             await sceneRoot.asyncAccept(this._initVisitor);
         }
-                this._renderQueue.newFrame();
+        this._sceneRoot = sceneRoot;
+
+        this._renderQueue.newFrame();
         this._frameVisitor.delta = delta;
         this._frameVisitor.modelMatrix.identity();
 
@@ -216,6 +221,10 @@ export default class SceneRenderer {
         // TODO: Get the main directional light
         // TODO: Get the camera
         // TODO: Update shadow map texture
+        const mainLight = LightComponent.GetMainDirectionalLight(this._sceneRoot);
+        const camera = Camera.GetMain(this._sceneRoot);
+        const pos = this._shadowRenderer.getLightPosition(camera, mainLight);
+        // Point of view of the light shadow map render
         
         if (clearBuffers) {
             this.renderer.frameBuffer.clear();

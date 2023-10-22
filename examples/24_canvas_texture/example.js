@@ -10,6 +10,7 @@ import { registerComponents } from "bg2e/scene";
 import FindNodeVisitor from "bg2e/scene/FindNodeVisitor";
 import Texture from "bg2e/base/Texture";
 import { ProceduralTextureFunction } from "bg2e/base/Texture";
+import Mat4 from "bg2e/math/Mat4";
 
 class MyAppController extends SceneAppController {
     createOutputText() {

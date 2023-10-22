@@ -5,6 +5,8 @@ import Texture, {
 } from "../base/Texture";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
+import Camera from "../scene/Camera";
+import LightComponent from "../scene/LightComponent";
 import Transform from "../scene/Transform";
 import BasicDiffuseColorShader from "../shaders/BasicDiffuseColorShader";
 
@@ -39,14 +41,44 @@ export default class ShadowRenderer {
         await this._shader.load();
     }
 
-    update(camera, light, renderCallback) {
-        // TODO: Position the light in front of the camera
-        // TODO: Extract the camera position and forward vector
-        const cameraTransform = Transform.GetWorldMatrix(camera);
-        // cameraTransform.forwardVector;
-        // Mat4.GetPosition(cameraTransform);
-        const view = Mat4.MakeIdentity();
-        
+    getLightPosition(camera, light) {
+        let cameraNode = null;
+        if (camera instanceof Camera) {
+            cameraNode = camera.node;
+        }
+        else if (camera instanceof Node) {
+            cameraNode = camera;
+            camera = cameraNode.camera;
+        }
+
+        if (!cameraNode || !camera) {
+            throw Error(`ShadowRenderer.getLightPosition(): invalid camera parameter. Camera must be a Node or a Camera component, and the camera must be added to the scene.`);
+        }
+
+        let lightNode = null;
+        if (light instanceof LightComponent) {
+            lightNode = light.node;
+        }
+        else if (light instanceof Node) {
+            lightNode = light;
+            light = light.lightComponent;
+        }
+
+        if (!lightNode || !light) {
+            throw Error(`ShadowRenderer.getLightPosition(): invalid light. Light must be a Node or a LightComponent`);
+        }
+
+        const focus = camera.focusDistance;
+        const cameraTransform = Transform.GetWorldMatrix(cameraNode);
+        const cameraPos = Vec.Add(Mat4.GetPosition(cameraTransform), Vec.Mult(cameraTransform.forwardVector, focus));
+
+        const lightTransform = Transform.GetWorldMatrix(lightNode);
+        const lightVector = Mat4.GetRotation(lightTransform).forwardVector;
+
+        return Vec.Add(cameraPos, lightVector);
+    }
+
+    update(camera, light, renderCallback) {  
 
         const proj = light.projection;
         

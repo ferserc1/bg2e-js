@@ -9,6 +9,8 @@ import VitscnjLoaderPlugin from "bg2e/db/VitscnjLoaderPlugin";
 import { registerComponents } from "bg2e/scene";
 import FindNodeVisitor from "bg2e/scene/FindNodeVisitor";
 import Drawable from "bg2e/scene/Drawable";
+import Mat4 from "bg2e/math/Mat4";
+import Vec from "bg2e/math/Vec";
 
 class MyAppController extends SceneAppController {
     createOutputText() {
@@ -66,6 +68,11 @@ class MyAppController extends SceneAppController {
         mainCamera.projectionStrategy = new OpticalProjectionStrategy();
         mainCamera.projectionStrategy.focalLength = 55;
         mainCamera.projectionStrategy.frameSize = 35;
+        const cameraController = mainCamera.node.component("OrbitCameraController");
+        if (cameraController) {
+            cameraController.center = new Vec(0,1,0);
+            cameraController.distance = 10;
+        }
 
         window.root = root;
 

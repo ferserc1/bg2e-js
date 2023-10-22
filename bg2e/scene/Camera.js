@@ -285,6 +285,8 @@ export default class Camera extends Component {
 
         this._projectionMatrix = Mat4.MakePerspective(45.0, 1, 0.1, 100.0);
         this._viewport = new Vec(0, 0, 512, 512);
+
+        this._focusDistance = 5;
     }
 
     clone() {
@@ -299,6 +301,7 @@ export default class Camera extends Component {
         other._isMain = false;
         other._projectionMatrix = new Mat4(this._projectionMatrix);
         other._viewport = new Vec(this._viewport);
+        other._focusDistance = this._focusDistance;
     }
 
     get isMain() {
@@ -331,6 +334,14 @@ export default class Camera extends Component {
         this._projectionStrategy.target = this._projectionMatrix;
     }
 
+    get focusDistance() {
+        return this._focusDistance;
+    }
+
+    set focusDistance(fd) {
+        this._focusDistance = fd;
+    }
+
     // This function regenerate the projection matrix with the new
     // aspect ratio, if the projectionStrategy is set.
     resize(width,height) {
@@ -342,7 +353,7 @@ export default class Camera extends Component {
     }
 
     async deserialize(sceneData,loader) {
-        sceneData.isMain = sceneData.isMain || false;
+        this.focusDistance = sceneData.focusDistance ?? this._focusDistance;
         if (sceneData.projectionMethod) {
             this.projectionStrategy = ProjectionStrategy.Factory(sceneData.projectionMethod || {});
         }
@@ -351,6 +362,7 @@ export default class Camera extends Component {
     async serialize(sceneData,writer) {
         super.serialize(sceneData,writer);
         sceneData.isMain = this._isMain;
+        sceneData.focusDistance = this._focusDistance;
         if (this.projectionStrategy) {
             const projMethod = {};
             sceneData.projectionMethod = projMethod;

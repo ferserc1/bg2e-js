@@ -1,8 +1,28 @@
 import Component from "./Component";
 import Light, { LightType } from "../base/Light";
-import Vec from "../math/Vec";
+import FindNodeVisitor from "./FindNodeVisitor";
+
 
 export default class LightComponent extends Component {
+    static GetLights(sceneRoot) {
+        if (sceneRoot.sceneChanged || !sceneRoot.__lights) {
+            sceneRoot.__lights = [];
+            let findLights = new FindNodeVisitor();
+            findLights.hasComponents(["Light"]);
+            sceneRoot.accept(findLights);
+            sceneRoot.__lights = findLights.result.map(n => n.lightComponent);
+        }
+        return sceneRoot.__lights;
+    }
+
+    static GetMainDirectionalLight(sceneRoot) {
+        if (sceneRoot.sceneChanged || !sceneRoot.__mainDirectionalLight) {
+            sceneRoot.__mainDirectionalLight = LightComponent.GetLights(sceneRoot)
+                .find(l => l.light.type === LightType.DIRECTIONAL);
+        }
+        return sceneRoot.__mainDirectionalLight;
+    }
+
     constructor(light = null) {
         super("Light");
 
