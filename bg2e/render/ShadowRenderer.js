@@ -3,7 +3,9 @@ import Texture, {
     TextureRenderTargetAttachment,
     TextureWrap
 } from "../base/Texture";
+import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
+import Transform from "../scene/Transform";
 import BasicDiffuseColorShader from "../shaders/BasicDiffuseColorShader";
 
 
@@ -38,8 +40,15 @@ export default class ShadowRenderer {
     }
 
     update(camera, light, renderCallback) {
-        // TODO: Position the camera in front of the camera
-        // TODO: Extract view and projection matrix from light
+        // TODO: Position the light in front of the camera
+        // TODO: Extract the camera position and forward vector
+        const cameraTransform = Transform.GetWorldMatrix(camera);
+        // cameraTransform.forwardVector;
+        // Mat4.GetPosition(cameraTransform);
+        const view = Mat4.MakeIdentity();
+        
+
+        const proj = light.projection;
         
         this.renderBuffer.update(() => {
             renderCallback(this.renderer);
