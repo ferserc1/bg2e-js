@@ -52,7 +52,7 @@ export default class RenderState {
         return renderLayers & layer;
     }
 
-    draw() {
+    draw({ overrideShader = null, overrideViewMatrix = null, overrideProjectionMatrix = null} = {}) {
         if (!this.polyListRenderer.polyList.visible) {
             return;
         }
@@ -64,12 +64,15 @@ export default class RenderState {
             this.pipeline.activate();
         }
         this.polyListRenderer.bindBuffers();
-        this.shader.setup(
+        const shader = overrideShader || this.shader;
+        const viewMatrix = overrideViewMatrix || this.viewMatrix;
+        const projectionMatrix = overrideProjectionMatrix || this.projectionMatrix;
+        shader.setup(
             this.polyListRenderer,
             this.materialRenderer,
             this.modelMatrix,
-            this.viewMatrix,
-            this.projectionMatrix
+            viewMatrix,
+            projectionMatrix
         );
         this.polyListRenderer.draw();
         if (this.renderer.debugMode) {

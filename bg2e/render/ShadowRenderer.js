@@ -1,3 +1,4 @@
+import { RenderLayer } from "../base/PolyList";
 import Texture, {
     TextureComponentFormat,
     TextureRenderTargetAttachment,
@@ -78,17 +79,32 @@ export default class ShadowRenderer {
         return Vec.Add(cameraPos, lightVector);
     }
 
-    update(camera, light, renderCallback) {  
-
-        // Point of view of the shadow map render camera
-        const pos = this.getLightPosition(camera, light);
+    update(camera, lightComponent, renderQueue) {  
+        const pos = this.getLightPosition(camera, lightComponent);
         const viewMatrix = Mat4.MakeTranslation(pos.x, pos.y, pos.z);
-        // TODO: Apply light rotation to the viewMatrix
-
-        const proj = light.projection;
+        const lightMatrix = Mat4.GetRotation(Transform.GetWorldMatrix(lightComponent));
+        viewMatrix.mult(lightMatrix);
         
         this._renderBuffer.update(() => {
-            renderCallback(this.renderer);
+            this._renderBuffer.renderer.state.clear();
+            const layer = RenderLayer.OPAQUE_DEFAULT;
+            const queue = renderQueue.getQueue(layer);
+            if (queue) {
+
+                if (typeof(queue.beginOperation) === "function") {
+                    queue.beginOperation(layer);
+                }
+                queue.queue.forEach(rs => {
+                    rs.draw({
+                        overrideShader: this._shader,
+                        overrideViewMatrix: Mat4.GetInverted(viewMatrix),
+                        overrideProjectionMatrix: lightComponent.light.projection
+                    });
+                });
+                if (typeof(queue.endOperation) === "function") {
+                    queue.endOperation(layer);
+                }
+            }
         });
     }
 }

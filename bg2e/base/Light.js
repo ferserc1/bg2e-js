@@ -27,7 +27,7 @@ export default class Light {
         this._castShadows = true;
         this._shadowBias = 0.00002;
         
-        this._projection = Mat4.MakeOrtho(-10,10,-10,10,0.5,300.0);
+        this._projection = Mat4.MakeOrtho(-20,20,-20,20,0.1,400.0);
     }
     
     clone() {

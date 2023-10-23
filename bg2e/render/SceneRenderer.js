@@ -220,9 +220,7 @@ export default class SceneRenderer {
     draw({ clearBuffers = true, drawSky = true } = {}) {
         const mainLight = LightComponent.GetMainDirectionalLight(this._sceneRoot);
         const camera = Camera.GetMain(this._sceneRoot);
-        this._shadowRenderer.update(camera, mainLight, () => {
-            // TODO: Render the objects that projects shadows
-        })
+        this._shadowRenderer.update(camera, mainLight, this._renderQueue);
         
         if (clearBuffers) {
             this.renderer.frameBuffer.clear();
