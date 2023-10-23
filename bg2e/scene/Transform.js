@@ -21,6 +21,12 @@ export class TransformVisitor extends NodeVisitor {
 
 export default class Transform extends Component {
     static GetWorldMatrix(node) {
+        if (!node instanceof Node && !node instanceof Component) {
+            throw new Error("Invalid parameter in Transform.GetWorldMatrix() function. The parameter is not an instance of Node or Component");
+        }
+        else if (node instanceof Component) {
+            node = node.node;
+        }
         const visitor = new TransformVisitor();
         node.acceptReverse(visitor);
         return visitor.matrix;
