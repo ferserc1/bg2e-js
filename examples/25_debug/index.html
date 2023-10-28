@@ -10,10 +10,38 @@
     <style>
         html, body {
             margin: 0px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .debugger {
+            position: fixed;
+            top: 0px;
+            right: 0px;
+            width: 300px;
+            background: rgb(0 0 0 / 30%);
+            color: white;
+            padding: 5px 5px 5px 15px;
+            border-radius: 0px 0px 0px 10px;
+        }
+
+        article#debugArea canvas {
+            width: 285px;
+            aspect-ratio: 1;
+            border: 3px solid white;
+            box-shadow: 0 0 10px 0px rgb(255 255 255 / 50%);
         }
     </style>
 </head>
 <body>
     <canvas id="gl-canvas" width="800" height="600"></canvas>
+
+    <section class="debugger">
+        <h1>Debug</h1>
+        <button id="updateTextureListButton">Reload Texture List</button>
+        <select id="debugSelect">
+        </select>
+        <button id="updateTextureButton">Update Texture</button>
+        <article id="debugArea"></article>
+    </section>
 </body>
 </html>

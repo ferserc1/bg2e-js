@@ -105,7 +105,7 @@ export default class SceneAppController extends AppController {
 
     display() {
         this.sceneRenderer.draw();
-        this.selectionHighlight.draw(this.sceneRoot, Camera.GetMain(this.sceneRoot));
+        this.selectionHighlight && this.selectionHighlight.draw(this.sceneRoot, Camera.GetMain(this.sceneRoot));
     }
 
     destroy() {

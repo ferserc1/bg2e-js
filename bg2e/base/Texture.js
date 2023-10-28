@@ -260,6 +260,9 @@ export default class Texture {
 
         // Reference counter, to know if a texture can be purged
         this._references = 0;
+
+        // Object name, form debugging purposes
+        this._name = "";
     }
 
     get references() {
@@ -391,6 +394,14 @@ export default class Texture {
         return this._renderer;
     }
 
+    get name() {
+        return this._name;
+    }
+
+    set name(n) {
+        this._name = n;
+    }
+
     destroy() {
         if (this.renderer) {
             this.renderer.destroy();
@@ -410,6 +421,7 @@ export default class Texture {
         this._proceduralParameters = sceneData.proceduralParameters !== undefined ? sceneData.proceduralParameters : {};
         this._renderTargetAttachment = sceneData.renderTargetAttachment !== undefined ? sceneData.renderTargetAttachment : TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
         this._componentFormat = sceneData.componentFormat !== undefined ? sceneData.componentFormat : TextureComponentFormat.UNSIGNED_BYTE;
+        this._name = sceneData.name !== undefined ? sceneData.name : this._name;
         this._dirty = true; 
     }
 
@@ -426,6 +438,7 @@ export default class Texture {
         sceneData.proceduralParameters = this.proceduralParameters;
         sceneData.renderTargetAttachment = TextureRenderTargetAttachmentNames[this.renderTargetAttachment];
         sceneData.componentFormat = TextureComponentFormatNames[this.componentFormat];
+        sceneData.name = this._name;
     }
 
     async loadImageData(refresh = false) {

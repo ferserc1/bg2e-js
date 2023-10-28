@@ -29,6 +29,7 @@ export default class ShadowRenderer {
         this._size = size;
 
         this._texture = new Texture();
+        this._texture.name = `ShadowMap_${ size.width }x${ size.height }`;
         this._texture.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
         this._texture.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
         this._texture.wrapModeXY = TextureWrap.CLAMP;
@@ -72,9 +73,8 @@ export default class ShadowRenderer {
         const focus = camera.focusDistance;
         const cameraTransform = Transform.GetWorldMatrix(cameraNode);
         const cameraPos = Vec.Add(Mat4.GetPosition(cameraTransform), Vec.Mult(cameraTransform.forwardVector, focus));
-
         const lightTransform = Transform.GetWorldMatrix(lightNode);
-        const lightVector = Mat4.GetRotation(lightTransform).forwardVector;
+        const lightVector = Vec.Mult(Mat4.GetRotation(lightTransform).forwardVector, -1);
 
         return Vec.Add(cameraPos, lightVector);
     }

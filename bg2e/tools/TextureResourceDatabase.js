@@ -9,7 +9,7 @@ const g_textureDatabase = {
     brdfIntegrationTexture: {}
 }
 
-const createColorTexture = async (color) => {
+const createColorTexture = async (color, name = "") => {
     const result = new Texture();
     result.magFilter = TextureFilter.NEAREST;
     result.minFilter = TextureFilter.NEAREST;
@@ -17,13 +17,15 @@ const createColorTexture = async (color) => {
     result.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
     result.proceduralParameters = color;
     result.size = [2, 2];
+    name = name || `ColorTexture_${color.r}_${color.g}_${color.b}_${color.a}`;
+    result.name = `${ name }_${result.size.width}_${result.size.height}`;
     await result.loadImageData();
     return result;
 }
 
 export const createWhiteTexture = async (renderer) => {
     if (!g_textureDatabase.whiteTexture[renderer.uniqueId]) {
-        g_textureDatabase.whiteTexture[renderer.uniqueId] = await createColorTexture(Color.White());
+        g_textureDatabase.whiteTexture[renderer.uniqueId] = await createColorTexture(Color.White(), "WhiteTexture");
     }
     return g_textureDatabase.whiteTexture[renderer.uniqueId];
 }
@@ -36,7 +38,7 @@ export const whiteTexture = (renderer) => {
 
 export const createBlackTexture = async (renderer) => {
     if (!g_textureDatabase.blackTexture[renderer.uniqueId]) {
-        g_textureDatabase.blackTexture[renderer.uniqueId] = await createColorTexture(Color.Black());
+        g_textureDatabase.blackTexture[renderer.uniqueId] = await createColorTexture(Color.Black(), "BlackTexture");
     }
     return g_textureDatabase.blackTexture[renderer.uniqueId];
 }
@@ -50,7 +52,7 @@ export const blackTexture = (renderer) => {
 
 export const createNormalTexture = async (renderer) => {
     if (!g_textureDatabase.normalTexture[renderer.uniqueId]) {
-        g_textureDatabase.normalTexture[renderer.uniqueId] = await createColorTexture(new Color([0.5, 0.5, 1, 1]));
+        g_textureDatabase.normalTexture[renderer.uniqueId] = await createColorTexture(new Color([0.5, 0.5, 1, 1]), "NormalMapTexture");
     }
     return g_textureDatabase.normalTexture[renderer.uniqueId];
 }
@@ -65,6 +67,7 @@ export const normalTexture = (renderer) => {
 export const createBRDFIntegrationTexture = async (renderer) => {
     if (!g_textureDatabase.brdfIntegrationTexture[renderer.uniqueId]) {
         const tex = new Texture();
+        tex.name = "BRDFIntegrationMapTexture";
         tex.target = TextureTarget.TEXTURE_2D;
         tex.proceduralFunction = ProceduralTextureFunction.FROM_BASE64;
         tex.proceduralParameters = {
