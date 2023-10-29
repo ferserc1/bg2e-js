@@ -2,7 +2,7 @@ node_modules
 package-lock.json
 
 dist
-debug
+
 
 bg2e-tools/dist
 bg2e-math/dist
