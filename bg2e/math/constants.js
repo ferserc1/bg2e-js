@@ -35,3 +35,10 @@ export const EPSILON = 0.0000001;
 export const NumericArray = Float32Array;
 export const NumericArrayHighP = Float64Array;
 export const FLOAT_MAX = 3.402823e38;
+
+export const checkArray = (array, length) => {
+    if (array.length >= length) {
+        return true;
+    }
+    return false;
+}

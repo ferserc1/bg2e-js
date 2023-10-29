@@ -11,6 +11,8 @@ import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
 import VitscnjLoaderPlugin from "bg2e/db/VitscnjLoaderPlugin";
 import { registerComponents } from "bg2e/scene";
 import FindNodeVisitor from "bg2e/scene/FindNodeVisitor";
+import DebugRenderer from "bg2e/debug/DebugRenderer";
+import Color from "bg2e/base/Color";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -109,6 +111,13 @@ class MyAppController extends SceneAppController {
 
     async loadDone() {
         this.initDebugger();
+    }
+
+    frame(dt) {
+        super.frame(dt);
+
+        const debugRenderer = DebugRenderer.Get(this.renderer);
+        debugRenderer.drawSphere({ radius: 0.1, color: Color.Red(), position: new Vec(0,4,0) });
     }
 }
 

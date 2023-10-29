@@ -1,4 +1,4 @@
-import { NumericArray, PI } from "./constants";
+import { NumericArray, PI, checkArray } from "./constants";
 import Vec from "./Vec";
 import Mat3 from "./Mat3";
 import { equals, isZero } from "./functions";
@@ -321,16 +321,31 @@ export default class Mat4 extends NumericArray {
 	}
 
 	translate(x, y, z) {
+		if (checkArray(x,3)) {
+			y = x[1];
+			z = x[2];
+			x = x[0];
+		}
 		this.mult(Mat4.MakeTranslation(x, y, z));
 		return this;
 	}
 
 	rotate(alpha, x, y, z) {
+		if (checkArray(x,3)) {
+			y = x[1];
+			z = x[2];
+			x = x[0];
+		}
 		this.mult(Mat4.MakeRotation(alpha, x, y, z));
 		return this;
 	}
 	
 	scale(x, y, z) {
+		if (checkArray(x,3)) {
+			y = x[1];
+			z = x[2];
+			x = x[0];
+		}
 		this.mult(Mat4.MakeScale(x, y, z));
 		return this;
 	}
@@ -490,7 +505,7 @@ export default class Mat4 extends NumericArray {
 	}
 	
     static MakeTranslation(x, y, z) {
-		if (x instanceof NumericArray && x.length >= 3) {
+		if (checkArray(x,3)) {
 			y = x[1];
 			z = x[2];
 			x = x[0];
@@ -520,7 +535,7 @@ export default class Mat4 extends NumericArray {
 	}
 
 	static MakeScale(x, y, z) {
-		if (x instanceof NumericArray  && x.length >= 3) {
+		if (checkArray(x,3)) {
             y = x[1];
 			z = x[2];
 			x = x[0];
