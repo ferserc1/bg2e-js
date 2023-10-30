@@ -256,6 +256,11 @@ export default class Mat4 extends NumericArray {
             this[i * 4 + 2]  = a[2];
             this[i * 4 + 3]  = a[3];
         }
+		else if (a.length == 3) {
+			this[i * 4]      = a[0];
+            this[i * 4 + 1]  = a[1];
+            this[i * 4 + 2]  = a[2];
+		}
         else if (typeof(a) === "number" && 
             typeof(y) === "number" && 
             typeof(z) === "number" &&
@@ -532,6 +537,15 @@ export default class Mat4 extends NumericArray {
 			axis.z * axis.x * acosAlpha + axis.y * sinAlpha, axis.z * axis.y * acosAlpha - axis.x * sinAlpha, axis.z * axis.z * acosAlpha + cosAlpha, 0,
 			0,0,0,1
 		);
+	}
+
+	static MakeRotationWithDirection(direction, up = new Vec(0,1,0)) {
+		const rot = Mat3.MakeRotationWithDirection(direction, up);
+		const trx = Mat4.MakeIdentity();
+		trx.setRow(0, rot.row(0));
+		trx.setRow(1, rot.row(1));
+		trx.setRow(2, rot.row(2));
+		return trx;
 	}
 
 	static MakeScale(x, y, z) {

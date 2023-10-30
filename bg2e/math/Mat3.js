@@ -192,6 +192,19 @@ export default class Mat3 extends NumericArray {
         return m;
     }
 
+    static MakeRotationWithDirection(direction, up = new Vec(0,1,0)) {
+        const m = Mat3.MakeIdentity();
+        const z = direction.normalize();
+        const x = Vec.Cross(up, z).normalize();
+        const y = Vec.Cross(z, x).normalize();
+
+        m.setRow(0, x);
+        m.setRow(1, y);
+        m.setRow(2, z);
+
+        return m;
+    }
+
     static IsZero(m) {
         return	isZero(v[0]) && isZero(v[1]) && isZero(v[2]) &&
                 isZero(v[3]) && isZero(v[4]) && isZero(v[5]) &&

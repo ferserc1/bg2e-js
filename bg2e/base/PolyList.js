@@ -158,97 +158,6 @@ function buildTangents(plist) {
     plist._tangent = result;
 }
 
-function _buildTangents(plist) {
-    plist._tangent = [];
-
-    if (!plist.texCoord0 || !plist.texCoord0.length || !plist.vertex || !plist.vertex.length) return;
-
-    
-    const result = [];
-    const generatedIndexes = {};
-    let invalidUV = false;
-
-    if (plist.index.length%3==0) {
-        // Triangles
-        for (let i=0; i<plist.index.length - 2; i+=3) {
-            const v0i = plist.index[i] * 3;
-            const v1i = plist.index[i + 1] * 3;
-            const v2i = plist.index[i + 2] * 3;
-            
-            const t0i = plist.index[i] * 2;
-            const t1i = plist.index[i + 1] * 2;
-            const t2i = plist.index[i + 2] * 2;
-            
-            const v0 = new Vec(plist.vertex[v0i], plist.vertex[v0i + 1], plist.vertex[v0i + 2]);
-            const v1 = new Vec(plist.vertex[v1i], plist.vertex[v1i + 1], plist.vertex[v1i + 2]);
-            const v2 = new Vec(plist.vertex[v2i], plist.vertex[v2i + 1], plist.vertex[v2i + 2]);
-            
-            const t0 = new Vec(plist.texCoord0[t0i], plist.texCoord0[t0i + 1]);
-            const t1 = new Vec(plist.texCoord0[t1i], plist.texCoord0[t1i + 1]);
-            const t2 = new Vec(plist.texCoord0[t2i], plist.texCoord0[t2i + 1]);
-            
-            const edge1 = Vec.Sub(v1, v0);
-            const edge2 = Vec.Sub(v2, v0);
-            
-            const deltaU1 = t1.x - t0.x;
-            const deltaV1 = t1.y - t0.y;
-            const deltaU2 = t2.x - t0.x;
-            const deltaV2 = t2.y - t0.y;
-            
-            const den = (deltaU1 * deltaV2 - deltaU2 * deltaV1);
-            let tangent = null;
-            if (den==0) {
-                const n = plist.normal.length === plist.vertex.length ?
-                    new Vec(plist.normal[v0i], plist.normal[v0i + 1], plist.normal[v0i + 2]) :
-                    new Vec(1, 0, 0);
-
-                invalidUV = true;
-                tangent = new Vec(n.y, n.z, n.x);
-            }
-            else {
-                const f = 1 / den;
-            
-                tangent = new Vec(f * (deltaV2 * edge1.x - deltaV1 * edge2.x),
-                                  f * (deltaV2 * edge1.y - deltaV1 * edge2.y),
-                                  f * (deltaV2 * edge1.z - deltaV1 * edge2.z));
-                tangent.normalize();
-            }
-            
-            //if (generatedIndexes[v0i]===undefined) {
-                result.push(tangent.x);
-                result.push(tangent.y);
-                result.push(tangent.z);
-                generatedIndexes[v0i] = tangent;
-            //}
-            
-            //if (generatedIndexes[v1i]===undefined) {
-                result.push(tangent.x);
-                result.push(tangent.y);
-                result.push(tangent.z);
-                generatedIndexes[v1i] = tangent;
-            //}
-            
-            //if (generatedIndexes[v2i]===undefined) {
-                result.push(tangent.x);
-                result.push(tangent.y);
-                result.push(tangent.z);
-                generatedIndexes[v2i] = tangent;
-            //}
-        }
-    }
-    else {	// other draw modes: lines, line_strip
-        for (let i=0; i<plist.vertex.length; i+=3) {
-            result.push(0,0,1);
-        }
-    }
-
-    if (invalidUV) {
-        console.warn(`Invalid UV texture coords found in PolyList '${ plist.name }'. Some objects may present artifacts in the lighting, and not display textures properly.`)
-    }
-
-    plist._tangent = result;
-}
-
 export default class PolyList {
     constructor() {
         // The object will be rendered in the default layer for
@@ -256,6 +165,7 @@ export default class PolyList {
         this._renderLayers = RenderLayer.AUTO;
 
         this._drawMode = DrawMode.TRIANGLES;
+        this._lineWidth = 1.0;
 
         this._name = "";
         this._groupName = "";
@@ -288,7 +198,8 @@ export default class PolyList {
     }
 
     assign(other) {
-        this.drawMode = other.drawMode; 
+        this.drawMode = other.drawMode;
+        this.lineWidth = other.lineWidth;
         this.name = other.name;
         this.groupName = other.groupName;
         this.visible = other.visible;
@@ -318,6 +229,8 @@ export default class PolyList {
 
     get drawMode() { return this._drawMode; }
     set drawMode(m) { this._drawMode = m; }
+    get lineWidth() { return this._lineWidth; }
+    set lineWidth(w) { this._lineWidth = w; }
 
     get name() { return this._name; }
     set name(v) { this._name = v; }

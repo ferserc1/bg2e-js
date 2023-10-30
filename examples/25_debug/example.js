@@ -1,6 +1,7 @@
 import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
 import Canvas from "bg2e/app/Canvas";
 import Vec from "bg2e/math/Vec";
+import Mat4 from "bg2e/math/Mat4";
 import WebGLTextureViewer from "bg2e/debug/WebGLTextureViewer";
 import WebGLTextureRenderer from "bg2e/render/webgl/TextureRenderer";
 import { TextureTarget } from "bg2e/base/Texture";
@@ -102,6 +103,8 @@ class MyAppController extends SceneAppController {
         if (cameraController) {
             cameraController.center = new Vec(0,1,0);
             cameraController.distance = 10;
+            cameraController.rotation.x = 0;
+            cameraController.rotation.y = 0;
         }
 
         window.root = root;
@@ -118,6 +121,10 @@ class MyAppController extends SceneAppController {
 
         const debugRenderer = DebugRenderer.Get(this.renderer);
         debugRenderer.drawSphere({ radius: 0.1, color: Color.Red(), position: new Vec(0,4,0) });
+
+        const trx = Mat4.MakeRotationWithDirection(new Vec(1,-2,0.6), new Vec(0,0,1));
+        const transformMatrix = trx.mult(Mat4.MakeTranslation(new Vec(0,4,0)));
+        debugRenderer.drawArrow({ length: 0.8, color: Color.Green(), transformMatrix });
     }
 }
 

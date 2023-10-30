@@ -2,7 +2,7 @@ import Color from "../base/Color";
 import Material from "../base/Material";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
-import { createSphere } from "../primitives";
+import { createArrow, createSphere } from "../primitives";
 import BasicDiffuseColorShader from "../shaders/BasicDiffuseColorShader";
 import Transform from "../scene/Transform";
 import Texture, { 
@@ -14,6 +14,16 @@ import DebugRenderShader from "../shaders/DebugRenderShader";
 import PresentDebugFramebufferShader from "../shaders/PresentDebugFramebufferShader";
 
 const g_renderers = {};
+
+const getMatrix = (transformMatrix, position) => {
+    if (!transformMatrix && position) {
+        transformMatrix = Mat4.MakeTranslation(position);
+    }
+    else if (!transformMatrix) {
+        transformMatrix = Mat4.MakeIdentity();
+    }
+    return transformMatrix;
+}
 
 export default class DebugRenderer {
 
@@ -31,6 +41,10 @@ export default class DebugRenderer {
 
         this._sphere = createSphere(1);
         this._sphereRenderer = this.renderer.factory.polyList(this._sphere);
+
+        this._arrow = createArrow(1, 0.3);
+        this._arrow.lineWidth = 3;
+        this._arrowRenderer = this.renderer.factory.polyList(this._arrow);
 
         this._baseMaterial = new Material();
         this._materialRenderer = this.renderer.factory.material(this._baseMaterial);
@@ -64,16 +78,24 @@ export default class DebugRenderer {
     drawSphere({ radius = 1, color = Color.White(), transformMatrix = null, position = null } = {}) {
         console.debug(`DebugRenderer.drawSphere() - radius: ${ radius }, color: ${ color }`);
 
-        if (!transformMatrix && position) {
-            transformMatrix = Mat4.MakeTranslation(position);
-        }
-        else if (!transformMatrix) {
-            transformMatrix = Mat4.MakeIdentity();
-        }
+        transformMatrix = getMatrix(transformMatrix, position);
 
         this._objects.push({
             renderer: this._sphereRenderer,
-            radius,
+            scale: radius,
+            color,
+            transformMatrix
+        });
+    }
+
+    drawArrow({ length = 1, color = Color.White(), transformMatrix = null, position = null } = {}) {
+        console.debug(`DebugRenderer.drawArrow() - length: ${ length }, color: ${ color }`);
+
+        transformMatrix = getMatrix(transformMatrix, position);
+
+        this._objects.push({
+            renderer: this._arrowRenderer,
+            scale: length,
             color,
             transformMatrix
         });
@@ -94,7 +116,8 @@ export default class DebugRenderer {
             this._renderBuffer.frameBuffer.clear();
 
             this._objects.forEach(object => {
-                const matrix = object.transformMatrix.scale(object.radius, object.radius, object.radius);
+                const scale = Mat4.MakeScale(object.scale, object.scale, object.scale);
+                const matrix = scale.mult(object.transformMatrix);
                 this._materialRenderer.material.diffuse = object.color;
     
                 object.renderer.bindBuffers();

@@ -212,6 +212,8 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
             break;
         }
 
+        gl.lineWidth(this.polyList.lineWidth);
+
         gl.drawElements(mode, this.polyList.index.length, this._indexArrayFormat, 0);
     }
 
