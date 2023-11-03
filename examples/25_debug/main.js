@@ -14,6 +14,7 @@ import { registerComponents } from "bg2e/scene";
 import FindNodeVisitor from "bg2e/scene/FindNodeVisitor";
 import DebugRenderer from "bg2e/debug/DebugRenderer";
 import Color from "bg2e/base/Color";
+import SmoothOrbitCameraController from "bg2e/scene/SmoothOrbitCameraController";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -76,12 +77,12 @@ class MyAppController extends SceneAppController {
         // bg2ioPath is the path from the html file to the distribution files of the bg2io library, if
         // this path is different from the compiled js file (generated from this file, in this case, 
         // using Rollup)
-        registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "dist/" }));
+        registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "bg2io/" }));
         registerComponents();
 
         // Load scene
         const loader = new Loader();
-        const root = await loader.loadNode("../resources/test-scene/test-scene.vitscnj");
+        const root = await loader.loadNode("/test-scene/test-scene.vitscnj");
 
         const findVisitor = new FindNodeVisitor();
         findVisitor.name = "Ball";
@@ -106,6 +107,10 @@ class MyAppController extends SceneAppController {
             cameraController.rotation.x = 0;
             cameraController.rotation.y = 0;
         }
+        const smoothCameraController = new SmoothOrbitCameraController();
+        smoothCameraController.assign(cameraController);
+        mainCamera.node.addComponent(smoothCameraController);
+        mainCamera.node.removeComponent(cameraController);
 
         window.root = root;
 
@@ -130,13 +135,11 @@ class MyAppController extends SceneAppController {
 
 window.onload = async () => {
     const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
-    canvas.domElement.style.width = "100vw";
-    canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();
     const mainLoop = new MainLoop(canvas, appController);
 
     // We set FrameUpdate.MANUAL to stop on each frame until the user
     // trigger an input event
-    mainLoop.updateMode = FrameUpdate.MANUAL;
+    mainLoop.updateMode = FrameUpdate.AUTO;
     await mainLoop.run();
 }

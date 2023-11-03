@@ -1,18 +1,18 @@
 {
-  "name": "render-1-example",
-  "version": "1.0.0",
-  "description": "",
-  "main": "rollup.config.js",
+  "name": "25_debug",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c --watch"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "@rollup/plugin-node-resolve": "^13.1.3",
+  "devDependencies": {
     "bg2e": "file:../../bg2e",
-    "rollup": "^2.67.2",
-    "rollup-plugin-copy": "^3.4.0"
+    "vite": "^4.4.5"
+  },
+  "dependencies": {
+    "vite-plugin-static-copy": "^0.17.0"
   }
 }

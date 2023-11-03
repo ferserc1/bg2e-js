@@ -17,7 +17,7 @@ export const Action = {
     ZOOM: 3
 };
 
-function getOrbitAction(cameraCtrl) {
+export function getOrbitAction(cameraCtrl) {
     let left = leftMouseButton(),
         middle = middleMouseButton(),
         right = rightMouseButton();
@@ -38,8 +38,8 @@ function getOrbitAction(cameraCtrl) {
     }
 }
 export default class OrbitCameraController extends Component {
-    constructor() {
-        super("OrbitCameraController");
+    constructor(id = null) {
+        super(id ?? "OrbitCameraController");
 
         this._rotateButtons = { left:true, middle:false, right:false };
         this._panButtons = { left:false, middle:false, right:true };
@@ -128,7 +128,7 @@ export default class OrbitCameraController extends Component {
     set forward(f) { this._forward = f; }
     get left() { return this._left; }
     set left(l) { this._left = l; }
-    get whellSpeed() { this._wheelSpeed; }
+    get wheelSpeed() { return this._wheelSpeed; }
     set wheelSpeed(w) { this._wheelSpeed = w; }
 
     get viewWidth() { return this._viewWidth; }

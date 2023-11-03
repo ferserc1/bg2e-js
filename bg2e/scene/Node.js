@@ -87,6 +87,12 @@ export default class Node {
         return this.components.find(typeId);
     }
 
+    removeComponent(component) {
+        this.components.remove(component);
+        this.setSceneChanged();
+        return component;
+    }
+
     addedToNode(node) {
 
     }

@@ -91,6 +91,7 @@ export const sqrt = (val) => {
 }
 
 export const lerp = (from, to, t) => {
+    t = t > 1 ? 1 : t;
     return Math.fround((1.0 - t) * from + t * to);
 }
 

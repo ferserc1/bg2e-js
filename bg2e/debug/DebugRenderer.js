@@ -76,8 +76,6 @@ export default class DebugRenderer {
     }
 
     drawSphere({ radius = 1, color = Color.White(), transformMatrix = null, position = null } = {}) {
-        console.debug(`DebugRenderer.drawSphere() - radius: ${ radius }, color: ${ color }`);
-
         transformMatrix = getMatrix(transformMatrix, position);
 
         this._objects.push({
@@ -89,8 +87,6 @@ export default class DebugRenderer {
     }
 
     drawArrow({ length = 1, color = Color.White(), transformMatrix = null, position = null } = {}) {
-        console.debug(`DebugRenderer.drawArrow() - length: ${ length }, color: ${ color }`);
-
         transformMatrix = getMatrix(transformMatrix, position);
 
         this._objects.push({
@@ -102,13 +98,10 @@ export default class DebugRenderer {
     }
 
     setViewportSize(width, height) {
-        console.debug(`DebugRenderer.setViewportSize(${ width }, ${ height })`);
         this._renderBuffer.size = new Vec(width, height);
     }
 
     draw(camera) {
-        console.debug(`DebugRenderer.draw()`);
-
         const cameraView = Mat4.GetInverted(Transform.GetWorldMatrix(camera.node));
         const viewMatrix = cameraView;
         const projectionMatrix = camera.projectionMatrix;
@@ -132,10 +125,8 @@ export default class DebugRenderer {
             })
         });
 
-        console.debug(`DebugRenderer.draw() - present texture`);
         const shader = this._presentShader;
         this._renderer.presentTexture(this._targetTexture, { clearBuffers: false, shader });
-        console.debug(`DebugRenderer.draw() - done`);
     }
 
     destoy() {

@@ -1,6 +1,6 @@
 
 import { NumericArray } from "./constants";
-import { isZero, equals } from "./functions";
+import { isZero, equals, lerp } from "./functions";
 
 const checkEqualLength = (v1,v2) => {
     if (v1.length!=v2.length) throw new Error(`Invalid vector length in operation`);
@@ -657,6 +657,34 @@ export default class Vec extends NumericArray {
             return isNaN(v[0]) || isNaN(v[1]) || isNaN(v[2]) || isNaN(v[3]);
         default:
             throw new Error(`Invalid vector size: ${ v.length }`);
+        }
+    }
+
+    static Lerp(u,v,d) {
+        if (u.length != v.length) {
+            throw new Error(`Different vector sizes calculating linear interpolation`);
+        }
+        switch (u.length) {
+        case 2:
+            return new Vec(
+                lerp(u[0], v[0], d),
+                lerp(u[1], v[1], d)
+            );
+        case 3:
+            return new Vec(
+                lerp(u[0], v[0], d),
+                lerp(u[1], v[1], d),
+                lerp(u[2], v[2], d)
+            );
+        case 4:
+            return new Vec(
+                lerp(u[0], v[0], d),
+                lerp(u[1], v[1], d),
+                lerp(u[2], v[2], d),
+                lerp(u[3], v[3], d)
+            );
+        default:
+            throw new Error(`Invalid vector size: ${ u.length }`);
         }
     }
 
