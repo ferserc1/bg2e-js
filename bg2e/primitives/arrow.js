@@ -10,9 +10,9 @@ export default function arrow(length, arrowSize = 0.3, direction = new Vec(0, 0,
 
     const trx = Mat4.MakeRotationWithDirection(direction, up);
 
-    const arrowVector = trx.multVector(new Vec(0, 0, 1));
-    const arrowHeadDir1 = trx.multVector(new Vec( arrowSize, 0, 1 - arrowSize));
-    const arrowHeadDir2 = trx.multVector(new Vec(-arrowSize, 0, 1 - arrowSize));
+    const arrowVector = trx.multVector(new Vec(0, 0, -1));
+    const arrowHeadDir1 = trx.multVector(new Vec( arrowSize, 0, -1 + arrowSize));
+    const arrowHeadDir2 = trx.multVector(new Vec(-arrowSize, 0, -1 + arrowSize));
 
 
     polyList.vertex = [

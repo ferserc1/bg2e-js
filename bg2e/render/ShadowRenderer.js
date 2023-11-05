@@ -6,21 +6,41 @@ import Texture, {
 } from "../base/Texture";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
+import Color from "../base/Color";
 import Camera from "../scene/Camera";
 import LightComponent from "../scene/LightComponent";
 import Transform from "../scene/Transform";
 import BasicDiffuseColorShader from "../shaders/BasicDiffuseColorShader";
+import DebugRenderer from "../debug/DebugRenderer";
 
 
 export default class ShadowRenderer {
     constructor(renderer) {
         this._renderer = renderer;
+        this._shadowMapRenderDistance = 20;
+        this._debug = false;
     }
 
     get renderer() { return this._renderer; }
 
     get size() {
         return this._size;
+    }
+
+    get shadowMapRenderDistance() {
+        return this._shadowMapRenderDistance;
+    }
+
+    get debug() {
+        return this._debug;
+    }
+
+    set debug(d) {
+        this._debug = d;
+    }
+
+    set shadowMapRenderDistance(d) {
+        this._shadowMapRenderDistance = d;
     }
 
     // TODO: set size. Update the shadow map size
@@ -43,7 +63,7 @@ export default class ShadowRenderer {
         await this._shader.load();
     }
 
-    getLightPosition(camera, light) {
+    getLightTransform(camera, light) {
         let cameraNode = null;
         if (camera instanceof Camera) {
             cameraNode = camera.node;
@@ -70,20 +90,33 @@ export default class ShadowRenderer {
             throw Error(`ShadowRenderer.getLightPosition(): invalid light. Light must be a Node or a LightComponent`);
         }
 
+        // Get the camera focus point
         const focus = camera.focusDistance;
         const cameraTransform = Transform.GetWorldMatrix(cameraNode);
-        const cameraPos = Vec.Add(Mat4.GetPosition(cameraTransform), Vec.Mult(cameraTransform.forwardVector, focus));
-        const lightTransform = Transform.GetWorldMatrix(lightNode);
-        const lightVector = Vec.Mult(Mat4.GetRotation(lightTransform).forwardVector, -1);
+        const cameraPos = Vec.Add(Mat4.GetPosition(cameraTransform), Vec.Mult(cameraTransform.forwardVector, -focus)); 
 
-        return Vec.Add(cameraPos, lightVector);
+        // Get the light rotation vector and scale it to the light shadow map render distance
+        const lightTransform = Transform.GetWorldMatrix(lightNode);
+        const lightVector = Mat4.GetRotation(lightTransform).forwardVector;
+        lightVector.scale(this._shadowMapRenderDistance);
+
+        // Get the light render position, adding the camera focus point to the light vector
+        const lightPos = Vec.Add(cameraPos, lightVector);
+
+        // Set the light render position to the light transform matrix
+        lightTransform.setPosition(lightPos);
+
+        if (this._debug) {
+            DebugRenderer.Get(this._renderer).drawSphere({ radius: 0.1, color: Color.Red(), position: cameraPos });
+            DebugRenderer.Get(this.renderer).drawSphere({ radius: 0.1, color: Color.Blue(), position: lightPos });
+            DebugRenderer.Get(this.renderer).drawArrow({ length: 0.8, color: Color.Green(), transformMatrix: lightTransform });
+        }
+
+        return lightTransform;
     }
 
     update(camera, lightComponent, renderQueue) {  
-        const pos = this.getLightPosition(camera, lightComponent);
-        const viewMatrix = Mat4.MakeTranslation(pos.x, pos.y, pos.z);
-        const lightMatrix = Mat4.GetRotation(Transform.GetWorldMatrix(lightComponent));
-        viewMatrix.mult(lightMatrix);
+        const viewMatrix = this.getLightTransform(camera, lightComponent);
         
         this._renderBuffer.update(() => {
             this._renderBuffer.renderer.state.clear();

@@ -124,12 +124,12 @@ class MyAppController extends SceneAppController {
     frame(dt) {
         super.frame(dt);
 
-        const debugRenderer = DebugRenderer.Get(this.renderer);
-        debugRenderer.drawSphere({ radius: 0.1, color: Color.Red(), position: new Vec(0,4,0) });
+        //const debugRenderer = DebugRenderer.Get(this.renderer);
+        //debugRenderer.drawSphere({ radius: 0.1, color: Color.Red(), position: new Vec(0,4,0) });
 
-        const trx = Mat4.MakeRotationWithDirection(new Vec(1,-2,0.6), new Vec(0,0,1));
-        const transformMatrix = trx.mult(Mat4.MakeTranslation(new Vec(0,4,0)));
-        debugRenderer.drawArrow({ length: 0.8, color: Color.Green(), transformMatrix });
+        //const trx = Mat4.MakeRotationWithDirection(new Vec(1,-2,0.6), new Vec(0,0,1));
+        //const transformMatrix = trx.mult(Mat4.MakeTranslation(new Vec(0,4,0)));
+        //debugRenderer.drawArrow({ length: 0.8, color: Color.Green(), transformMatrix });
     }
 }
 
