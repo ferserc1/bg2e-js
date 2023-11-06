@@ -192,6 +192,8 @@ export default class Mat3 extends NumericArray {
         return m;
     }
 
+    // https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+    // Make a rotation matrix from an axis and an angle
     static MakeRotationWithDirection(direction, up = new Vec(0,1,0)) {
         const m = Mat3.MakeIdentity();
         const z = direction.normalize();

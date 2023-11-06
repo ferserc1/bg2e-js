@@ -386,6 +386,22 @@ export default class Mat4 extends NumericArray {
 		return this;
 	}
 
+	setRotation(rotationMatrix) {
+		if (rotationMatrix.length === 9) {
+			this[0] = rotationMatrix[0]; this[1] = rotationMatrix[1]; this[2] = rotationMatrix[2];
+			this[4] = rotationMatrix[3]; this[5] = rotationMatrix[4]; this[6] = rotationMatrix[5];
+			this[8] = rotationMatrix[6]; this[9] = rotationMatrix[7]; this[10] = rotationMatrix[8];
+		}
+		else if (rotationMatrix.length === 16) {
+			this[0] = rotationMatrix[0]; this[1] = rotationMatrix[1]; this[2] = rotationMatrix[2];
+			this[4] = rotationMatrix[4]; this[5] = rotationMatrix[5]; this[6] = rotationMatrix[6];
+			this[8] = rotationMatrix[8]; this[9] = rotationMatrix[9]; this[10] = rotationMatrix[10];
+		}
+		else {
+			throw new Error("Invalid parameter setting rotation matrix");
+		}
+	}
+
     mult(a) {
 		if (typeof(a)=='number') {
 			this[ 0] *= a; this[ 1] *= a; this[ 2] *= a; this[ 3] *= a;
@@ -502,10 +518,7 @@ export default class Mat4 extends NumericArray {
 
 	static MakeWithQuaternion(q) {
 		const m = Mat4.MakeIdentity();
-        
-        m.setRow(0, new Vec( 1  - 2 * q[1] * q[1] - 2 * q[2] * q[2], 2 * q[0] * q[1] - 2 * q[2] * q[3], 2 * q[0] * q[2] + 2 * q[1] * q[3], 0));
-        m.setRow(1, new Vec( 2 * q[0] * q[1] + 2 * q[2] * q[3], 1  - 2.0 * q[0] * q[0] - 2 * q[2] * q[2], 2 * q[1] * q[2] - 2 * q[0] * q[3], 0));
-        m.setRow(2, new Vec( 2 * q[0] * q[2] - 2 * q[1] * q[3], 2 * q[1] * q[2] + 2 * q[0] * q[3] , 1 - 2 * q[0] * q[0] - 2 * q[1] * q[1], 0));//
+		m.setRotation(Mat3.MakeWithQuaternion(q));
         return m;
 	}
 	
@@ -540,11 +553,8 @@ export default class Mat4 extends NumericArray {
 	}
 
 	static MakeRotationWithDirection(direction, up = new Vec(0,1,0)) {
-		const rot = Mat3.MakeRotationWithDirection(direction, up);
 		const trx = Mat4.MakeIdentity();
-		trx.setRow(0, rot.row(0));
-		trx.setRow(1, rot.row(1));
-		trx.setRow(2, rot.row(2));
+		trx.setRotation(Mat3.MakeRotationWithDirection(direction, up));
 		return trx;
 	}
 
