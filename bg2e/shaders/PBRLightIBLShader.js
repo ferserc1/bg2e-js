@@ -6,6 +6,7 @@ import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
 import { LightType } from "../base/Light";
 import { createNormalTexture, normalTexture, createBRDFIntegrationTexture } from "../tools/TextureResourceDatabase";
+import LightComponent from "../scene/LightComponent";
 
 function getShaderProgramForLights(renderer, numLights) {
     if (this._programs[numLights]) {
@@ -34,6 +35,12 @@ function getShaderProgramForLights(renderer, numLights) {
 
         uniform vec3 uLightPositions[${numLights}];
         uniform mat4 uLightTransforms[${numLights}];
+
+        // Used to calculate shadow from depth texture
+        uniform mat4 uLightProjectionMatrix;
+        uniform mat4 uLightViewMatrix;
+        varying vec4 fragPositionFromLightPov;
+
         `,
         [
             new ShaderFunction('void','main','',`{
@@ -49,6 +56,7 @@ function getShaderProgramForLights(renderer, numLights) {
                     fragLightPositions[i] = (uLightTransforms[i] * vec4(uLightPositions[i], 1.0)).xyz;
                 }
 
+                fragPositionFromLightPov = uLightProjectionMatrix * uLightViewMatrix * vec4(fragPos, 1.0);
                 gl_Position = uProj * uView * uWorld * vec4(inPosition,1.0);
             }`)
         ]);
@@ -91,6 +99,10 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform samplerCube uSpecularMap;
         uniform samplerCube uIrradianceMap;
         uniform sampler2D uBRDFIntegrationMap;
+
+        uniform sampler2D uShadowMap;
+        varying vec4 fragPositionFromLightPov;
+
         `,
         [
             new ShaderFunction('void','main','',`{
@@ -139,6 +151,31 @@ function getShaderProgramForLights(renderer, numLights) {
                     vec3 color = ambient + Lo;
                     color = color / (color + vec3(1.0));
                     color = pow(color, vec3(1.0/2.2));
+
+
+                    // TODO: Extract this code to a function and process the shadow color
+                    // in the PBR processing function
+                    // Depth texture
+                    // The vertex location rendered from the light source is almost in
+                    // normalized device coordinates (NDC), but the perspective division
+                    // has not been performed yet. We need to divide by w to get the
+                    // vertex location in range [-1, +1]
+                    vec3 lightPovPositionInTexture = fragPositionFromLightPov.xyz / fragPositionFromLightPov.w;
+                    
+                    // Convert the NDC coordinates to texture coordinates
+                    lightPovPositionInTexture = lightPovPositionInTexture * 0.5 + 0.5;
+
+                    if (lightPovPositionInTexture.x >= 0.0 && lightPovPositionInTexture.x <= 1.0 &&
+                        lightPovPositionInTexture.y >= 0.0 && lightPovPositionInTexture.y <= 1.0)
+                    {
+                        vec4 shadowMapColor = texture2D(uShadowMap, lightPovPositionInTexture.xy);
+                        float shadowMapDistance = shadowMapColor.r;
+                        
+                        float tolerance = 0.0001;
+                        if (lightPovPositionInTexture.z > shadowMapDistance + tolerance) {
+                            color *= 0.5;
+                        }
+                    }
 
                     float ao = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord2).a;
                     gl_FragColor = vec4(color * ao,alpha);
@@ -290,7 +327,11 @@ export default class PBRLightIBLShader extends Shader {
         this._program.bindTexture("uBRDFIntegrationMap", this.renderer.factory.texture(this._brdfIntegrationTexture), 6);
 
 
+        let shadowLight = null;
         this._lights.forEach((light,i) => {
+            if (light._depthTexture) {
+                shadowLight = light;
+            }
             this._program.uniform1i(`uLightTypes[${i}]`, this._lightTypes[i]);
             this._program.bindVector(`uLightPositions[${i}]`, this._lightPositions[i]);
             this._program.bindVector(`uLightDirections[${i}]`, this._lightDirections[i]);
@@ -299,6 +340,14 @@ export default class PBRLightIBLShader extends Shader {
             this._program.bindMatrix(`uLightTransforms[${i}]`, this._lightTransforms[i]);
         });
 
+        if (shadowLight) {
+            //console.log("Depth texture present");
+            // TODO: Set the light point of view matrix uLightPovMvp
+            this._program.bindTexture("uShadowMap", this.renderer.factory.texture(shadowLight.depthTexture), 7);
+            this._program.bindMatrix("uLightProjectionMatrix", shadowLight.projection);
+            this._program.bindMatrix("uLightViewMatrix", shadowLight.viewMatrix);
+        }
+        
         this._program.bindAttribs(plistRenderer, {
             position: "inPosition",
             normal: "inNormal",

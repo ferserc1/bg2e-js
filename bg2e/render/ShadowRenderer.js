@@ -12,12 +12,13 @@ import LightComponent from "../scene/LightComponent";
 import Transform from "../scene/Transform";
 import BasicDiffuseColorShader from "../shaders/BasicDiffuseColorShader";
 import DebugRenderer from "../debug/DebugRenderer";
+import DepthRenderShader from "../shaders/DepthRenderShader";
 
 
 export default class ShadowRenderer {
     constructor(renderer) {
         this._renderer = renderer;
-        this._shadowMapRenderDistance = 20;
+        this._shadowMapRenderDistance = 100;
         this._debug = false;
     }
 
@@ -45,6 +46,10 @@ export default class ShadowRenderer {
 
     // TODO: set size. Update the shadow map size
 
+    get depthTexture() {
+        return this._depthTexture;
+    }
+
     async create(size = new Vec(1024, 1024)) {
         this._size = size;
 
@@ -57,9 +62,17 @@ export default class ShadowRenderer {
         this._renderBuffer = this.renderer.factory.renderBuffer();
 
         await this._renderBuffer.attachTexture(this._texture);
+
+        this._depthTexture = new Texture();
+        this._depthTexture.name = `ShadowMapDepth_${ size.width }x${ size.height }`;
+        this._depthTexture.renderTargetAttachment = TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
+        this._depthTexture.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
+        this._depthTexture.wrapModeXY = TextureWrap.CLAMP;
+        await this._renderBuffer.attachTexture(this._depthTexture);
+
         this._renderBuffer.size = this._size;
 
-        this._shader = new BasicDiffuseColorShader(this.renderer);
+        this._shader = new DepthRenderShader(this.renderer);
         await this._shader.load();
     }
 
@@ -116,7 +129,7 @@ export default class ShadowRenderer {
     }
 
     update(camera, lightComponent, renderQueue) {  
-        const viewMatrix = this.getLightTransform(camera, lightComponent);
+        const viewMatrix = Mat4.GetInverted(this.getLightTransform(camera, lightComponent));
         
         this._renderBuffer.update(() => {
             this._renderBuffer.renderer.state.clear();
@@ -130,7 +143,7 @@ export default class ShadowRenderer {
                 queue.queue.forEach(rs => {
                     rs.draw({
                         overrideShader: this._shader,
-                        overrideViewMatrix: Mat4.GetInverted(viewMatrix),
+                        overrideViewMatrix: viewMatrix,
                         overrideProjectionMatrix: lightComponent.light.projection
                     });
                 });
@@ -139,5 +152,9 @@ export default class ShadowRenderer {
                 }
             }
         });
+
+        // Set the depthTexture to the light component. If the shader needs the depth texture, it will use it
+        lightComponent.depthTexture = this._depthTexture;
+        lightComponent.viewMatrix = viewMatrix;
     }
 }

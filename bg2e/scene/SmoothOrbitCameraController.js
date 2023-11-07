@@ -69,6 +69,10 @@ export default class SmoothOrbitCameraController extends OrbitCameraController {
             }
             else {
                 this.transform.matrix.translate(0, 0, this._distance0);
+                if (this.camera) {
+                    // Update the camera focus distance to optimize the shadow map rendering
+                    this.camera.focusDistance = this._distance0;
+                }
             }
             this.transform.matrix.rotate(degreesToRadians(-this._pitch0), 1, 0, 0)
                 .rotate(degreesToRadians(this._yaw0), 0, 1, 0)

@@ -282,6 +282,10 @@ export default class OrbitCameraController extends Component {
             }
             else {
                 this.transform.matrix.translate(0,0,this._distance);
+                if (this.camera) {
+                    // Update the camera focus distance to optimize the shadow map rendering
+                    this.camera.focusDistance = this._distance;
+                }
             }
             this.transform.matrix.rotate(degreesToRadians(pitch), -1,0,0)
                         .rotate(degreesToRadians(this._rotation.y), 0,1,0)
@@ -331,10 +335,6 @@ export default class OrbitCameraController extends Component {
                     this._distance += delta.x * 0.01 * this._distance;
                     this._viewWidth += delta.x * 0.01 * this._viewWidth;
                     if (this._viewWidth<0.5) this._viewWidth = 0.5;
-                    if (this.camera) {
-                        // Update the camera focus distance to optimize the shadow map rendering
-                        this.camera.focusDistance = this._distance;
-                    }
                     break;
             }				
         }
@@ -347,10 +347,6 @@ export default class OrbitCameraController extends Component {
         this._distance += evt.delta * 0.001 * mult * this._wheelSpeed;
         this._viewWidth += evt.delta * 0.0001 * wMult * this._wheelSpeed;
         if (this._viewWidth<0.5) this._viewWidth = 0.5;
-        if (this.camera) {
-            // Update the camera focus distance to optimize the shadow map rendering
-            this.camera.focusDistance = this._distance;
-        }
     }
     
     touchStart(evt) {

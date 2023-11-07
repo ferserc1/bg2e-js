@@ -220,6 +220,14 @@ export default class SceneRenderer {
     draw({ clearBuffers = true, drawSky = true } = {}) {
         const mainLight = LightComponent.GetMainDirectionalLight(this._sceneRoot);
         const camera = Camera.GetMain(this._sceneRoot);
+
+        // Update the light projection based on the camera focus distance, to optimize
+        // the shadow map size
+        if (mainLight && camera) {
+            const focus = camera.focusDistance;
+            const lightProjection = Mat4.MakeOrtho(-focus,focus,-focus,focus,0.1,500.0);
+            mainLight.light.projection = lightProjection;
+        }
         this._shadowRenderer.update(camera, mainLight, this._renderQueue);
         
         if (clearBuffers) {

@@ -27,7 +27,10 @@ export default class Light {
         this._castShadows = true;
         this._shadowBias = 0.00002;
         
-        this._projection = Mat4.MakeOrtho(-20,20,-20,20,0.1,2000.0);
+        this._projection = Mat4.MakeOrtho(-10,10,-10,10,0.1,500.0);
+
+        // Internal engine use. This attribute will not be serialized
+        this._depthTexture = null;
     }
     
     clone() {
@@ -92,6 +95,22 @@ export default class Light {
     
     get projection() { return this._projection; }
     set projection(p) { this._projection = p; }
+
+    get depthTexture() {
+        return this._depthTexture;
+    }
+
+    set depthTexture(t) {
+        this._depthTexture = t;
+    }
+
+    get viewMatrix() {
+        return this._viewMatrix;
+    }
+
+    set viewMatrix(m) {
+        this._viewMatrix = m;
+    }
 
     async deserialize(sceneData) {
         switch (sceneData.lightType) {

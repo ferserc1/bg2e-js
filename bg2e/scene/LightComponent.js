@@ -32,6 +32,30 @@ export default class LightComponent extends Component {
     get light() { return this._light; }
     set light(l) { this._light = l; }
 
+    set depthTexture(t) {
+        this._light.depthTexture = t;
+    }
+
+    get depthTexture() {
+        return this._light.depthTexture;
+    }
+
+    set viewMatrix(vm) {
+        this._light.viewMatrix = vm;
+    }
+
+    get viewMatrix() {
+        return this._light.viewMatrix;
+    }
+    
+    set mvpMatrix(m) {
+        this._light.mvpMatrix = m;
+    }
+
+    get mvpMatrix() {
+        return this._light.mvpMatrix;
+    }
+
     clone() {
         const result = new Light();
         result.assign(this);

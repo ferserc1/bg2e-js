@@ -47,6 +47,7 @@ export default class ShaderProgram {
         this._program.__shaderProgram__ = this;
         this._attribLocations = {};
         this._uniformLocations = {};
+        this._failed = false;
     }
 
     get program() {
@@ -58,6 +59,10 @@ export default class ShaderProgram {
     }
 
     attachSource(src,type) {
+        if (this._failed) {
+            return;
+        }
+
         const gl = this._gl;
         if (type === ShaderType.VERTEX) {
             type = gl.VERTEX_SHADER;
@@ -69,6 +74,7 @@ export default class ShaderProgram {
         gl.shaderSource(shader, src);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            this._failed = true;
             const debugCode = src.split(/\r?\n/)
                 .map((line,i) => `${i + 1} | ${line}`)
                 .join('\n');
@@ -88,6 +94,9 @@ export default class ShaderProgram {
     }
 
     link() {
+        if (this._failed) {
+            return false;
+        }
         const gl = this._gl;
         gl.linkProgram(this._program);
         if (!gl.getProgramParameter(this._program, gl.LINK_STATUS)) {

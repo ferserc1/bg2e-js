@@ -15,6 +15,7 @@ import FindNodeVisitor from "bg2e/scene/FindNodeVisitor";
 import DebugRenderer from "bg2e/debug/DebugRenderer";
 import Color from "bg2e/base/Color";
 import SmoothOrbitCameraController from "bg2e/scene/SmoothOrbitCameraController";
+import LightComponent from "bg2e/scene/LightComponent";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -111,6 +112,9 @@ class MyAppController extends SceneAppController {
         smoothCameraController.assign(cameraController);
         mainCamera.node.addComponent(smoothCameraController);
         mainCamera.node.removeComponent(cameraController);
+
+        const mainLight = LightComponent.GetMainDirectionalLight(root);
+        mainLight.light.projection = Mat4.MakeOrtho(-30,30,-30,30,0.1,500.0);
 
         window.root = root;
 
