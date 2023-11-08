@@ -137,7 +137,7 @@ The multiplication is performed from left to right: that is, first the projectio
 ```js
 const trxMat = Mat4.MakeTranslation(1, 0, 0);
 const rotMat = Mat4.MakeRotation(Math.PI / 4, 0, 1, 0);
-const uModel = Mat4.Mult(trxMat, rotMat);
+const uModel = Mat4.Mult(rotMat, trxMat);
 ```
 
 This code would be executed as follows:
@@ -168,7 +168,7 @@ Which is equivalent to:
 ```js
 const rotMat = Mat4.MakeRotation(Math.PI / 4, 0, 1, 0);
 const trxMat = Mat4.MakeTranslation(1, 0, 0);
-const uModel = Mat4.Mult(rotMat, trxMat);
+const uModel = Mat4.Mult(trxMat, rotMat);
 ```
 
 ```other

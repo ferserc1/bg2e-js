@@ -118,7 +118,7 @@ export default class Drawable extends Component {
                 renderQueue.addPolyList(
                     polyListRenderer,
                     materialRenderer,
-                    Mat4.Mult(modelMatrix,transform));
+                    Mat4.Mult(transform, modelMatrix));
             });
         }
     }

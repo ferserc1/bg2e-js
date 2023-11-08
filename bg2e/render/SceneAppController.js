@@ -4,6 +4,7 @@ import SelectionManager from "../manipulation/SelectionManager";
 import { registerComponents } from "../scene";
 import Camera from "../scene/Camera";
 import DebugRenderer from "../debug/DebugRenderer";
+import Vec from "../math/Vec";
 
 export default class SceneAppController extends AppController {
     get sceneRoot() {
@@ -73,7 +74,7 @@ export default class SceneAppController extends AppController {
         }
 
         this._sceneRenderer = this.renderer.factory.scene();
-        await this.sceneRenderer.init();
+        await this.sceneRenderer.init({ shadowMapSize: new Vec(4096, 4096) });
         if (this.environment) {
             await this.sceneRenderer.setEnvironment(this.environment);
         }

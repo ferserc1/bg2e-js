@@ -10,7 +10,6 @@ import Color from "../base/Color";
 import Camera from "../scene/Camera";
 import LightComponent from "../scene/LightComponent";
 import Transform from "../scene/Transform";
-import BasicDiffuseColorShader from "../shaders/BasicDiffuseColorShader";
 import DebugRenderer from "../debug/DebugRenderer";
 import DepthRenderShader from "../shaders/DepthRenderShader";
 

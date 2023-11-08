@@ -1,5 +1,5 @@
 import Shader from "../render/Shader";
-import { pbrPointLight, pbrDirectionalLight, pbrAmbientLight } from './webgl_shader_lib';
+import { pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor } from './webgl_shader_lib';
 import ShaderFunction from "./ShaderFunction";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
@@ -37,8 +37,7 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform mat4 uLightTransforms[${numLights}];
 
         // Used to calculate shadow from depth texture
-        uniform mat4 uLightProjectionMatrix;
-        uniform mat4 uLightViewMatrix;
+        uniform mat4 uLightPovMvp;
         varying vec4 fragPositionFromLightPov;
 
         `,
@@ -56,7 +55,8 @@ function getShaderProgramForLights(renderer, numLights) {
                     fragLightPositions[i] = (uLightTransforms[i] * vec4(uLightPositions[i], 1.0)).xyz;
                 }
 
-                fragPositionFromLightPov = uLightProjectionMatrix * uLightViewMatrix * vec4(fragPos, 1.0);
+                //     fragPositionFromLightPov = uLightProjectionMatrix * uLightViewMatrix * vec4(fragPos, 1.0);
+                fragPositionFromLightPov = uLightPovMvp * vec4(fragPos, 1.0);
                 gl_Position = uProj * uView * uWorld * vec4(inPosition,1.0);
             }`)
         ]);
@@ -99,9 +99,12 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform samplerCube uSpecularMap;
         uniform samplerCube uIrradianceMap;
         uniform sampler2D uBRDFIntegrationMap;
+        uniform float uAmbientIntensity;
 
         uniform sampler2D uShadowMap;
+        uniform float uShadowBias;
         varying vec4 fragPositionFromLightPov;
+        uniform float uShadowStrength;
 
         `,
         [
@@ -138,49 +141,27 @@ function getShaderProgramForLights(renderer, numLights) {
                                 albedo, roughness, metallic, fresnel);
                         }
                         else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
+                            vec3 shadowColor = getShadowColor(fragPositionFromLightPov, uShadowMap, uShadowBias, uShadowStrength);
                             Lo += pbrDirectionalLight(
                                 -uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                                albedo, roughness, metallic, fresnel);
+                                albedo, roughness, metallic, fresnel) * shadowColor;
                         }
                     }
 
                     vec3 ambient = pbrAmbientLight(
                         fragPos, N, V, albedo, metallic, roughness, uIrradianceMap, uSpecularMap, uEnvMap, uBRDFIntegrationMap, fresnel
-                    );
+                    ) * uAmbientIntensity;
 
-                    vec3 color = ambient + Lo;
+                    float ao = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord2).a;
+                    vec3 color = (ambient + Lo) * ao;
+                    
                     color = color / (color + vec3(1.0));
                     color = pow(color, vec3(1.0/2.2));
 
-
-                    // TODO: Extract this code to a function and process the shadow color
-                    // in the PBR processing function
-                    // Depth texture
-                    // The vertex location rendered from the light source is almost in
-                    // normalized device coordinates (NDC), but the perspective division
-                    // has not been performed yet. We need to divide by w to get the
-                    // vertex location in range [-1, +1]
-                    vec3 lightPovPositionInTexture = fragPositionFromLightPov.xyz / fragPositionFromLightPov.w;
                     
-                    // Convert the NDC coordinates to texture coordinates
-                    lightPovPositionInTexture = lightPovPositionInTexture * 0.5 + 0.5;
-
-                    if (lightPovPositionInTexture.x >= 0.0 && lightPovPositionInTexture.x <= 1.0 &&
-                        lightPovPositionInTexture.y >= 0.0 && lightPovPositionInTexture.y <= 1.0)
-                    {
-                        vec4 shadowMapColor = texture2D(uShadowMap, lightPovPositionInTexture.xy);
-                        float shadowMapDistance = shadowMapColor.r;
-                        
-                        float tolerance = 0.0001;
-                        if (lightPovPositionInTexture.z > shadowMapDistance + tolerance) {
-                            color *= 0.5;
-                        }
-                    }
-
-                    float ao = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord2).a;
-                    gl_FragColor = vec4(color * ao,alpha);
+                    gl_FragColor = vec4(color,alpha);
                 }
-            }`, [pbrPointLight, pbrDirectionalLight, pbrAmbientLight])
+            }`, [pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor])
         ]);
 
     this._programs[numLights] = ShaderProgram.Create(renderer.gl,"PBRLightIBL",vshader,fshader);
@@ -326,6 +307,8 @@ export default class PBRLightIBLShader extends Shader {
         this._program.bindTexture("uEnvMap", this.renderer.factory.texture(this.environmentMap), 5);
         this._program.bindTexture("uBRDFIntegrationMap", this.renderer.factory.texture(this._brdfIntegrationTexture), 6);
 
+        // TODO: Get the ambient intensity from environment
+        this._program.uniform1f("uAmbientIntensity", 1.0);
 
         let shadowLight = null;
         this._lights.forEach((light,i) => {
@@ -341,11 +324,11 @@ export default class PBRLightIBLShader extends Shader {
         });
 
         if (shadowLight) {
-            //console.log("Depth texture present");
-            // TODO: Set the light point of view matrix uLightPovMvp
             this._program.bindTexture("uShadowMap", this.renderer.factory.texture(shadowLight.depthTexture), 7);
-            this._program.bindMatrix("uLightProjectionMatrix", shadowLight.projection);
-            this._program.bindMatrix("uLightViewMatrix", shadowLight.viewMatrix);
+            const projectionViewMatrix = Mat4.Mult(shadowLight.projection, shadowLight.viewMatrix);
+            this._program.bindMatrix("uLightPovMvp", projectionViewMatrix);
+            this._program.uniform1f("uShadowBias", shadowLight.shadowBias * 30);
+            this._program.uniform1f("uShadowStrength", shadowLight.shadowStrength);
         }
         
         this._program.bindAttribs(plistRenderer, {

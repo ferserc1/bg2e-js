@@ -112,7 +112,7 @@ class MyAppController extends AppController {
                 shader: this._shader,
                 materialRenderer,
                 polyListRenderer,
-                modelMatrix: Mat4.Mult(transform, worldMatrix),
+                modelMatrix: Mat4.Mult(worldMatrix, transform),
                 viewMatrix: this._viewMatrix,
                 projectionMatrix: this._projMatrix
             });

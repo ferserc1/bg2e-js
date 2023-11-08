@@ -14,7 +14,7 @@ export class TransformVisitor extends NodeVisitor {
 
     visit(node) {
         if (node.transform) {
-            this._matrix = Mat4.Mult(node.transform.matrix, this._matrix);
+            this._matrix = Mat4.Mult(this._matrix, node.transform.matrix);
         }
     }
 }
@@ -69,6 +69,6 @@ export default class Transform extends Component {
 
     update(delta,modelMatrix) {
         //modelMatrix.mult(this._matrix);
-        modelMatrix.assign(Mat4.Mult(this._matrix, modelMatrix));
+        modelMatrix.assign(Mat4.Mult(modelMatrix, this._matrix));
     }
 }

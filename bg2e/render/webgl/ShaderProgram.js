@@ -136,9 +136,6 @@ export default class ShaderProgram {
 
     vertexAttribPointer(name,size,format,normalize,stride,offset) {
         const location = this.getAttribLocation(name);
-        if (location === -1) {
-            console.log(location);
-        }
         this._gl.vertexAttribPointer(location, size, format, normalize, stride, offset);
     }
 

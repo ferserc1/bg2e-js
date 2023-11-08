@@ -78,7 +78,7 @@ export default class IrradianceMapCubeShader extends Shader {
         const { gl } = this.renderer;
         this.renderer.state.shaderProgram = this._program;
 
-        const mvp = Mat4.Mult(viewMatrix, projectionMatrix);
+        const mvp = Mat4.Mult(projectionMatrix, viewMatrix);
         this._program.uniformMatrix4fv('uMVP', false, mvp);
 
         gl.activeTexture(gl.TEXTURE0);

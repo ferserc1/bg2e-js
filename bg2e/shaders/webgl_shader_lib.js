@@ -161,3 +161,27 @@ export const applyConvolution = new ShaderFunction('vec4', 'applyConvolution', '
     return vec4((colorSum / kernelWeight).rgb, 1.0);
 }
 `, []);
+
+export const getShadowColor = new ShaderFunction('vec3', 'getShadowColor', 'vec4 positionFromLightPov, sampler2D shadowMap, float shadowBias, float shadowStrength',
+`
+{
+    // The vertex location rendered from the light source is almost in
+    // normalized device coordinates (NDC), but the perspective division
+    // has not been performed yet. We need to divide by w to get the
+    // vertex location in range [-1, +1]
+    vec3 shadowCoord = positionFromLightPov.xyz / positionFromLightPov.w;
+
+    // Convert from NDC to texture coordinates
+    shadowCoord = shadowCoord * 0.5 + 0.5;
+    
+    if (shadowCoord.x >= 0.0 && shadowCoord.x <= 1.0 &&
+        shadowCoord.y >= 0.0 && shadowCoord.y <= 1.0)
+    {
+        float shadowDepth = texture2D(shadowMap, shadowCoord.xy).r;
+        if (shadowCoord.z > shadowDepth + shadowBias) {
+            return vec3(1.0 - shadowStrength);
+        }
+    }
+    return vec3(1.0);
+}
+`, []);

@@ -238,4 +238,11 @@ export default class Mat3 extends NumericArray {
                 isNaN(m[3]) || isNaN(m[4]) || isNaN(m[5]) &&
                 isNaN(m[6]) || isNaN(m[7]) || isNaN(m[8]);
     }
+
+    // This function multyplies two B x A matrices. It works opposite than the non-static mult() function:
+	// A.mult(B) is the same as Mat4.Mult(B,A)
+    static Mult(A,B) {
+        const result = new Mat4(B);
+		return result.mult(A);
+    }
 };

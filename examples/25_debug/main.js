@@ -115,7 +115,9 @@ class MyAppController extends SceneAppController {
 
         const mainLight = LightComponent.GetMainDirectionalLight(root);
         mainLight.light.projection = Mat4.MakeOrtho(-30,30,-30,30,0.1,500.0);
+        mainLight.light.shadowStrength = 0.8;
 
+        
         window.root = root;
 
         return root;

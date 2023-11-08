@@ -589,10 +589,11 @@ export default class Mat4 extends NumericArray {
 		return (new Mat4()).lookAt(origin,target,up);
 	}
 
-	// Other static methods
+	// Other static methods. This function multyplies two B x A matrices. It works opposite than the non-static mult() function:
+	// A.mult(B) is the same as Mat4.Mult(B,A)
 	static Mult(A,B) {
-		const result = new Mat4(A);
-		return result.mult(B);
+		const result = new Mat4(B);
+		return result.mult(A);
 	}
 
     static Unproject(x, y, depth, mvMat, pMat, viewport) {

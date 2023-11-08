@@ -20,8 +20,8 @@ export default class WebGLSceneRenderer extends SceneRenderer {
         this._shader.environment = env;
     }
 
-    async init() {
-        await super.init();
+    async init(params) {
+        await super.init(params);
 
         await this.shader.load();
 
