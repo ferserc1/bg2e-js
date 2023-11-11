@@ -73,7 +73,7 @@ export const pbrPointLight = new ShaderFunction('vec3', 'pbrPointLight',
 }`, [fresnelSchlick, distributionGGX, geometrySmith]);
 
 export const pbrDirectionalLight = new ShaderFunction('vec3', 'pbrDirectionalLight',
-    'vec3 lightDir, vec3 lightColor, vec3 fragPos, vec3 fragNorm, vec3 viewPos, vec3 albedo, float roughness, float metallic, vec3 fresnel',
+    'vec3 lightDir, vec3 lightColor, vec3 fragPos, vec3 fragNorm, vec3 viewPos, vec3 albedo, float roughness, float metallic, vec3 fresnel, vec3 shadowColor',
     `{
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo, metallic);
@@ -81,14 +81,14 @@ export const pbrDirectionalLight = new ShaderFunction('vec3', 'pbrDirectionalLig
     vec3 L = normalize(lightDir);
     vec3 H = normalize(viewPos + L);
 
-    vec3 F = fresnelSchlick(max(dot(H, viewPos), 0.0), F0) * fresnel;
+    vec3 F = fresnelSchlickRoughness(max(dot(H, viewPos), 0.0), F0, roughness);
 
     float NDF = distributionGGX(fragNorm, H, roughness);
     float G = geometrySmith(fragNorm, viewPos, L, roughness);
 
     vec3 numerator = NDF * G * F;
-    float denom = 4.0 * max(dot(fragNorm,viewPos), 0.0) * max(dot(fragNorm,L), 0.1) + 0.0001;
-    vec3 specular = numerator / denom;
+    float denom = 4.0 * max(dot(fragNorm,viewPos), 0.4) * max(dot(fragNorm,L), 0.4);
+    vec3 specular = numerator / max(denom, 0.0001);
 
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
@@ -96,8 +96,8 @@ export const pbrDirectionalLight = new ShaderFunction('vec3', 'pbrDirectionalLig
     kD *= 1.0 - metallic;
 
     float NdotL = max(dot(fragNorm,L), 0.0);
-    return (kD * albedo / ${Math.PI} + specular) * lightColor * NdotL;
-}`, [fresnelSchlick, distributionGGX, geometrySmith]);
+    return (kD * albedo / ${Math.PI} + specular * fresnel * shadowColor) * lightColor * shadowColor * NdotL;
+}`, [fresnelSchlick, distributionGGX, geometrySmith, fresnelSchlickRoughness]);
 
 export const getPrefilteredColor = new ShaderFunction('vec3', 'getPrefilteredColor', 'float roughness, vec3 refVec, samplerCube irrMap, samplerCube specMap, samplerCube envMap',
     `{
@@ -113,7 +113,7 @@ export const getPrefilteredColor = new ShaderFunction('vec3', 'getPrefilteredCol
     }
 }`);
 
-export const pbrAmbientLight = new ShaderFunction('vec3', 'pbrAmbientLight', 'vec3 fragPos, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness, samplerCube irradianceMap, samplerCube specularMap, samplerCube envMap, sampler2D brdfMap, vec3 fresnel',
+export const pbrAmbientLight = new ShaderFunction('vec3', 'pbrAmbientLight', 'vec3 fragPos, vec3 N, vec3 V, vec3 albedo, float metallic, float roughness, samplerCube irradianceMap, samplerCube specularMap, samplerCube envMap, sampler2D brdfMap, vec3 fresnel, vec3 shadowColor',
     `{
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo, metallic);
@@ -128,7 +128,7 @@ export const pbrAmbientLight = new ShaderFunction('vec3', 'pbrAmbientLight', 've
     vec2 envBRDF = texture2D(brdfMap, vec2(NdotV,roughness)).xy;
     vec3 indirectSpecular = prefilteredColor * (kS * envBRDF.x + envBRDF.y);
 
-    return kD * diffuse + indirectSpecular;
+    return kD * diffuse + indirectSpecular * max(shadowColor, vec3(0.5, 0.5, 0.5));
 }`, [fresnelSchlickRoughness, getPrefilteredColor]);
 
 export const applyConvolution = new ShaderFunction('vec4', 'applyConvolution', 'sampler2D texture, vec2 texCoord, vec2 texSize, float[9] convMatrix, float radius',

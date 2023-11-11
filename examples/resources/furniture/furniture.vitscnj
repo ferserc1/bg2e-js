@@ -1,0 +1,385 @@
+{
+	"fileType": "vwgl::scene",
+	"version": {
+		"major": 2,
+		"minor": 0,
+		"rev": 0
+	},
+	"scene": [
+		{
+			"type": "Node",
+			"name": "SceneRoot",
+			"enabled": true,
+			"steady": false,
+			"children": [
+				{
+					"type": "Node",
+					"name": "Main Camera",
+					"enabled": true,
+					"steady": false,
+					"children": [],
+					"components": [
+						{
+							"type": "Camera",
+							"isMain": true
+						},
+						{
+							"type": "Transform",
+							"transformMatrix": [
+								0.8788171410560608,
+								0,
+								0.47715869545936584,
+								0,
+								0.11139049381017685,
+								0.972369909286499,
+								-0.20515580475330353,
+								0,
+								-0.4639747440814972,
+								0.23344537615776062,
+								0.8545353412628174,
+								0,
+								-1.3078606128692627,
+								0.8349177241325378,
+								2.6355879306793213,
+								1
+							]
+						},
+						{
+							"type": "OrbitCameraController",
+							"rotateButtons": {
+								"left": true,
+								"middle": false,
+								"right": false
+							},
+							"panButtons": {
+								"left": false,
+								"middle": false,
+								"right": true
+							},
+							"zoomButtons": {
+								"left": false,
+								"middle": true,
+								"right": false
+							},
+							"rotation": [
+								13.5,
+								-748.5
+							],
+							"distance": 2.965153197504248,
+							"center": [
+								0.0678956238242956,
+								0.1427164290695757,
+								0.10175978506579622
+							],
+							"rotationSpeed": 0.2,
+							"forward": 0,
+							"left": 0,
+							"wheelSpeed": 1,
+							"minFocus": 2,
+							"minPitch": -90,
+							"maxPitch": 90,
+							"minDistance": 0.4,
+							"maxDistance": 1.7976931348623157e+308,
+							"maxX": 1.7976931348623157e+308,
+							"minX": -1.7976931348623157e+308,
+							"minY": -1.7976931348623157e+308,
+							"maxY": 1.7976931348623157e+308,
+							"maxZ": 1.7976931348623157e+308,
+							"minZ": -1.7976931348623157e+308,
+							"displacementSpeed": 0.1,
+							"enabled": true
+						},
+						{
+							"type": "Selectable"
+						}
+					]
+				},
+				{
+					"type": "Node",
+					"name": "Main Light",
+					"enabled": true,
+					"steady": false,
+					"children": [],
+					"components": [
+						{
+							"type": "Light",
+							"lightType": "kTypeDirectional",
+							"ambient": [
+								0.2,
+								0.2,
+								0.2,
+								1
+							],
+							"diffuse": [
+								0.9,
+								0.9,
+								0.9,
+								1
+							],
+							"specular": [
+								1,
+								1,
+								1,
+								1
+							],
+							"intensity": 0.6,
+							"spotCutoff": 20,
+							"spotExponent": 30,
+							"shadowStrength": 0.3,
+							"cutoffDistance": -1,
+							"projection": [
+								0.1686253547668457,
+								0,
+								0,
+								0,
+								0,
+								0.1686253547668457,
+								0,
+								0,
+								0,
+								0,
+								-0.002250868361443281,
+								0,
+								0,
+								0,
+								-1.0022509098052979,
+								1
+							],
+							"castShadows": true,
+							"shadowBias": 0.00002,
+							"specularType": "PHONG",
+							"constantAtt": 1,
+							"linearAtt": 0.5,
+							"expAtt": 0.1
+						},
+						{
+							"type": "Transform",
+							"transformMatrix": [
+								0.7464398145675659,
+								-0.3732765316963196,
+								-0.5509003400802612,
+								0,
+								-0.30052921175956726,
+								0.5495288968086243,
+								-0.7795466780662537,
+								0,
+								0.5937231183052063,
+								0.7474472522735596,
+								0.2980090081691742,
+								0,
+								0.14854049682617188,
+								3.260463237762451,
+								5.554360866546631,
+								1
+							]
+						},
+						{
+							"type": "Selectable"
+						}
+					]
+				},
+				{
+					"type": "Node",
+					"name": "ciclo_02",
+					"enabled": true,
+					"steady": false,
+					"children": [
+						{
+							"type": "Node",
+							"name": "Floor",
+							"enabled": true,
+							"steady": false,
+							"children": [],
+							"components": [
+								{
+									"type": "Drawable",
+									"name": "Plane"
+								},
+								{
+									"type": "Transform",
+									"transformMatrix": [
+										1.3619108200073242,
+										0,
+										0,
+										0,
+										0,
+										1.3619108200073242,
+										0,
+										0,
+										0,
+										0,
+										1.3619108200073242,
+										0,
+										0,
+										0.46086230874061584,
+										0,
+										1
+									]
+								},
+								{
+									"type": "Selectable"
+								}
+							]
+						}
+					],
+					"components": [
+						{
+							"type": "Drawable",
+							"name": "ciclo_02"
+						},
+						{
+							"type": "Transform",
+							"transformMatrix": [
+								5,
+								0,
+								0,
+								0,
+								0,
+								1,
+								0,
+								0,
+								0,
+								0,
+								5,
+								0,
+								0,
+								-0.458501935005188,
+								0,
+								1
+							]
+						},
+						{
+							"type": "Selectable"
+						}
+					]
+				},
+				{
+					"type": "Node",
+					"name": "armchair",
+					"enabled": true,
+					"steady": false,
+					"children": [],
+					"components": [
+						{
+							"type": "Drawable",
+							"name": "armchair"
+						},
+						{
+							"type": "Transform",
+							"transformMatrix": [
+								1,
+								0,
+								0,
+								0,
+								0,
+								1,
+								0,
+								0,
+								0,
+								0,
+								1,
+								0,
+								0.9403747320175171,
+								0,
+								0,
+								1
+							]
+						},
+						{
+							"type": "Selectable"
+						}
+					]
+				},
+				{
+					"type": "Node",
+					"name": "armchair 2",
+					"enabled": true,
+					"steady": false,
+					"children": [],
+					"components": [
+						{
+							"type": "Drawable",
+							"name": "armchair 2"
+						},
+						{
+							"type": "Transform",
+							"transformMatrix": [
+								1,
+								0,
+								0,
+								0,
+								0,
+								1,
+								0,
+								0,
+								0,
+								0,
+								1,
+								0,
+								0,
+								0,
+								0,
+								1
+							]
+						},
+						{
+							"type": "Selectable"
+						}
+					]
+				},
+				{
+					"type": "Node",
+					"name": "armchair 3",
+					"enabled": true,
+					"steady": false,
+					"children": [],
+					"components": [
+						{
+							"type": "Drawable",
+							"name": "armchair 3"
+						},
+						{
+							"type": "Transform",
+							"transformMatrix": [
+								1,
+								0,
+								0,
+								0,
+								0,
+								1,
+								0,
+								0,
+								0,
+								0,
+								1,
+								0,
+								-0.9444448947906494,
+								0,
+								0,
+								1
+							]
+						},
+						{
+							"type": "Selectable"
+						}
+					]
+				}
+			],
+			"components": [
+				{
+					"type": "Environment",
+					"equirectangularTexture": "interior_house.jpg",
+					"irradianceIntensity": 1,
+					"showSkybox": true,
+					"cubemapSize": 512,
+					"irradianceMapSize": 32,
+					"specularMapSize": 32,
+					"specularMapL2Size": 32
+				},
+				{
+					"type": "Selectable"
+				}
+			]
+		}
+	]
+}

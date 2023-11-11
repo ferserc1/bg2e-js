@@ -83,7 +83,7 @@ class MyAppController extends SceneAppController {
 
         // Load scene
         const loader = new Loader();
-        const root = await loader.loadNode("/test-scene/test-scene.vitscnj");
+        const root = await loader.loadNode("/furniture/furniture.vitscnj");
 
         const findVisitor = new FindNodeVisitor();
         findVisitor.name = "Ball";
@@ -114,9 +114,11 @@ class MyAppController extends SceneAppController {
         mainCamera.node.removeComponent(cameraController);
 
         const mainLight = LightComponent.GetMainDirectionalLight(root);
-        mainLight.light.projection = Mat4.MakeOrtho(-30,30,-30,30,0.1,500.0);
         mainLight.light.shadowStrength = 0.8;
+        mainLight.light.shadowBias = 0.000002;
+        //mainLight.light.intensity = 1;
 
+        window.mainLight = mainLight.light;
         
         window.root = root;
 

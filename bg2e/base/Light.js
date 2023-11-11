@@ -133,7 +133,7 @@ export default class Light {
             this._type = LightType.DIRECTIONAL;
         }
 
-        const defaultIntensity = () => this._type === LightType.DIRECTIONAL ? 10 : 200;
+        const defaultIntensity = () => this._type === LightType.DIRECTIONAL ? 1 : 20;
 
         this._position = sceneData.position || new Vec(0,0,0);
         this._direction = sceneData.direction || new Vec(0, 0, -1);

@@ -55,7 +55,6 @@ function getShaderProgramForLights(renderer, numLights) {
                     fragLightPositions[i] = (uLightTransforms[i] * vec4(uLightPositions[i], 1.0)).xyz;
                 }
 
-                //     fragPositionFromLightPov = uLightProjectionMatrix * uLightViewMatrix * vec4(fragPos, 1.0);
                 fragPositionFromLightPov = uLightPovMvp * vec4(fragPos, 1.0);
                 gl_Position = uProj * uView * uWorld * vec4(inPosition,1.0);
             }`)
@@ -117,10 +116,12 @@ function getShaderProgramForLights(renderer, numLights) {
                 vec3 B = normalize(fragBitangent);
                 mat3 TBN = mat3(T,B,N);
 
+                float gamma = 1.8;
                 vec4 albedoRGBA = texture2D(uAlbedoTexture, fragTexCoord * uAlbedoScale);
                 vec3 albedo = albedoRGBA.rgb * uAlbedo.rgb;
+                albedo = pow(albedo, vec3(gamma));
                 float alpha = albedoRGBA.a * uAlbedo.a;
-                vec3 normal = texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0;
+                vec3 normal = normalize(texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0);
                 float metallic = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uMetallicScale).r * uMetallic;
                 float roughness = max(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uRoughnessScale).g * uRoughness, 0.01);
                 vec3 fresnel = uFresnel.rgb;
@@ -132,32 +133,35 @@ function getShaderProgramForLights(renderer, numLights) {
                     N = normalize(TBN * normal);
                     vec3 V = normalize(uCameraPos - fragPos);
 
+                    vec3 shadowColor = getShadowColor(fragPositionFromLightPov, uShadowMap, uShadowBias, uShadowStrength);
+
                     vec3 Lo = vec3(0.0);
                     for (int i = 0; i < ${numLights}; ++i)
                     {
+                        float lightIntensity = uLightIntensities[i];
                         if (uLightTypes[i] == ${ LightType.POINT }) {
                             Lo += pbrPointLight(
-                                fragLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
+                                fragLightPositions[i], uLightColors[i] * lightIntensity, fragPos, N, V,
                                 albedo, roughness, metallic, fresnel);
                         }
                         else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
-                            vec3 shadowColor = getShadowColor(fragPositionFromLightPov, uShadowMap, uShadowBias, uShadowStrength);
-                            Lo += pbrDirectionalLight(
-                                -uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                                albedo, roughness, metallic, fresnel) * shadowColor;
+                            
+                            vec3 dirColor = pbrDirectionalLight(
+                                -uLightDirections[i], uLightColors[i] * lightIntensity, fragPos, N, V,
+                                albedo, roughness, metallic, fresnel, shadowColor);
+
+                            Lo += dirColor;// * shadowColor;
                         }
                     }
 
                     vec3 ambient = pbrAmbientLight(
-                        fragPos, N, V, albedo, metallic, roughness, uIrradianceMap, uSpecularMap, uEnvMap, uBRDFIntegrationMap, fresnel
+                        fragPos, N, V, albedo, metallic, roughness, uIrradianceMap, uSpecularMap, uEnvMap, uBRDFIntegrationMap, fresnel, shadowColor
                     ) * uAmbientIntensity;
 
                     float ao = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord2).a;
                     vec3 color = (ambient + Lo) * ao;
-                    
-                    color = color / (color + vec3(1.0));
-                    color = pow(color, vec3(1.0/2.2));
 
+                    color = pow(color, vec3(1.0 / gamma));
                     
                     gl_FragColor = vec4(color,alpha);
                 }
