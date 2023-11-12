@@ -78,6 +78,7 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform vec4 uAlbedo;
         uniform float uMetallic;
         uniform float uRoughness;
+        uniform float uLightEmission;
 
         uniform vec4 uFresnel;
 
@@ -85,6 +86,7 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform vec2 uNormalScale;
         uniform vec2 uMetallicScale;
         uniform vec2 uRoughnessScale;
+        uniform vec2 uLightEmissionScale;
 
         uniform float uAlphaTresshold;
         
@@ -124,6 +126,7 @@ function getShaderProgramForLights(renderer, numLights) {
                 vec3 normal = normalize(texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0);
                 float metallic = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uMetallicScale).r * uMetallic;
                 float roughness = max(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uRoughnessScale).g * uRoughness, 0.01);
+                float lightEmission = min(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uLightEmissionScale).b + uLightEmission, 1.0);
                 vec3 fresnel = uFresnel.rgb;
                 
                 if (alpha < uAlphaTresshold) {
@@ -150,7 +153,7 @@ function getShaderProgramForLights(renderer, numLights) {
                                 -uLightDirections[i], uLightColors[i] * lightIntensity, fragPos, N, V,
                                 albedo, roughness, metallic, fresnel, shadowColor);
 
-                            Lo += dirColor;// * shadowColor;
+                            Lo += clamp(dirColor + vec3(lightEmission), 0.0, 1.0);
                         }
                     }
 
@@ -298,12 +301,13 @@ export default class PBRLightIBLShader extends Shader {
         materialRenderer.bindColor(this._program, 'diffuse', 'uAlbedo');
         materialRenderer.bindValue(this._program, 'metallic', 'uMetallic');
         materialRenderer.bindValue(this._program, 'roughness', 'uRoughness');
-        
+        materialRenderer.bindValue(this._program, 'lightEmission', 'uLightEmission', 0);
         
         this._program.bindVector("uAlbedoScale", material.diffuseScale);
         this._program.bindVector("uNormalScale", material.normalScale);
         this._program.bindVector("uMetallicScale", material.metallicScale);
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
+        this._program.bindVector("uLightEmissionScale", material.lightEmissionScale);
         this._program.bindVector("uFresnel", material.fresnel);
 
         this._program.bindTexture("uIrradianceMap", this.renderer.factory.texture(this.irradianceMap), 3);

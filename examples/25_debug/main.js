@@ -86,11 +86,20 @@ class MyAppController extends SceneAppController {
         const root = await loader.loadNode("/furniture/furniture.vitscnj");
 
         const findVisitor = new FindNodeVisitor();
-        findVisitor.name = "Ball";
+        //findVisitor.name = "ciclo_02";
         findVisitor.hasComponents(["Drawable"]);
         root.accept(findVisitor);
         findVisitor.result.forEach(node => {
-            node.drawable?.makeSelectable(node.name === "Ball");
+            if (node.name === "ciclo_02") {
+                node.drawable?.items.forEach(({ material }) => {
+                    material.lightEmission = 0.5;
+                });
+            }
+            else if (node.name === "Floor") {
+                node.drawable?.items.forEach(({ material }) => {
+                    material.lightEmission = 0.1;
+                });
+            }
         });
 
 

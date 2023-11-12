@@ -1,10 +1,11 @@
 import Texture, { TextureChannel, TextureTargetName } from "../../base/Texture";
 import MaterialRenderer from "../MaterialRenderer";
-import { whiteTexture, createWhiteTexture } from "../../tools/TextureResourceDatabase";
+import { whiteTexture, createWhiteTexture, blackTexture, createBlackTexture } from "../../tools/TextureResourceDatabase";
 
 export default class WebGLMaterialRenderer extends MaterialRenderer {
     static async InitResources(renderer) {
         await createWhiteTexture(renderer);
+        await createBlackTexture(renderer);
     }
 
     constructor(renderer, material) {
@@ -15,23 +16,24 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
         material._renderer = this;
 
         this._whiteTexture = renderer.factory.texture(whiteTexture(renderer));
+        this._blackTexture = renderer.factory.texture(blackTexture(renderer));
         this._textureMerger = renderer.factory.textureMerger();
     }
 
     mergeTextures() {
         if (this.material.dirty) {
-            const getTexture = (att) => {
+            const getTexture = (att, fallbackTexture = this._whiteTexture) => {
                 if (this.material[att] instanceof Texture) {
                     return this.material[att];
                 }
                 else {
-                    return this._whiteTexture.texture;
+                    return fallbackTexture.texture;
                 }
             }
 
             this._textureMerger.setTexture(getTexture('metallic'), TextureChannel.R, TextureChannel.R + this.material.metallicChannel);
             this._textureMerger.setTexture(getTexture('roughness'), TextureChannel.G, TextureChannel.R + this.material.roughnessChannel);
-            this._textureMerger.setTexture(getTexture('height'), TextureChannel.B, TextureChannel.R + this.material.heighChannel);
+            this._textureMerger.setTexture(getTexture('lightEmission', this._blackTexture), TextureChannel.B, TextureChannel.R + this.material.lightEmissionChannel);
             this._textureMerger.setTexture(getTexture('ambientOcclussion'), TextureChannel.A, TextureChannel.R + this.material.ambientOcclussionChannel);
             this._textureMerger.update();
             this.material.dirty = false;

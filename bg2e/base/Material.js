@@ -475,7 +475,7 @@ export default class Material {
     
     get lightEmission() { return this._lightEmission; }
     set lightEmission(v) {
-        assertColorTexture(v, 'lightEmission'); 
+        assertValueTexture(v, 'lightEmission'); 
         if (this._lightEmission instanceof Texture) {
             this._lightEmission.decReferences();
         }

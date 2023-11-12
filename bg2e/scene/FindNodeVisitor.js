@@ -40,8 +40,11 @@ export default class FindNodeVisitor extends NodeVisitor {
         else if (this._name instanceof RegExp) {
             add = this._name.test(node.name);
         }
+        else {
+            add = true;
+        }
 
-        add = add || this._hasComponents.some(compId => node.component(compId));
+        add = add && this._hasComponents.some(compId => node.component(compId));
         if (add) {
             this._result.push(node);
         }
