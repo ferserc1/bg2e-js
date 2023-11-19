@@ -152,11 +152,6 @@ const g_loadedImages = {};
 let g_resource = null;
 const g_loadPromises = {};
 const loadImageFromFile = async fileUrl => {
-    if (/\?/.test(fileUrl)) {
-        console.log("Nos han jodío");
-    }
-    console.log("loadImageFromFile");
-
     if (!g_resource) {
         g_resource = new Resource();
     }
@@ -357,7 +352,7 @@ export default class Texture {
         this._dirty = true; 
     }
     get fileName() { return this._fileName; }
-    set fileName(v) { this._fileName = v; this._dirty = true; this._imageData = null; }
+    set fileName(v) { this._fileName = v; this._dirty = true; this._imageData = null; this._name = v; }
     get proceduralFunction() { return this._proceduralFunction; }
     set proceduralFunction(v) { this._proceduralFunction = v; this._dirty = true; }
     get proceduralParameters() { return this._proceduralParameters; }
@@ -447,13 +442,12 @@ export default class Texture {
                 delete g_loadedImages[this.fileName];
             }
 
-            if (g_loadedImages[this.fileName]) {
-                this._imageData = g_loadedImages[this.fileName];
+            let loadPromise = g_loadedImages[this.fileName];
+            if (!loadPromise) {
+                loadPromise = loadImageFromFile(this.fileName);
+                g_loadedImages[this.fileName] = loadPromise;
             }
-            else {
-                this._imageData = await loadImageFromFile(this.fileName);
-                g_loadedImages[this.fileName] = this._imageData;
-            }
+            this._imageData = await loadPromise;
 
             this._size = new Vec(this._imageData.width, this._imageData.height);
 

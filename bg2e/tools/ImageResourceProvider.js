@@ -42,7 +42,7 @@ const loadImage = (url,preventCache = false) => {
 
 export default class ImageResourceProvider extends ResourceProvider {
     async load(url) {
-        const img = await loadImage(url, true);
+        const img = await loadImage(url, false);
         return img;
     }
 
