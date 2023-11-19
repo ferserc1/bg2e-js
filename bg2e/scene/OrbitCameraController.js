@@ -294,7 +294,6 @@ export default class OrbitCameraController extends Component {
 
     }
 
-    // TODO; Update the following code to the v2.0 API
     mouseDown(evt) {
         if (!this.enabled) return;
         this._mouseButtonPressed = true;
@@ -352,47 +351,48 @@ export default class OrbitCameraController extends Component {
     touchStart(evt) {
         if (!this.enabled) return;
         this._lastTouch = evt.touches;
+        evt.stopPropagation();
     }
     
     touchMove(evt) {
-        // TODO: Update this code to v2.0 API
-        //if (this._lastTouch.length==evt.touches.length && this.transform && this.enabled) {
-        //    if (this._lastTouch.length==1) {
-        //        // Rotate
-        //        let last = this._lastTouch[0];
-        //        let t = evt.touches[0];
-        //        let delta = new bg.Vec((last.y - t.y)  * -1.0, last.x - t.x);
-        //        
-        //        this._rotation = Vec.Add(this._rotation, delta.scale(0.5));
-        //    }
-        //    else if (this._lastTouch.length==2) {
-        //        // Pan/zoom
-        //        let l0 = this._lastTouch[0];
-        //        let l1 = this._lastTouch[1];
-        //        let t0 = null;
-        //        let t1 = null;
-        //        evt.touches.forEach((touch) => {
-        //            if (touch.identifier==l0.identifier) {
-        //                t0 = touch;
-        //            }
-        //            else if (touch.identifier==l1.identifier) {
-        //                t1 = touch;
-        //            }
-        //        });
-        //        let dist0 = Math.round((new Vec(l0.x,l0.y)).sub(new bg.Vector3(l1.x,l1.y)).magnitude());
-        //        let dist1 = Math.round((new Vec(t0.x,t0.y)).sub(new bg.Vector3(t1.x,t1.y)).magnitude());
-        //        let delta = new bg.Vector2(l0.y - t0.y, l1.x - t1.x);
-        //        let up = this.transform.matrix.upVector;
-        //        let left = this.transform.matrix.leftVector;
-        //        
-        //        up.scale(delta.x * -0.001 * this._distance);
-        //        left.scale(delta.y * -0.001 * this._distance);
-        //        this._center.add(up).add(left);
-        //            
-        //        this._distance += (dist0 - dist1) * 0.005 * this._distance;
-        //    }
-        //}
-        //this._lastTouch = evt.touches;
+        if (this._lastTouch.length==evt.touches.length && this.transform && this.enabled) {
+            if (this._lastTouch.length==1) {
+                // Rotate
+                let last = this._lastTouch[0];
+                let t = evt.touches[0];
+                let delta = new Vec((last.y - t.y)  * -1.0, last.x - t.x);
+                
+                this._rotation = Vec.Add(this._rotation, delta.scale(0.5));
+            }
+            else if (this._lastTouch.length==2) {
+                // Pan/zoom
+                let l0 = this._lastTouch[0];
+                let l1 = this._lastTouch[1];
+                let t0 = null;
+                let t1 = null;
+                evt.touches.forEach((touch) => {
+                    if (touch.identifier==l0.identifier) {
+                        t0 = touch;
+                    }
+                    else if (touch.identifier==l1.identifier) {
+                        t1 = touch;
+                    }
+                });
+                const dist0 = Vec.Magnitude(Vec.Sub(new Vec(l0.x,l0.y), new Vec(l1.x,l1.y)));
+                const dist1 = Vec.Magnitude(Vec.Sub(new Vec(t0.x,t0.y), new Vec(t1.x,t1.y)));
+                const delta = new Vec(l0.y - t0.y, l1.x - t1.x);
+                const up = this.transform.matrix.upVector;
+                const left = this.transform.matrix.leftVector;
+                
+                up.scale(delta.x * -0.001 * this._distance);
+                left.scale(delta.y * -0.001 * this._distance);
+                this._center = Vec.Add(this._center, Vec.Add(up, left));
+                    
+                this._distance += (dist0 - dist1) * 0.005 * this._distance;
+            }
+            evt.stopPropagation();
+        }
+        this._lastTouch = evt.touches;
     }
 
     keyDown(evt) {

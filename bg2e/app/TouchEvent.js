@@ -2,7 +2,7 @@ import { getEventTouches } from "./Canvas";
 import EventBase from "./EventBase";
 
 export const createTouchEvent = (evt,mainLoop) => {
-    const touches = getEventTouches(evt,mainLoop);
+    const touches = getEventTouches(evt,mainLoop.canvas);
     return new TouchEvent(touches, evt);
 }
 
