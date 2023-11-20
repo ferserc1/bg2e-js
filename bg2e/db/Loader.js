@@ -6,6 +6,7 @@ import {
     registerPluginInDatabase, 
     getPluginFromDatabase 
 } from './DBPluginApi';
+import Canvas from '../app/Canvas';
 
 const g_loadPluginDatabase = createPluginDatabase(PluginOperationType.Read);
 
@@ -29,9 +30,14 @@ const getClearedCache = () => {
 }
 
 export default class Loader {
-    constructor() {
+    constructor(canvas) {
+        this._canvas = canvas || Canvas.FirstCanvas();
         this._cache = getClearedCache();
         this._currentPath = "";
+    }
+
+    get canvas() {
+        return this._canvas;
     }
 
     get currentPath() {

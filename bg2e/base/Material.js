@@ -2,6 +2,9 @@
 import Vec from '../math/Vec';
 import Color from './Color';
 import Texture, { TextureDataType, TextureFilter, TextureWrap } from './Texture';
+import Canvas from '../app/Canvas';
+import TextureCache from '../tools/TextureCache';
+
 
 export const MaterialType = Object.freeze({
     PBR: "pbr"
@@ -153,20 +156,30 @@ export const serializeColorTexture = (obj) => {
 }
 
 
-export const deserializeColorTexture = (obj,relativePath = "") => {
+export const deserializeColorTexture = (obj,relativePath = "", canvas = null) => {
     if (obj === null || obj === undefined) {
         return null;
     }
     else if (typeof(obj) === "string") {
         // bg2e v1 texture compatibility
-        const tex = new Texture();
-        tex.fileName = relativePath + obj;
-        tex.dataType = TextureDataType.IMAGE;
-        tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-        tex.magFilter = TextureFilter.LINEAR;
-        tex.wrapModeX = TextureWrap.REPEAT;
-        tex.wrapModeY = TextureWrap.REPEAT;
-        return tex;
+        const texturePath = relativePath + obj;
+        const textureCache = TextureCache.Get(canvas);
+        if (textureCache.findTexture(texturePath)) {
+            console.debug(`Texture '${ texturePath }' already loaded. Reusing texture.`);
+            return textureCache.getTexture(texturePath);
+        }
+        else {
+            console.log(`Texture not found in cache. Loading texture '${ texturePath }'`);
+            const tex = new Texture(canvas);
+            tex.fileName = relativePath + obj;
+            tex.dataType = TextureDataType.IMAGE;
+            tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+            tex.magFilter = TextureFilter.LINEAR;
+            tex.wrapModeX = TextureWrap.REPEAT;
+            tex.wrapModeY = TextureWrap.REPEAT;
+            textureCache.registerTexture(tex);
+            return tex;
+        }
     }
     else if (Array.isArray(obj) && (obj.length === 3 || obj.length === 4)) {
         // bg2e v1 color compatibility
@@ -181,7 +194,7 @@ export const deserializeColorTexture = (obj,relativePath = "") => {
         return new Color(obj.data);
     }
     else if (obj.type === "Texture") {
-        const tex = new Texture();
+        const tex = new Texture(canvas);
         tex.deserialize(obj.data);
         return tex;
     }
@@ -221,19 +234,29 @@ export const serializeValueTexture = (obj) => {
     return result;
 }
 
-export const deserializeValueTexture = (obj,relativePath) => {
+export const deserializeValueTexture = (obj,relativePath, canvas = null) => {
     if (obj === null || obj === undefined) {
         return null;
     }
     else if (typeof(obj) === "string") {
-        const tex = new Texture();
-        tex.fileName = relativePath + obj;
-        tex.dataType = TextureDataType.IMAGE;
-        tex.wrapModeX = TextureWrap.REPEAT;
-        tex.wrapModeY = TextureWrap.REPEAT;
-        tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-        tex.magFilter = TextureFilter.LINEAR;
-        return tex;
+        const texturePath = relativePath + obj;
+        const textureCache = TextureCache.Get(canvas);
+        if (textureCache.findTexture(texturePath)) {
+            console.debug(`Texture '${ texturePath }' already loaded. Reusing texture.`);
+            return textureCache.getTexture(texturePath);
+        }
+        else {
+            console.log(`Texture not found in cache. Loading texture '${ texturePath }'`);
+            const tex = new Texture(canvas);
+            tex.fileName = relativePath + obj;
+            tex.dataType = TextureDataType.IMAGE;
+            tex.wrapModeX = TextureWrap.REPEAT;
+            tex.wrapModeY = TextureWrap.REPEAT;
+            tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+            tex.magFilter = TextureFilter.LINEAR;
+            textureCache.registerTexture(tex);
+            return tex;
+        }
     }
     else if (typeof(obj) === "number") {
         return obj;
@@ -243,7 +266,7 @@ export const deserializeValueTexture = (obj,relativePath) => {
         return obj.reduce((a,b) => a + b) / obj.length;
     }
     else if (obj.type === "Texture") {
-        const tex = new Texture();
+        const tex = new Texture(canvas);
         tex.deserialize(obj.data);
         return tex;
     }
@@ -273,12 +296,12 @@ export const serializeAttribute = (att,mat) => {
     }
 }
 
-export const deserializeAttribute = (att,obj, relativePath) => {
+export const deserializeAttribute = (att,obj,relativePath,canvas = null) => {
     if (ColorTextureAttributes.indexOf(att) !== -1) {
-        return deserializeColorTexture(obj[att],relativePath);
+        return deserializeColorTexture(obj[att],relativePath,canvas);
     }
     else if (ValueTextureAttributes.indexOf(att) !== -1) {
-        return deserializeValueTexture(obj[att],relativePath);
+        return deserializeValueTexture(obj[att],relativePath,canvas);
     }
     else if (VectorAttribures.indexOf(att) !== -1) {
         return deserializeVector(obj[att]);
@@ -295,13 +318,14 @@ export const deserializeAttribute = (att,obj, relativePath) => {
 }
 
 export default class Material {
-    static async Deserialize(sceneData,relativePath = "") {
-        const result = new Material();
-        await result.deserialize(sceneData,relativePath);
+    static async Deserialize(sceneData,relativePath = "",canvas = null) {
+        const result = new Material(canvas);
+        await result.deserialize(sceneData,relativePath,canvas);
         return result;
     }
 
-    constructor() {
+    constructor(canvas = null) {
+        this._canvas = canvas || Canvas.FirstCanvas();
         this._type = MaterialType.PBR;
         this._renderer = null;
 
@@ -338,6 +362,10 @@ export default class Material {
         this._unlit = false;
 
         this._dirty = true;
+    }
+
+    get canvas() {
+        return this._canvas;
     }
 
     get renderer() {
@@ -557,10 +585,10 @@ export default class Material {
             if (sceneData[att] !== undefined) {
                 let value = null;
                 if (att === "type") {
-                    value = deserializeAttribute("class", sceneData, relativePath);
+                    value = deserializeAttribute("class", sceneData, relativePath, this.canvas);
                 }
                 else {
-                    value = deserializeAttribute(att, sceneData, relativePath);
+                    value = deserializeAttribute(att, sceneData, relativePath, this.canvas);
                     if (value instanceof Texture) {
                         P.push(value.loadImageData());
                     }

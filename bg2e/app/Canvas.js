@@ -1,3 +1,4 @@
+import { generateUUID } from "../tools/crypto";
 
 export const getMouseEventOffset = (evt,canvas) => {
     const offset = canvas.domElement.getBoundingClientRect();
@@ -23,12 +24,26 @@ export const getEventTouches = (evt,canvas) => {
     return touches;
 }
 
+let g_firstCanvas = null;
+
 export default class Canvas {
+    static FirstCanvas() {
+        return g_firstCanvas;
+    }
+
     constructor(domElement,renderer) {
         this._renderer = renderer;
         this._domElement = domElement;
+        this._domElement._bg2e_id = generateUUID();
+
+        g_firstCanvas = g_firstCanvas || this;
+
         // Initialized in mainLoop constructor
         this._mainLoop = null;
+    }
+
+    get id() {
+        return this._domElement._bg2e_id;
     }
 
     async init() {

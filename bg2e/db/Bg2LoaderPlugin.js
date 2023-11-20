@@ -46,7 +46,7 @@ const createDrawable = async (jsonData,filePath,loader) => {
     const relativePath = removeFileName(filePath);
     const drawable = new Drawable(name);
     for (const item of createPolyList(jsonData)) {
-        const mat = new Material();
+        const mat = new Material(loader.canvas);
         await mat.deserialize(item.materialData, relativePath);
         drawable.addPolyList(item.plist, mat);
     }
@@ -60,7 +60,7 @@ const createDrawable = async (jsonData,filePath,loader) => {
 
 const createNode = async (jsonData,filePath,loader) => {
     const name = removeExtension(getFileName(filePath));
-    const drawable = await createDrawable(jsonData,filePath);
+    const drawable = await createDrawable(jsonData,filePath,loader);
     const node = new Node(name);
     node.addChild(drawable);
     for (const compData of jsonData.components) {

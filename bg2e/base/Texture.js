@@ -3,6 +3,7 @@ import Vec from '../math/Vec';
 import Resource from '../tools/Resource';
 import { generateImageHash } from '../tools/image';
 import Color from './Color';
+import Canvas from '../app/Canvas';
 
 export const TextureDataType = Object.freeze({
     NONE: 0,
@@ -230,7 +231,9 @@ const loadBase64Image = async base64Img => {
 }
 
 export default class Texture {
-    constructor() {
+    constructor(canvas = null) {
+        this._canvas = canvas || Canvas.FirstCanvas();
+
         // This flag allows to the renderer to know if the texture object
         // has been updated. In this case, the renderer texture must to
         // be regenerated.
@@ -260,6 +263,10 @@ export default class Texture {
         this._name = "";
     }
 
+    get canvas() {
+        return this._canvas;
+    }
+
     get references() {
         return this._references;
     }
@@ -273,7 +280,7 @@ export default class Texture {
     }
 
     clone() {
-        const copy = new Texture();
+        const copy = new Texture(this.canvas);
         copy.assign(this);
         return copy;
     }
@@ -446,6 +453,9 @@ export default class Texture {
             if (!loadPromise) {
                 loadPromise = loadImageFromFile(this.fileName);
                 g_loadedImages[this.fileName] = loadPromise;
+            }
+            else {
+                console.debug(`Texture: loadImageData(): image already loaded or is loading: ${this.fileName}`)
             }
             this._imageData = await loadPromise;
 

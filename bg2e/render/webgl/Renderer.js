@@ -59,6 +59,7 @@ export default class WebGLRenderer extends Renderer {
         this._canvas = canvas;
 
         this._gl = canvas.domElement.getContext("webgl", { preserveDrawingBuffer: true });
+        this._gl._bg2e_object = this;
         const requestDebug = new URLSearchParams(location.search).get("debug") == "true";
         this._debugMode = requestDebug;
         if (window.WebGLDebugUtils && requestDebug) {
