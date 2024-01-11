@@ -6,7 +6,7 @@ import MouseEvent, {
     rightMouseButton
 } from '../app/MouseEvent';
 import { SpecialKey } from '../app/KeyboardEvent';
-import { degreesToRadians, lerp } from '../math/functions';
+import { degreesToRadians, lerp, clamp } from '../math/functions';
 import Vec from '../math/Vec';
 import { OrthographicProjectionStrategy } from './Camera';
 import Mat4 from '../math/Mat4';
@@ -62,7 +62,16 @@ export default class SmoothOrbitCameraController extends OrbitCameraController {
             this._pitch0 = lerp(this._pitch0, this._rotation.x, delta * this._smoothFactor);
             this._yaw0 = lerp(this._yaw0, this._rotation.y, delta * this._smoothFactor);
 
-            
+            // Clamp values
+            this._distance = clamp(this._distance, this.minDistance, this.maxDistance);
+            this._distance0 = clamp(this._distance0, this.minDistance, this.maxDistance);
+            this._pitch0 = clamp(this._pitch0, this.minPitch, this.maxPitch);
+            this._rotation.x = clamp(this._rotation.x, this.minPitch, this.maxPitch);
+            const minDisp = new Vec(this.minX, this.minY, this.minZ);
+            const maxDisp = new Vec(this.maxX, this.maxY, this.maxZ);
+            this._center0 = Vec.Clamp(this._center0, minDisp, maxDisp);
+            this._center = Vec.Clamp(this._center, minDisp, maxDisp);
+
             this.transform.matrix.identity();
             if (orthoStrategy) {
                 orthoStrategy.viewWidth = this._viewWidth;

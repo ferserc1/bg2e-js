@@ -1,6 +1,6 @@
 
 import { NumericArray } from "./constants";
-import { isZero, equals, lerp } from "./functions";
+import { isZero, equals, lerp, clamp } from "./functions";
 
 const checkEqualLength = (v1,v2) => {
     if (v1.length!=v2.length) throw new Error(`Invalid vector length in operation`);
@@ -682,6 +682,31 @@ export default class Vec extends NumericArray {
                 lerp(u[1], v[1], d),
                 lerp(u[2], v[2], d),
                 lerp(u[3], v[3], d)
+            );
+        default:
+            throw new Error(`Invalid vector size: ${ u.length }`);
+        }
+    }
+
+    static Clamp(v, min, max) {
+        switch (v.length) {
+        case 2:
+            return new Vec(
+                clamp(v[0], min[0], max[0]),
+                clamp(v[1], min[1], max[1])
+            );
+        case 3:
+            return new Vec(
+                clamp(v[0], min[0], max[0]),
+                clamp(v[1], min[1], max[1]),
+                clamp(v[2], min[2], max[2])
+            );
+        case 4:
+            return new Vec(
+                clamp(v[0], min[0], max[0]),
+                clamp(v[1], min[1], max[1]),
+                clamp(v[2], min[2], max[2]),
+                clamp(v[3], min[3], max[3])
             );
         default:
             throw new Error(`Invalid vector size: ${ u.length }`);

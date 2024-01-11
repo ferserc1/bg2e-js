@@ -98,3 +98,7 @@ export const lerp = (from, to, t) => {
 export const square = (n) => {
     return Math.fround(n * n);
 }
+
+export const clamp = (value, min, max) => {
+    return Math.fround(Math.max(min, Math.min(value, max)));
+}
