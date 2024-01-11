@@ -105,7 +105,7 @@ export default class ShaderProgram {
 
         gl.validateProgram(this._program);
         if (!gl.getProgramParameter(this._program, gl.VALIDATE_STATUS)) {
-            throw new Error(`Error validating program:\n${gl.getProgramInfoLog(program)}`);
+            throw new Error(`Error validating program:\n${gl.getProgramInfoLog(this._program)}`);
         }
     }
 

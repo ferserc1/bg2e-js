@@ -33,3 +33,4 @@ build_example 21_scene_app_controller
 build_example 22_scene_load_1
 build_example 23_selection
 build_example 24_canvas_texture
+build_example 25_debug

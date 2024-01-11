@@ -31,3 +31,6 @@ clean_example 19_render_queue
 clean_example 20_scene_renderer
 clean_example 21_scene_app_controller
 clean_example 22_scene_load_1
+clean_example 23_selection
+clean_example 24_canvas_texture
+clean_example 25_debug
