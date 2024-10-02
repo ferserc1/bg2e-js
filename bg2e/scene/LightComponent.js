@@ -15,12 +15,20 @@ export default class LightComponent extends Component {
         return sceneRoot.__lights;
     }
 
+    static GetFirstShadowCastingLight(sceneRoot) {
+        if (sceneRoot.sceneChanged || !sceneRoot.__mainDirectionalLight) {
+            sceneRoot.__mainDirectionalLight = LightComponent.GetLights(sceneRoot)
+                .find(l => l.light.type === LightType.DIRECTIONAL || l.light.type === LightType.SPOT);
+        }
+        return sceneRoot.__mainDirectionalLight;
+    }
+
     static GetMainDirectionalLight(sceneRoot) {
         if (sceneRoot.sceneChanged || !sceneRoot.__mainDirectionalLight) {
             sceneRoot.__mainDirectionalLight = LightComponent.GetLights(sceneRoot)
                 .find(l => l.light.type === LightType.DIRECTIONAL);
         }
-        return sceneRoot.__mainDirectionalLight;
+        return sceneRoot.__mainDirectionalLight || LightComponent.GetFirstShadowCastingLight(sceneRoot);
     }
 
     constructor(light = null) {

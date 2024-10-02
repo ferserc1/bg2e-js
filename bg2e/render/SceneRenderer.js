@@ -228,7 +228,9 @@ export default class SceneRenderer {
             const lightProjection = Mat4.MakeOrtho(-focus,focus,-focus,focus,0.1,500.0);
             mainLight.light.projection = lightProjection;
         }
-        this._shadowRenderer.update(camera, mainLight, this._renderQueue);
+        if (mainLight) {
+            this._shadowRenderer.update(camera, mainLight, this._renderQueue);
+        }
         
         if (clearBuffers) {
             this.renderer.frameBuffer.clear();

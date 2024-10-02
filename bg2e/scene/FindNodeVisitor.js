@@ -44,7 +44,10 @@ export default class FindNodeVisitor extends NodeVisitor {
             add = true;
         }
 
-        add = add && this._hasComponents.some(compId => node.component(compId));
+        add = add && (
+            this._hasComponents.some(compId => node.component(compId)) ||
+            this._hasComponents.length == 0
+        );
         if (add) {
             this._result.push(node);
         }

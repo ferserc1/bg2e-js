@@ -120,7 +120,7 @@ export default class Component {
 
     // The following functions can be implemented in component classes to complete the 
     // life cycle functions
-    // await init() {}
+    // async init() {}
     // willUpdate(delta) {}
     // update(delta,modelMatrix) {}
     // draw(renderQueue,modelMatrix) {}

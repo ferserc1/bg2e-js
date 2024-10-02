@@ -140,6 +140,14 @@ export default class Renderer {
         throw new Error("Calling base implementation of Renderer.shadowRendererFactory()");
     }
 
+    get clearColor() {
+        throw new Error("Calling base implementation of Renderer.clearColor getter.");
+    }
+
+    set clearColor(c) {
+        throw new Error("Calling base implementation of Renderer.clearColor setter.");
+    }
+
     get factory() {
         const renderer = this;
         return {

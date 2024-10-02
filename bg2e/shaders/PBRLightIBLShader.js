@@ -153,7 +153,7 @@ function getShaderProgramForLights(renderer, numLights) {
                                 -uLightDirections[i], uLightColors[i] * lightIntensity, fragPos, N, V,
                                 albedo, roughness, metallic, fresnel, shadowColor);
 
-                            Lo += clamp(dirColor + vec3(lightEmission), 0.0, 1.0);
+                            Lo += clamp(dirColor + vec3(lightEmission) * albedo, 0.0, 1.0);
                         }
                     }
 

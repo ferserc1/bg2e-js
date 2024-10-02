@@ -173,6 +173,14 @@ export default class WebGLRenderer extends Renderer {
     shadowRendererFactory() {
         return new ShadowRenderer(this);
     }
+
+    get clearColor() {
+        return this.state.clearColor;
+    }
+
+    set clearColor(c) {
+        this.state.clearColor = c;
+    }
     
     presentTexture(texture, { clearBuffers = true, shader = null, viewport = null } = {}) {
         if (clearBuffers) {
