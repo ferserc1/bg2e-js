@@ -107,6 +107,10 @@ function getShaderProgramForLights(renderer, numLights) {
         varying vec4 fragPositionFromLightPov;
         uniform float uShadowStrength;
 
+        uniform int uAOMap;
+        uniform int uMetallicMap;
+        uniform int uRoughnessMap;
+        uniform int uLightemissionMap;
         `,
         [
             new ShaderFunction('void','main','',`{
@@ -124,9 +128,22 @@ function getShaderProgramForLights(renderer, numLights) {
                 albedo = pow(albedo, vec3(gamma));
                 float alpha = albedoRGBA.a * uAlbedo.a;
                 vec3 normal = normalize(texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0);
-                float metallic = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uMetallicScale).r * uMetallic;
-                float roughness = max(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uRoughnessScale).g * uRoughness, 0.01);
-                float lightEmission = min(texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord * uLightEmissionScale).b + uLightEmission, 1.0);
+
+                vec2 metallicUV = fragTexCoord;
+                vec2 roughnessUV = fragTexCoord;
+                vec2 lightEmissionUV = fragTexCoord;
+                if (uMetallicMap == 1) {
+                    metallicUV = fragTexCoord2;
+                }
+                if (uRoughnessMap == 1) {
+                    roughnessUV = fragTexCoord2;
+                }
+                if (uLightemissionMap == 1) {
+                    lightEmissionUV = fragTexCoord2;
+                }
+                float metallic = texture2D(uMetallicRoughnessHeightAOTexture, metallicUV * uMetallicScale).r * uMetallic;
+                float roughness = max(texture2D(uMetallicRoughnessHeightAOTexture, roughnessUV * uRoughnessScale).g * uRoughness, 0.01);
+                float lightEmission = min(texture2D(uMetallicRoughnessHeightAOTexture, lightEmissionUV * uLightEmissionScale).b + uLightEmission, 1.0);
                 vec3 fresnel = uFresnel.rgb;
                 
                 if (alpha < uAlphaTresshold) {
@@ -161,7 +178,11 @@ function getShaderProgramForLights(renderer, numLights) {
                         fragPos, N, V, albedo, metallic, roughness, uIrradianceMap, uSpecularMap, uEnvMap, uBRDFIntegrationMap, fresnel, shadowColor
                     ) * uAmbientIntensity;
 
-                    float ao = texture2D(uMetallicRoughnessHeightAOTexture, fragTexCoord2).a;
+                    vec2 aoUV = fragTexCoord;
+                    if (uAOMap == 1) {
+                        aoUV = fragTexCoord2;
+                    }
+                    float ao = texture2D(uMetallicRoughnessHeightAOTexture, aoUV).a;
                     vec3 color = (ambient + Lo) * ao;
 
                     color = pow(color, vec3(1.0 / gamma));
@@ -302,6 +323,12 @@ export default class PBRLightIBLShader extends Shader {
         materialRenderer.bindValue(this._program, 'metallic', 'uMetallic');
         materialRenderer.bindValue(this._program, 'roughness', 'uRoughness');
         materialRenderer.bindValue(this._program, 'lightEmission', 'uLightEmission', 0);
+
+        materialRenderer.bindValue(this._program, 'ambientOcclussionChannel', 'uAOMap', 0);
+        
+        materialRenderer.bindValue(this._program, 'metallicUV', 'uMetallicMap', 0);
+        materialRenderer.bindValue(this._program, 'roughnessUV', 'uRoughnessMap', 0);
+        materialRenderer.bindValue(this._program, 'lightEmissionUV', 'uLightemissionMap', 0);
         
         this._program.bindVector("uAlbedoScale", material.diffuseScale);
         this._program.bindVector("uNormalScale", material.normalScale);
