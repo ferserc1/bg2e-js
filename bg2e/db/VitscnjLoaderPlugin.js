@@ -15,7 +15,9 @@ const deserializeNode = async (nodeData, loader) => {
     for (const componentData of nodeData.components) {
         try {
             const component = await deserializeComponent(componentData, loader);
-            node.addComponent(component);
+            if (component) {
+                node.addComponent(component);
+            }
         }
         catch (err) {
             console.warn(`Deserialization of node with name "${node.name}": ${err.message}`);

@@ -20,12 +20,17 @@ export const createComponent = (typeId) => {
         }
     }
     else {
-        throw new Error(`Could not instantiate component: No component found with type id='${typeId}'`)
+        console.debug(`Ignoring component with type id='${typeId}'. If this is not expected, check if the component is registered in the component factory.`);
+        return null;
     }
 }
 
 export const deserializeComponent = async (sceneData,loader) => {
     const componentInstance = createComponent(sceneData.type);
+    if (!componentInstance) {
+        return null;
+    }
+    
     await componentInstance.deserialize(sceneData,loader);
     return componentInstance;
 }
