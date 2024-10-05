@@ -30,11 +30,22 @@ const deserializeNode = async (nodeData, loader) => {
     return node;
 }
 
+export const DrawableFormat = {
+    LEGACY: 'vwglb',
+    BG2: 'bg2'
+};
+
+let g_prefDrawableFormat = DrawableFormat.BG2;
 export default class VitscnjLoaderPlugin extends LoaderPlugin {
-    constructor({ bg2ioPath = null }) {
+    static PreferredDrawableFormat() {
+        return g_prefDrawableFormat;
+    }
+
+    constructor({ bg2ioPath = null, preferedDrawableFormat = DrawableFormat.BG2 }) {
         super();
 
         this._bg2ioPath = bg2ioPath;
+        g_prefDrawableFormat = preferedDrawableFormat;
     }
 
     get supportedExtensions() { return ["vitscnj"]; }

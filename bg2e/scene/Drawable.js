@@ -3,6 +3,7 @@ import Component from "./Component";
 import Mat4 from "../math/Mat4";
 import PolyList from "../base/PolyList";
 import Material from "../base/Material";
+import VitscnjLoaderPlugin, { DrawableFormat } from "../db/VitscnjLoaderPlugin";
 
 export default class Drawable extends Component {
     constructor(name) {
@@ -91,7 +92,11 @@ export default class Drawable extends Component {
             }
         }
 
-        const drw = await tryload(sceneData.name + '.bg2') || await tryload(sceneData.name + '.vwglb');
+        const drwFormat = VitscnjLoaderPlugin.PreferredDrawableFormat();
+        const drw = drwFormat === DrawableFormat.BG2
+            ? (await tryload(sceneData.name + '.bg2') || await tryload(sceneData.name + '.vwglb'))
+            :   (await tryload(sceneData.name + '.vwglb') || await tryload(sceneData.name + '.bg2'));
+
         if (!drw) {
             throw new Error(`Drawable.deserialize(): could not load drawable with name ${sceneData.name}`);
         }

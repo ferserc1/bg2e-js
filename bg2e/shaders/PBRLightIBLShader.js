@@ -323,13 +323,12 @@ export default class PBRLightIBLShader extends Shader {
         materialRenderer.bindValue(this._program, 'metallic', 'uMetallic');
         materialRenderer.bindValue(this._program, 'roughness', 'uRoughness');
         materialRenderer.bindValue(this._program, 'lightEmission', 'uLightEmission', 0);
-
-        materialRenderer.bindValue(this._program, 'ambientOcclussionChannel', 'uAOMap', 0);
-        
-        materialRenderer.bindValue(this._program, 'metallicUV', 'uMetallicMap', 0);
-        materialRenderer.bindValue(this._program, 'roughnessUV', 'uRoughnessMap', 0);
-        materialRenderer.bindValue(this._program, 'lightEmissionUV', 'uLightemissionMap', 0);
-        
+    
+        this._program.uniform1i('uAOMap', material.ambientOcclussionMap);
+        this._program.uniform1i('uMetallicMap', material.metallicChannel);
+        this._program.uniform1i('uRoughnessMap', material.roughnessChannel);
+        this._program.uniform1i('uLightemissionMap', material.lightEmissionChannel);
+    
         this._program.bindVector("uAlbedoScale", material.diffuseScale);
         this._program.bindVector("uNormalScale", material.normalScale);
         this._program.bindVector("uMetallicScale", material.metallicScale);
