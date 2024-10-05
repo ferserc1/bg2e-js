@@ -4,6 +4,7 @@ import Component from "./Component";
 import MatrixStrategy from "../math/MatrixStrategy";
 import { radiansToDegrees } from "../math/functions";
 import NodeVisitor from "./NodeVisitor";
+import Node from "./Node";
 
 export class ProjectionStrategy extends MatrixStrategy {
     static Factory(jsonData) {
@@ -198,7 +199,10 @@ export class OrthographicProjectionStrategy extends ProjectionStrategy {
 class SetMainCameraVisitor extends NodeVisitor {
     constructor(mainCamera) {
         super();
-        if (!mainCamera instanceof Camera) {
+        if (!mainCamera) {
+            throw Error("Set main camera: invalid parameter. The camera paremeter is null.")
+        }
+        if (!(mainCamera instanceof Camera)) {
             throw Error("Set main camera: invalid parameter. The object is not an instance of Camera class.")
         }
         this._mainCamera = mainCamera;
@@ -253,7 +257,8 @@ class GetMainCameraVisitor extends NodeVisitor {
 
 export default class Camera extends Component {
     static SetMain(sceneRoot,camera) {
-        if (!sceneRoot instanceof Node || sceneRoot.parent !== null) {
+        const isNode = sceneRoot instanceof Node;
+        if (!isNode || sceneRoot.parent !== null) {
             throw Error("Camera.setMain(): invalid parameter. Object is not a scene root");
         }
         const visitor = new SetMainCameraVisitor(camera);

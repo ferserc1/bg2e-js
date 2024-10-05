@@ -160,7 +160,8 @@ function initEvents(mainLoop) {
 }
 
 function onResize(mainLoop) {
-    mainLoop.appController.reshape(mainLoop.canvas.width, mainLoop.canvas.height);
+    const dpi = window.devicePixelRatio;
+    mainLoop.appController.reshape(mainLoop.canvas.width * dpi, mainLoop.canvas.height * dpi);
 }
 
 async function onUpdate(mainLoop, elapsed) {
@@ -171,8 +172,10 @@ async function onUpdate(mainLoop, elapsed) {
         else {
             mainLoop._redisplayFrames--;
         }
-        await mainLoop.appController.frame(elapsed);
-        mainLoop.appController.display();
+        if (mainLoop._redisplayFrames > 0) {
+            await mainLoop.appController.frame(elapsed);
+            mainLoop.appController.display();
+        }
     }
 }
 

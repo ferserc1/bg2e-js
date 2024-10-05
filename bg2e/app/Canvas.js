@@ -64,8 +64,8 @@ export default class Canvas {
 
     updateViewportSize() {
         const sizeInPx = { w: this.domElement.clientWidth, h: this.domElement.clientHeight };
-        this.domElement.width = sizeInPx.w;
-        this.domElement.height = sizeInPx.h;
+        this.domElement.width = sizeInPx.w * window.devicePixelRatio;
+        this.domElement.height = sizeInPx.h * window.devicePixelRatio;
     }
 
     screenshot(format, width, height) {
