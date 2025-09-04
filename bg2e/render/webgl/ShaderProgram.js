@@ -102,11 +102,6 @@ export default class ShaderProgram {
         if (!gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
             throw new Error(`Error linking program: \n${gl.getProgramInfoLog(this._program)}`);
         }
-
-        gl.validateProgram(this._program);
-        if (!gl.getProgramParameter(this._program, gl.VALIDATE_STATUS)) {
-            throw new Error(`Error validating program:\n${gl.getProgramInfoLog(this._program)}`);
-        }
     }
 
     useProgram() {
@@ -344,5 +339,12 @@ export default class ShaderProgram {
             break;
         }
         this.uniform1i(uniformName, textureUnit);
+    }
+
+    validate() {
+        gl.validateProgram(this._program);
+        if (!gl.getProgramParameter(this._program, gl.VALIDATE_STATUS)) {
+            throw new Error(`Error validating program:\n${gl.getProgramInfoLog(this._program)}`);
+        }
     }
 }
