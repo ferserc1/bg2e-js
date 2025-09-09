@@ -125,10 +125,11 @@ export const pbrAmbientLight = new ShaderFunction('vec3', 'pbrAmbientLight', 've
     vec3 R = reflect(-V, N);
     vec3 prefilteredColor = getPrefilteredColor(roughness, R, irradianceMap, specularMap, envMap);
     float NdotV = min(max(dot(N,V), 0.0),  0.95);
-    vec2 envBRDF = texture2D(brdfMap, vec2(NdotV,roughness)).xy;
+    vec2 brdfUV = vec2(NdotV, clamp(roughness, 0.01, 0.94));
+    vec2 envBRDF = texture2D(brdfMap, brdfUV).xy;
     vec3 indirectSpecular = prefilteredColor * (kS * envBRDF.x + envBRDF.y);
 
-    return kD * diffuse + indirectSpecular * max(shadowColor, vec3(0.5, 0.5, 0.5));
+    return kD * diffuse + indirectSpecular;
 }`, [fresnelSchlickRoughness, getPrefilteredColor]);
 
 export const applyConvolution = new ShaderFunction('vec4', 'applyConvolution', 'sampler2D texture, vec2 texCoord, vec2 texSize, float[9] convMatrix, float radius',
@@ -183,5 +184,16 @@ export const getShadowColor = new ShaderFunction('vec3', 'getShadowColor', 'vec4
         }
     }
     return vec3(1.0);
+}
+`, []);
+
+export const lineal2SRGB = new ShaderFunction('vec4', 'lineal2SRGB', 'vec4 color, float gamma', `{
+    color.rgb = color.rgb / (color.rgb + vec3(1.0));
+    return pow(color, vec4(1.0 / gamma));
+}
+`, []);
+
+export const SRGB2Lineal = new ShaderFunction('vec4', 'SRGB2Lineal', 'vec4 color, float gamma', `{
+    return pow(color, vec4(gamma));
 }
 `, []);

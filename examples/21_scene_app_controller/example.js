@@ -39,12 +39,12 @@ class MyAppController extends SceneAppController {
             return sphereNode;
         }
 
-        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [1, 0.3, 0.1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation(  10.0, 10.0, -10.0) }));
-        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.3, 1, 0.1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation( -10.0, 10.0, -10.0) }));
-        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.1, 0.3, 1], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation( -10.0,-10.0, -10.0) }));
-        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.1, 1, 0.3], intensity:300, lightType: LightType.POINT, transform: Mat4.MakeTranslation(  10.0,-10.0, -10.0) }));
+        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [1, 0.3, 0.1], intensity:250, lightType: LightType.POINT, transform: Mat4.MakeTranslation(  10.0, 10.0, -10.0) }));
+        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.3, 1, 0.1], intensity:250, lightType: LightType.POINT, transform: Mat4.MakeTranslation( -10.0, 10.0, -10.0) }));
+        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.1, 0.3, 1], intensity:250, lightType: LightType.POINT, transform: Mat4.MakeTranslation( -10.0,-10.0, -10.0) }));
+        root.addChild(addLight({ position: [ 0, 0, 0 ], color: [0.1, 1, 0.3], intensity:250, lightType: LightType.POINT, transform: Mat4.MakeTranslation(  10.0,-10.0, -10.0) }));
 
-        const directionalLight = addLight({ lightType: LightType.DIRECTIONAL, intensity: 12, transform: Mat4.MakeRotation(0.7853, -1, 0, 0) });
+        const directionalLight = addLight({ lightType: LightType.DIRECTIONAL, intensity: 5, transform: Mat4.MakeRotation(0.7853, -1, 0, 0) });
         root.addChild(directionalLight);
         window.light = directionalLight;
 

@@ -1,5 +1,5 @@
 import Shader from "../render/Shader";
-import { pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor } from './webgl_shader_lib';
+import { pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor, lineal2SRGB } from './webgl_shader_lib';
 import ShaderFunction from "./ShaderFunction";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
@@ -122,7 +122,7 @@ function getShaderProgramForLights(renderer, numLights) {
                 vec3 B = normalize(fragBitangent);
                 mat3 TBN = mat3(T,B,N);
 
-                float gamma = 1.8;
+                float gamma = 2.2;
                 vec4 albedoRGBA = texture2D(uAlbedoTexture, fragTexCoord * uAlbedoScale);
                 vec3 albedo = albedoRGBA.rgb * uAlbedo.rgb;
                 albedo = pow(albedo, vec3(gamma));
@@ -170,7 +170,7 @@ function getShaderProgramForLights(renderer, numLights) {
                                 -uLightDirections[i], uLightColors[i] * lightIntensity, fragPos, N, V,
                                 albedo, roughness, metallic, fresnel, shadowColor);
 
-                            Lo += clamp(dirColor + vec3(lightEmission) * albedo, 0.0, 1.0);
+                            Lo += clamp(dirColor + vec3(lightEmission) * albedo, 0.0, 1.0) * shadowColor;
                         }
                     }
 
@@ -185,11 +185,12 @@ function getShaderProgramForLights(renderer, numLights) {
                     float ao = texture2D(uMetallicRoughnessHeightAOTexture, aoUV).a;
                     vec3 color = (ambient + Lo) * ao;
 
-                    color = pow(color, vec3(1.0 / gamma));
-                    
+                    //color = color / (color + vec3(1.0));
+                    color = lineal2SRGB(vec4(color, 1.0), gamma).rgb;
+                        
                     gl_FragColor = vec4(color,alpha);
                 }
-            }`, [pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor])
+            }`, [pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor, lineal2SRGB])
         ]);
 
     this._programs[numLights] = ShaderProgram.Create(renderer.gl,"PBRLightIBL",vshader,fshader);
