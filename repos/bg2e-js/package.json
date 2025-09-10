@@ -2,12 +2,17 @@
   "name": "bg2e-js",
   "version": "2.0.1",
   "description": "a graphics engine for productivity applications",
-  "main": "index.js",
+  "main": "./dist/bg2e-js.js",
+  "files": [
+    "dist/bg2e-js.js",
+    "dist/bg2e-js.js.map"
+  ],
+  "module": "./dist/bg2e-js.js",
   "type": "module",
-  "dependencies": {
-    "bg2io": "^1.0.7"
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build --emptyOutDir"
   },
-  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ferserc1/bg2e-js.git"
@@ -23,5 +28,11 @@
   "bugs": {
     "url": "https://github.com/ferserc1/bg2e-js/issues"
   },
-  "homepage": "https://github.com/ferserc1/bg2e-js#readme"
+  "homepage": "https://github.com/ferserc1/bg2e-js#readme",
+  "dependencies": {
+    "bg2io": "^1.0.7"
+  },
+  "devDependencies": {
+    "vite": "^7.1.5"
+  }
 }

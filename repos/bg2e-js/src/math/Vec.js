@@ -385,7 +385,7 @@ export default class Vec extends NumericArray {
         case 3:
             return `[${this[0]}, ${this[1]}, ${this[2]}]`;
         case 4:
-            return `[${this[0]}, ${this[1]}, ${this[2]}, ${this[5]}]`;
+            return `[${this[0]}, ${this[1]}, ${this[2]}, ${this[3]}]`;
         }
     }
 

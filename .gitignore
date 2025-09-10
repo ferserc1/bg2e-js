@@ -1,8 +1,6 @@
 node_modules
-package-lock.json
 
 dist
-
 
 bg2e-tools/dist
 bg2e-math/dist
@@ -15,3 +13,5 @@ bg2e-math/package-lock.json
 bg2e-base/package-lock.json
 
 .DS_Store
+
+.turbo

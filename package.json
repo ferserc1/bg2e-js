@@ -1,0 +1,39 @@
+{
+  "name": "bg2e",
+  "version": "2.0.0",
+  "description": "Business oriented 3D graphic engine",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc",
+    "example": "examples"
+  },
+  "packageManager": "npm@10.9.3",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev --concurrency 20 --filter=00_math..."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ferserc1/bg2e-js.git"
+  },
+  "keywords": [
+    "webgl",
+    "pbr",
+    "business",
+    "3d",
+    "engine"
+  ],
+  "author": "Fernando Serrano Carpena",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ferserc1/bg2e-js/issues"
+  },
+  "homepage": "https://github.com/ferserc1/bg2e-js#readme",
+  "workspaces": [
+    "repos/*",
+    "samples/*"
+  ],
+  "dependencies": {
+    "turbo": "^2.5.6"
+  }
+}

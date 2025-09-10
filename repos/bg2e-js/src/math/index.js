@@ -37,7 +37,7 @@ import {
     square
 } from "./functions.js";
 
-export const math = {
+export default {
     Axis,
     PI,
     DEG_TO_RAD,
