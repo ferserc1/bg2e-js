@@ -81,6 +81,7 @@ class MyAppController extends SceneAppController {
         findVisitor.result.length && findVisitor.result.forEach(node => {
             node.drawable && node.drawable.items.forEach(({material}) => {
                 material.diffuse = texture;
+                material.roughness = 1.0;
             });
         });
 

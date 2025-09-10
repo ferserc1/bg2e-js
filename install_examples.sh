@@ -38,4 +38,4 @@ build_example 20_scene_renderer
 build_example 21_scene_app_controller
 build_example 23_selection
 build_example 24_canvas_texture
-build_example 25_ debug
+build_example 25_debug
