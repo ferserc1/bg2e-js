@@ -10,7 +10,8 @@
   "packageManager": "npm@10.9.3",
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev --concurrency 20 --filter=00_math..."
+    "dev": "turbo dev --concurrency 20 --filter=00_math...",
+    "dev:app": "turbo dev --concurrency 20 --filter=$APP..."
   },
   "repository": {
     "type": "git",

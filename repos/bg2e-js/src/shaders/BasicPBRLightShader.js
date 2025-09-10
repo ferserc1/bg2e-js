@@ -93,12 +93,12 @@ function getShaderProgramForLights(renderer, numLights) {
                     if (uLightTypes[i] == ${ LightType.POINT }) {
                         Lo += pbrPointLight(
                             uLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                            albedo, roughness, metallic);
+                            albedo, roughness, metallic, vec3(1.0));
                     }
                     else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
                         Lo += pbrDirectionalLight(
                             uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
-                            albedo, roughness, metallic);
+                            albedo, roughness, metallic, vec3(1.0), vec3(1.0));
                     }
                 }
 

@@ -19,8 +19,14 @@ import ImageResourceProvider from './ImageResourceProvider';
 import VideoResourceProvider from './VideoResourceProvider';
 import BinaryResourceProvider from './BinaryResourceProvider';
 import TextResourceProvider from './TextResourceProvider';
+import {
+    ProcessType,
+    ProcessTypeName,
+    getProcessType,
+    isBrowser, isNode
+} from './processType';
 
-export {
+export default {
     generateUUID, generateMD5,
     isBigEndian, isLittleEndian,
     UserAgent,
@@ -29,5 +35,6 @@ export {
     ImageResourceProvider,
     VideoResourceProvider,
     BinaryResourceProvider,
-    TextResourceProvider
+    TextResourceProvider,
+    ProcessType, ProcessTypeName, getProcessType, isBrowser, isNode
 };

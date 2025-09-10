@@ -48,6 +48,7 @@ export default class MainLoop {
         this._appController = appController;
         this._appController._mainLoop = this;
         this._updateMode = FrameUpdate.AUTO;
+        this._firstFrameRendered = false;
         this._redisplayFrames = 1;
 
         this._mouseStatus = new MouseStatus();
@@ -172,9 +173,10 @@ async function onUpdate(mainLoop, elapsed) {
         else {
             mainLoop._redisplayFrames--;
         }
-        if (mainLoop._redisplayFrames > 0) {
+        if (mainLoop._redisplayFrames > 0 || !mainLoop._firstFrameRendered) {
             await mainLoop.appController.frame(elapsed);
             mainLoop.appController.display();
+            mainLoop._firstFrameRendered = true;
         }
     }
 }

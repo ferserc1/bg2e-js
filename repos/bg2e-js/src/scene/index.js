@@ -1,24 +1,41 @@
 
 
-import Drawable from "./Drawable";
-import Transform from "./Transform";
-import Chain from "./Chain";
-import { InputChainJoint, OutputChainJoint } from "./ChainJoint";
-import Light from "./LightComponent";
-import Camera from "./Camera";
-import OrbitCameraController from "./OrbitCameraController";
-import EnvironmentComponent from "./EnvironmentComponent";
-import { registerComponent } from "./Component";
+import DrawableComponent from "./Drawable";
+import TransformComponent from "./Transform";
+import ChainComponent from "./Chain";
+import {
+    InputChainJoint as InputChainJointComponent,
+    OutputChainJoint as OutputChainJointComponent } from "./ChainJoint";
+import LightComponent from "./LightComponent";
+import CameraComponent from "./Camera";
+import OrbitCameraControllerComponent from "./OrbitCameraController";
+import EnvironmentComponentComponent from "./EnvironmentComponent";
+import Component, { registerComponent } from "./Component";
 
 export const registerComponents = () => {
-    registerComponent("Drawable", Drawable);
-    registerComponent("Transform", Transform);
-    registerComponent("Light", Light);
-    registerComponent("Chain", Chain);
-    registerComponent("InputChainJoint", InputChainJoint);
-    registerComponent("OutputChainJoint", OutputChainJoint);
-    registerComponent("Camera", Camera);
-    registerComponent("OrbitCameraController", OrbitCameraController);
-    registerComponent("Environment", EnvironmentComponent);
+    registerComponent("Drawable", DrawableComponent);
+    registerComponent("Transform", TransformComponent);
+    registerComponent("Light", LightComponent);
+    registerComponent("Chain", ChainComponent);
+    registerComponent("InputChainJoint", InputChainJointComponent);
+    registerComponent("OutputChainJoint", OutputChainJointComponent);
+    registerComponent("Camera", CameraComponent);
+    registerComponent("OrbitCameraController", OrbitCameraControllerComponent);
+    registerComponent("Environment", EnvironmentComponentComponent);
     // TODO: Register more components
+}
+
+export default {
+    Component,
+    DrawableComponent,
+    TransformComponent,
+    ChainComponent,
+    InputChainJointComponent,
+    OutputChainJointComponent,
+    LightComponent,
+    CameraComponent,
+    OrbitCameraControllerComponent,
+    EnvironmentComponentComponent,
+    registerComponents,
+    registerComponent
 }
