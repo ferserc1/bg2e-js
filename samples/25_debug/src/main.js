@@ -1,21 +1,41 @@
-import MainLoop, { FrameUpdate } from "bg2e/app/MainLoop";
-import Canvas from "bg2e/app/Canvas";
-import Vec from "bg2e/math/Vec";
-import Mat4 from "bg2e/math/Mat4";
-import WebGLTextureViewer from "bg2e/debug/WebGLTextureViewer";
-import WebGLTextureRenderer from "bg2e/render/webgl/TextureRenderer";
-import { TextureTarget } from "bg2e/base/Texture";
-import SceneAppController from "bg2e/render/SceneAppController";
-import WebGLRenderer from "bg2e/render/webgl/Renderer";
-import Camera, { OpticalProjectionStrategy } from "bg2e/scene/Camera";
-import Loader, { registerLoaderPlugin } from "bg2e/db/Loader";
-import VitscnjLoaderPlugin from "bg2e/db/VitscnjLoaderPlugin";
-import { registerComponents } from "bg2e/scene";
-import FindNodeVisitor from "bg2e/scene/FindNodeVisitor";
-import DebugRenderer from "bg2e/debug/DebugRenderer";
-import Color from "bg2e/base/Color";
-import SmoothOrbitCameraController from "bg2e/scene/SmoothOrbitCameraController";
-import LightComponent from "bg2e/scene/LightComponent";
+import { app, base, db, debug, math, render, scene } from "bg2e-js";
+
+const {
+    MainLoop,
+    FrameUpdate,
+    Canvas
+} = app;
+const {
+    TextureTarget,
+} = base;
+const {
+    DebugRenderer,
+    WebGLTextureViewer
+} = debug;
+const {
+    Loader,
+    registerLoaderPlugin,
+    VitscnjLoaderPlugin
+} = db;
+const {
+    Vec
+} = math;
+const {
+    WebGLRenderer,
+    SceneAppController,
+    webgl
+} = render;
+const {
+    OpticalProjectionStrategy,
+    registerComponents,
+    FindNodeVisitor,
+    CameraComponent,
+    SmoothOrbitCameraControllerComponent,
+    LightComponent
+} = scene;
+const {
+    TextureRenderer: WebGLTextureRenderer
+} = webgl;
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
@@ -78,12 +98,12 @@ class MyAppController extends SceneAppController {
         // bg2ioPath is the path from the html file to the distribution files of the bg2io library, if
         // this path is different from the compiled js file (generated from this file, in this case, 
         // using Rollup)
-        registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "bg2io/" }));
+        registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "dist/" }));
         registerComponents();
 
         // Load scene
         const loader = new Loader();
-        const root = await loader.loadNode("/furniture/furniture.vitscnj");
+        const root = await loader.loadNode("/resources/furniture/furniture.vitscnj");
 
         const findVisitor = new FindNodeVisitor();
         //findVisitor.name = "ciclo_02";
@@ -105,7 +125,7 @@ class MyAppController extends SceneAppController {
 
         // Get main camera
         // Add Orbit camera controller component to the camera node
-        const mainCamera = Camera.GetMain(root);
+        const mainCamera = CameraComponent.GetMain(root);
         mainCamera.projectionStrategy = new OpticalProjectionStrategy();
         mainCamera.projectionStrategy.focalLength = 55;
         mainCamera.projectionStrategy.frameSize = 35;
@@ -117,7 +137,7 @@ class MyAppController extends SceneAppController {
             cameraController.rotation.x = 0;
             cameraController.rotation.y = 0;
         }
-        const smoothCameraController = new SmoothOrbitCameraController();
+        const smoothCameraController = new SmoothOrbitCameraControllerComponent();
         smoothCameraController.assign(cameraController);
         mainCamera.node.addComponent(smoothCameraController);
         mainCamera.node.removeComponent(cameraController);

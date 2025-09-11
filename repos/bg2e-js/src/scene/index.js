@@ -13,6 +13,7 @@ import CameraComponent, {
     ProjectionStrategy
 } from "./Camera";
 import OrbitCameraControllerComponent from "./OrbitCameraController";
+import SmoothOrbitCameraControllerComponent from "./SmoothOrbitCameraController";
 import EnvironmentComponent from "./EnvironmentComponent";
 import Component, { registerComponent } from "./Component";
 import Node from "./Node";
@@ -28,6 +29,7 @@ export const registerComponents = () => {
     registerComponent("OutputChainJoint", OutputChainJointComponent);
     registerComponent("Camera", CameraComponent);
     registerComponent("OrbitCameraController", OrbitCameraControllerComponent);
+    registerComponent("SmoothOrbitCameraController", SmoothOrbitCameraControllerComponent);
     registerComponent("Environment", EnvironmentComponent);
     // TODO: Register more components
 }
@@ -45,6 +47,7 @@ export default {
     PerspectiveProjectionStrategy,
     ProjectionStrategy,
     OrbitCameraControllerComponent,
+    SmoothOrbitCameraControllerComponent,
     EnvironmentComponent,
     registerComponents,
     registerComponent,

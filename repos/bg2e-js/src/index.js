@@ -12,10 +12,12 @@ import bgapp from './app/index';
 import bgrender from './render/index';
 import * as bgprimitives from './primitives/index';
 import bgshaders from './shaders/index';
+import bgdebug from './debug/index';
 
 export const app = bgapp;
 export const base = bgbase;
 export const db = bgdb;
+export const debug = bgdebug;
 export const math = {
     ...bg2math,
     Mat3,
