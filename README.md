@@ -92,3 +92,40 @@ export default defineConfig({
   ]
 });
 ```
+
+## Run examples
+
+The monorepo uses turborepo to manage the packages. Simply install the dependencies and run the examples using the following npm scripts:
+
+```bash
+$ npm install
+$ APP=<example_name> npm run dev:app
+```
+
+Where `<example_name>` is the name of the example you want to run:
+
+- `00_math`
+- `01_tools`
+- `02_load_model_basic`
+- `03_base`
+- `04_scene_load_0`
+- `05_ap`
+- `06_present_texture`
+- `07_webgl`
+- `08_merge_textures`
+- `10_render_state_basic`
+- `11_webgl_shader_utils`
+- `12_render_to_texture`
+- `13_render_to_cubemap`
+- `14_sky_sphere`
+- `15_sky_cube`
+- `16_env_renderer`
+- `17_pbr_basic`
+- `18_pbr_ibl`
+- `19_render_queue`
+- `20_scene_renderer`
+- `21_scene_app_controller`
+- `22_scene_load_1`
+- `23_selection`
+- `24_canvas_texture`
+- `25_debug`
