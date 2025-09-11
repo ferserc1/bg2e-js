@@ -7,10 +7,17 @@ import {
     InputChainJoint as InputChainJointComponent,
     OutputChainJoint as OutputChainJointComponent } from "./ChainJoint";
 import LightComponent from "./LightComponent";
-import CameraComponent from "./Camera";
+import CameraComponent, {
+    OpticalProjectionStrategy,
+    PerspectiveProjectionStrategy,
+    ProjectionStrategy
+} from "./Camera";
 import OrbitCameraControllerComponent from "./OrbitCameraController";
-import EnvironmentComponentComponent from "./EnvironmentComponent";
+import EnvironmentComponent from "./EnvironmentComponent";
 import Component, { registerComponent } from "./Component";
+import Node from "./Node";
+import NodeVisitor from "./NodeVisitor";
+import FindNodeVisitor from "./FindNodeVisitor";
 
 export const registerComponents = () => {
     registerComponent("Drawable", DrawableComponent);
@@ -21,7 +28,7 @@ export const registerComponents = () => {
     registerComponent("OutputChainJoint", OutputChainJointComponent);
     registerComponent("Camera", CameraComponent);
     registerComponent("OrbitCameraController", OrbitCameraControllerComponent);
-    registerComponent("Environment", EnvironmentComponentComponent);
+    registerComponent("Environment", EnvironmentComponent);
     // TODO: Register more components
 }
 
@@ -34,8 +41,14 @@ export default {
     OutputChainJointComponent,
     LightComponent,
     CameraComponent,
+    OpticalProjectionStrategy,
+    PerspectiveProjectionStrategy,
+    ProjectionStrategy,
     OrbitCameraControllerComponent,
-    EnvironmentComponentComponent,
+    EnvironmentComponent,
     registerComponents,
-    registerComponent
+    registerComponent,
+    Node,
+    NodeVisitor,
+    FindNodeVisitor
 }

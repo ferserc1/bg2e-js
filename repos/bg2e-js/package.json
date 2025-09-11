@@ -10,7 +10,7 @@
   "module": "./dist/bg2e-js.js",
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "vite build --watch --emptyOutDir",
     "build": "vite build --emptyOutDir"
   },
   "repository": {
