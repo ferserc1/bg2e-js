@@ -92,9 +92,9 @@ export default class SelectionManager {
         if (Vec.Distance(this._downPosition, upPosition) < 2) {
             this._selectionIdVisitor.selectionMode = this.selectionMode;
             this.sceneRoot.accept(this._selectionIdVisitor);
-            
+            const pixelRatio = window.devicePixelRatio || 1;
             this._selectionBuffer.reshape(this._viewportSize[0], this._viewportSize[1]);
-            const pickedColor = this._selectionBuffer.draw(this.sceneRoot, this.camera, evt.x, evt.y);
+            const pickedColor = this._selectionBuffer.draw(this.sceneRoot, this.camera, evt.x * pixelRatio, evt.y * pixelRatio);
             const item = this._selectionIdVisitor.findElement(pickedColor);
             const isSelected = () => this._selection.find(s => {
                 return s.polyList === item.polyList && s.drawable === item.drawable
