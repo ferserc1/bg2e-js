@@ -95,6 +95,12 @@ export default class SceneRenderer {
         this._sceneEnvironment = null;
     }
 
+    // Implement in subclasses
+    get brightness() { return 0; }
+    set brightness(_value) { }
+    get contrast() { return 0; }
+    set contrast(value) { }
+
     get renderer() {
         return this._renderer;
     }

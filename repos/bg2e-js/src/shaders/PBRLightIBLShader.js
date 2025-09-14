@@ -1,5 +1,12 @@
 import Shader from "../render/Shader";
-import { pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor, lineal2SRGB } from './webgl_shader_lib';
+import {
+    pbrPointLight,
+    pbrDirectionalLight,
+    pbrAmbientLight,
+    getShadowColor,
+    lineal2SRGB,
+    brightnessContrast
+} from './webgl_shader_lib';
 import ShaderFunction from "./ShaderFunction";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
@@ -111,6 +118,9 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform int uMetallicMap;
         uniform int uRoughnessMap;
         uniform int uLightemissionMap;
+        
+        uniform float uBrightness;
+        uniform float uContrast;
         `,
         [
             new ShaderFunction('void','main','',`{
@@ -185,12 +195,12 @@ function getShaderProgramForLights(renderer, numLights) {
                     float ao = texture2D(uMetallicRoughnessHeightAOTexture, aoUV).a;
                     vec3 color = (ambient + Lo) * ao;
 
-                    //color = color / (color + vec3(1.0));
+                    color = color / (color + vec3(1.0));
                     color = lineal2SRGB(vec4(color, 1.0), gamma).rgb;
-                        
-                    gl_FragColor = vec4(color,alpha);
+
+                    gl_FragColor = brightnessContrast(vec4(color,alpha), uBrightness, uContrast);
                 }
-            }`, [pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor, lineal2SRGB])
+            }`, [pbrPointLight, pbrDirectionalLight, pbrAmbientLight, getShadowColor, lineal2SRGB, brightnessContrast])
         ]);
 
     this._programs[numLights] = ShaderProgram.Create(renderer.gl,"PBRLightIBL",vshader,fshader);
@@ -203,6 +213,9 @@ export default class PBRLightIBLShader extends Shader {
         this._lights = [];
         this._lightTransforms = [];
 
+        this._brigthness = 0.23;
+        this._contrast = 1.0;
+
         if (renderer.typeId !== "WebGL") {
             throw Error("PresentTextureShader is only compatible with WebGL renderer");
         }
@@ -214,6 +227,22 @@ export default class PBRLightIBLShader extends Shader {
         await createNormalTexture(this.renderer);
 
         this._brdfIntegrationTexture = await createBRDFIntegrationTexture(this.renderer);
+    }
+
+    get brightness() {
+        return this._brigthness;
+    }
+    
+    get contrast() {
+        return this._contrast;
+    }
+
+    set brightness(b) {
+        this._brigthness = b;
+    }
+    
+    set contrast(c) {
+        this._contrast = c;
     }
 
     set cameraPosition(p) {
@@ -341,6 +370,10 @@ export default class PBRLightIBLShader extends Shader {
         this._program.bindTexture("uSpecularMap", this.renderer.factory.texture(this.specularMap), 4);
         this._program.bindTexture("uEnvMap", this.renderer.factory.texture(this.environmentMap), 5);
         this._program.bindTexture("uBRDFIntegrationMap", this.renderer.factory.texture(this._brdfIntegrationTexture), 6);
+
+        // TODO: Get the brightness and contrast from configuration
+        this._program.uniform1f("uBrightness", this._brigthness);
+        this._program.uniform1f("uContrast", this._contrast);
 
         // TODO: Get the ambient intensity from environment
         this._program.uniform1f("uAmbientIntensity", 1.0);

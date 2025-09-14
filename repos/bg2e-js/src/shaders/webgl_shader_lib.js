@@ -197,3 +197,16 @@ export const SRGB2Lineal = new ShaderFunction('vec4', 'SRGB2Lineal', 'vec4 color
     return pow(color, vec4(gamma));
 }
 `, []);
+
+export const brightnessContrast = new ShaderFunction('vec4', 'brightnessContrast', 'vec4 color, float brightness, float contrast', `{
+    mat4 brightnessMat = mat4(1, 0, 0, 0,
+                              0, 1, 0, 0,
+                              0, 0, 1, 0,
+                              brightness, brightness, brightness, 1);
+    float t = (1.0 - contrast) / 2.0;
+    mat4 contrastMat = mat4(contrast, 0, 0, 0,
+                            0, contrast, 0, 0,
+                            0, 0, contrast, 0,
+                            t, t, t, 1);
+    return contrastMat * brightnessMat * color;
+}`, []);

@@ -15,6 +15,22 @@ export default class WebGLSceneRenderer extends SceneRenderer {
         return this._shader;
     }
 
+    set brigthness(value) {
+        this._shader._brigthness = value;
+    }
+
+    get brigthness() {
+        return this._shader._brigthness;
+    }
+
+    set contrast(value) {
+        this._shader._contrast = value;
+    }
+
+    get contrast() {
+        return this._shader._contrast;
+    }
+
     async setEnvironment(env) {
         await super.setEnvironment(env);
         this._shader.environment = env;

@@ -101,6 +101,10 @@ class MyAppController extends SceneAppController {
         });
 
         this.createOutputText();
+        // Adjust brightness and contrast of the scene shader
+
+        this.sceneRenderer.brigthness = 0.23;
+        this.sceneRenderer.contrast = 1.0;
     }
 }
 

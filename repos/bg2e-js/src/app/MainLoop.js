@@ -85,7 +85,7 @@ export default class MainLoop {
         onResize(this);
     }
 
-    postRedisplay({ frames=2,timeout=10 } = {}) {
+    postRedisplay({ frames=10,timeout=10 } = {}) {
         if (timeout <= 0) {
             this._redisplayFrames = frames;
         }
