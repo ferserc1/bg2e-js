@@ -52,7 +52,7 @@ class MyAppController extends AppController {
 
 
         console.log("Loading scene...");
-        const sphereColor = [0.93, 0.95, 0.95, 1];
+        const sphereColor = [1, 0.0, 0.0, 1];
         const spherePlist = createSphere(0.3);
         this._plistRenderers = await Promise.all([
             { roughness: 0.0, metallic: 1.0, diffuse: sphereColor, position: [ -3, 3, 0 ] },
@@ -154,7 +154,7 @@ class MyAppController extends AppController {
         this._renderQueue.enableQueue(RenderLayer.TRANSPARENT_DEFAULT, this._shader);
         
         this._env = this.renderer.factory.environment();
-        await this._env.load({ textureUrl: '../resources/equirectangular-env3.jpg' });
+        await this._env.load({ textureUrl: '../resources/mirrored_hall_4k.png' });
         this._shader.environment = this._env;
 
         // A sky cube to render the environment

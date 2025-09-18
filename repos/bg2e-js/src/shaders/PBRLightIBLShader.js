@@ -214,7 +214,7 @@ export default class PBRLightIBLShader extends Shader {
         this._lightTransforms = [];
 
         this._brigthness = 0.23;
-        this._contrast = 1.0;
+        this._contrast = 1.34;
 
         if (renderer.typeId !== "WebGL") {
             throw Error("PresentTextureShader is only compatible with WebGL renderer");
