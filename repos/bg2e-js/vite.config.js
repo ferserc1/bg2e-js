@@ -14,5 +14,7 @@ export default defineConfig({
             }
         },
         sourcemap: true
-    }
+    },
+    assetsInclude: ["**/*.glsl"]
 })
+
