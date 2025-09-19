@@ -1,4 +1,32 @@
 
+struct PBRMaterialData
+{
+    vec4 albedo;
+
+    vec2 albedoScale;
+    vec2 normalScale;
+    vec2 metalnessScale;
+    vec2 roughnessScale;
+
+    float metalness;
+    float roughness;
+
+    int albedoUVSet;
+    int normalUVSet;
+    int metalnessUVSet;
+    int roughnessUVSet;
+    int aoUVSet;
+};
+
+struct Light
+{
+    vec3 position;
+    float intensity;
+    vec4 color;
+    vec3 direction;
+    int type;
+};
+
 vec4 sampleAlbedo(sampler2D tex, vec2 uv0, vec2 uv1, PBRMaterialData mat, float gamma)
 {
     vec2 uv[2] = { uv0, uv1 };

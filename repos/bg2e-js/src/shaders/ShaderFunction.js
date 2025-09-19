@@ -56,10 +56,17 @@ export default class ShaderFunction {
 
     static GetShaderCode(header, requiredFunctions) {
         let allFunctions = [];
+        let rawCode = '';
         requiredFunctions.forEach(req => {
-            allFunctions = [...allFunctions, ...getDependencies(req, allFunctions)];
+            if (typeof req === 'string') {
+                // Add directly the string to the code
+                rawCode += req + '\n\n';
+            }
+            else {
+                allFunctions = [...allFunctions, ...getDependencies(req, allFunctions)];
+            }
         });
-        let code = header + '\n\n';
+        let code = header + '\n\n' + rawCode + '\n\n';
         allFunctions.forEach(fn => {
             code += fn.getFunctionText() + "\n\n";
         });
@@ -70,8 +77,11 @@ export default class ShaderFunction {
 
 // This utility function generate an array of ShaderFunction objects from a block of GLSL code
 export function generateShaderLibrary(glslCode) {
-    return splitFunctions(glslCode)
-        .map(func => createShaderFunctionObject(func));
+    return [
+        ...splitStructs(glslCode),
+        ...splitFunctions(glslCode)
+            .map(func => createShaderFunctionObject(func))
+    ];
 }
 
 // Extracts #define constants from a block of GLSL code
@@ -101,6 +111,57 @@ export function extractConstants(glslCode) {
     }
     
     return constants;
+}
+
+export function splitStructs(glslCode) {
+    const structs = [];
+    const lines = glslCode.split('\n');
+    let currentStruct = '';
+    let braceCount = 0;
+    let inStruct = false;
+    
+    for (let line of lines) {
+        const trimmedLine = line.trim();
+        
+        // Skip empty lines, comments, and preprocessor directives
+        if (!trimmedLine || 
+            trimmedLine.startsWith('//') || 
+            trimmedLine.startsWith('/*') || 
+            trimmedLine.startsWith('#')) {
+            continue;
+        }
+        
+        // Check if this line starts a struct definition
+        if (!inStruct && trimmedLine.startsWith('struct')) {
+            inStruct = true;
+            currentStruct = line + '\n';
+            braceCount += (line.match(/\{/g) || []).length;
+            braceCount -= (line.match(/\}/g) || []).length;
+            
+            // Check if struct ends on the same line (unlikely but possible)
+            if (braceCount === 0 && trimmedLine.includes('{') && trimmedLine.includes('}')) {
+                structs.push(currentStruct.trim());
+                currentStruct = '';
+                inStruct = false;
+            }
+            continue;
+        }
+        
+        if (inStruct) {
+            currentStruct += line + '\n';
+            braceCount += (line.match(/\{/g) || []).length;
+            braceCount -= (line.match(/\}/g) || []).length;
+            
+            // Struct definition ends when we reach the closing brace and optional semicolon
+            if (braceCount === 0) {
+                structs.push(currentStruct.trim());
+                currentStruct = '';
+                inStruct = false;
+            }
+        }
+    }
+    
+    return structs;
 }
 
 // Replace the constants in the GLSL code with their values
