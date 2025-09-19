@@ -14,15 +14,18 @@ import Vec from "../math/Vec";
 import { LightType } from "../base/Light";
 import { createNormalTexture, normalTexture, createBRDFIntegrationTexture } from "../tools/TextureResourceDatabase";
 
-import { getColorCorrectionFunctions, replaceConstants } from "./webgl";
+import {
+    getColorCorrectionFunctions,
+    getNormalMapFunctions,
+    getPBRFunctions,
+    getUniformsFunctions,
+    replaceConstants
+} from "./webgl";
 
 function getShaderProgramForLights(renderer, numLights) {
     if (this._programs[numLights]) {
         return this._programs[numLights];
     }
-
-
-    console.log(getColorCorrectionFunctions());
 
     const testShader = ShaderFunction.GetShaderCode(`precision mediump float;`, [
         new ShaderFunction('vec3', 'testFunc', 'vec3 v', `{
@@ -30,9 +33,11 @@ function getShaderProgramForLights(renderer, numLights) {
             vec3 color = vec3(v1, v1 * 0.5, v1 * 0.25);
             color = linear2SRGB(vec4(color,1.0), 2.2);
             color.r = color.r * LIGHT_COUNT;
-        }`)
-    ],[
-        ...getColorCorrectionFunctions()
+        }`),
+        ...getColorCorrectionFunctions(),
+        ...getNormalMapFunctions(),
+        ...getPBRFunctions(),
+        ...getUniformsFunctions()
     ]);
 
     console.log(replaceConstants(testShader));

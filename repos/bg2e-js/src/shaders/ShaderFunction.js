@@ -59,7 +59,7 @@ export default class ShaderFunction {
         requiredFunctions.forEach(req => {
             allFunctions = [...allFunctions, ...getDependencies(req, allFunctions)];
         });
-        let code = header;
+        let code = header + '\n\n';
         allFunctions.forEach(fn => {
             code += fn.getFunctionText() + "\n\n";
         });
@@ -222,6 +222,6 @@ function createShaderFunctionObject(functionCode) {
         functionName = parts[0];
     }
     
-    return new ShaderFunction(returnType, functionName, parameters, body);
+    return new ShaderFunction(returnType, functionName, parameters, ` {\n\t${body}\n}`);
 }
 
