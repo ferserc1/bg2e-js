@@ -8,14 +8,14 @@ const objData = (width,height,depth) => {
 
     return `mtllib cube.mtl
 o Cube
-v ${w} ${h} -${d}
-v ${w} -${h} -${d}
-v ${w} ${h} ${d}
-v ${w} -${h} ${d}
-v -${w} ${h} -${d}
-v -${w} -${h} -${d}
-v -${w} ${h} ${d}
-v -${w} -${h} ${d}
+v ${w} ${h} -${d}    // 1
+v ${w} -${h} -${d}   // 2
+v ${w} ${h} ${d}     // 3
+v ${w} -${h} ${d}    // 4
+v -${w} ${h} -${d}   // 5
+v -${w} -${h} -${d}  // 6
+v -${w} ${h} ${d}    // 7
+v -${w} -${h} ${d}   // 8
 vt 0.007582 0.995648
 vt 0.007582 0.005685
 vt 0.992623 0.005685

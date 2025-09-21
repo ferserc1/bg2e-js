@@ -108,10 +108,11 @@ export default class SpecularMapCubeShader extends Shader {
 
     get roughness() { return this._roughness; }
 
-    async load(roughness = 0.5) {
+    async load() {
         const { gl } = this.renderer;
 
-        this._roughness = roughness;
+        // This matches with the getPrefilteredColor function in pbr.glsl
+        this._roughness = 0.4;
 
         this._program = new ShaderProgram(gl, "SpecularMapCubeShader");
         this._program.attachVertexSource(g_code.webgl.vertex);

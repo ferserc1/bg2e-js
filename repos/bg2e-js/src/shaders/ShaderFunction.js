@@ -3,10 +3,12 @@ const isRequired = (candidateFunction,includedFunctions) => {
 }
 
 const getAllDependencies = (fn, result = []) => {
-    fn.dependencies.forEach(depFn => {
-        getAllDependencies(depFn, result);
-        result.push(depFn);
-    });
+    fn.dependencies
+        .filter(depFn => typeof depFn !== 'string')
+        .forEach(depFn => {
+            getAllDependencies(depFn, result);
+            result.push(depFn);
+        });
     result.push(fn);
 }
 
@@ -20,6 +22,16 @@ const getDependencies = (fn) => {
             return true;
         }
     });
+}
+
+const getDefinitions = (requiredFunctions) => {
+    const includedDefinitions = [];
+    requiredFunctions.flatMap(req => req.dependencies).forEach(req => {
+        if (typeof req === 'string') {
+            includedDefinitions.push(req);
+        }
+    });
+    return Array.from(new Set(includedDefinitions)).join('\n\n');
 }
 export default class ShaderFunction {
     constructor(returnType, name, params, body, deps = []) {
@@ -57,6 +69,7 @@ export default class ShaderFunction {
     static GetShaderCode(header, requiredFunctions) {
         let allFunctions = [];
         let rawCode = '';
+        let definitions = getDefinitions(requiredFunctions);
         requiredFunctions.forEach(req => {
             if (typeof req === 'string') {
                 // Add directly the string to the code
@@ -66,7 +79,7 @@ export default class ShaderFunction {
                 allFunctions = [...allFunctions, ...getDependencies(req, allFunctions)];
             }
         });
-        let code = header + '\n\n' + rawCode + '\n\n';
+        let code = header + '\n\n' + definitions + '\n\n' + rawCode + '\n\n';
         allFunctions.forEach(fn => {
             code += fn.getFunctionText() + "\n\n";
         });

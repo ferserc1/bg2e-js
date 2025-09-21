@@ -15,12 +15,12 @@ export default class WebGLSceneRenderer extends SceneRenderer {
         return this._shader;
     }
 
-    set brigthness(value) {
-        this._shader._brigthness = value;
+    set brightness(value) {
+        this._shader._brightness = value;
     }
 
-    get brigthness() {
-        return this._shader._brigthness;
+    get brightness() {
+        return this._shader._brightness;
     }
 
     set contrast(value) {

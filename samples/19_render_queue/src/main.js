@@ -166,7 +166,6 @@ class MyAppController extends AppController {
 
     reshape(width,height) {
         this.renderer.viewport = new Vec(width,height);
-        console.log(this.renderer.viewport);
         this.renderer.canvas.updateViewportSize();
     }
 
