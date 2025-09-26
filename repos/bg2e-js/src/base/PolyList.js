@@ -2,7 +2,6 @@ import Vec from "../math/Vec";
 import Mat4 from "../math/Mat4";
 import Color from "./Color";
 
-
 export const BufferType = Object.freeze({
     VERTEX:		    1 << 0,
     NORMAL:		    1 << 1,
@@ -85,8 +84,6 @@ export const PolyListCullFace = Object.freeze({
 });
 
 function buildTangents(plist) {
-    const result = [];
-
     const createVertex = (index) => {
         return {
             pos: new Vec(plist.vertex[index] * 3, plist.vertex[index + 1] * 3, plist.vertex[index + 2] * 3 ),
@@ -94,69 +91,168 @@ function buildTangents(plist) {
         }
     }
 
-    const createUV = (v1, v2) => Vec.Sub(v1.uv, v2.uv);
+    const result = [];
+    for (let i = 0; i < plist.index.length; i += 3) {
+        const i1 = plist.index[i];
+        const i2 = plist.index[i + 1];
+        const i3 = plist.index[i + 2];
 
-    const calcR = (uv1, uv2) =>  1.0 / (uv1.x * uv2.y - uv1.y * uv2.x);
+        const v0 = createVertex(i1);
+        const v1 = createVertex(i2);
+        const v2 = createVertex(i3);
 
-    if (plist.index.length % 3 === 0) {
-        for (let i = 0; i < plist.index.length - 2; i += 3) {
-            let v0 = createVertex(plist.index[i + 1]);
-            let v1 = createVertex(plist.index[i]);
-            let v2 = createVertex(plist.index[i + 2]);
+        const pos1 = v0.pos;
+        const pos2 = v1.pos;
+        const pos3 = v2.pos;
 
-            let edge1 = Vec.Sub(v1.pos, v0.pos);
-            let edge2 = Vec.Sub(v2.pos, v0.pos);
+        const uv1 = v0.uv;
+        const uv2 = v1.uv;
+        const uv3 = v2.uv;
 
-            let uv1 = createUV(v1, v0);
-            let uv2 = createUV(v2, v0);
-            let r = calcR(uv1, uv2);
+        let edge1 = Vec.Sub(pos2, pos1);
+        let edge2 = Vec.Sub(pos3, pos1);
+        let deltaUV1 = Vec.Sub(uv2, uv1);
+        let deltaUV2 = Vec.Sub(uv3, uv1);
 
-            if (!isFinite(r)) {
-                v0.uv.x = v0.uv.x * 1.3;
-                v0.uv.y = v0.uv.y * 0.8;
-                uv1 = createUV(v1, v0);
-                uv2 = createUV(v2, v0);
-                r = calcR(uv1, uv2);
+        let f = 1 / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+        let numberOfAttempts = 0;
+        while ((isNaN(f) || !isFinite(f)) && numberOfAttempts < 4) {
+            if (numberOfAttempts === 0) {
+                edge1 = Vec.Sub(pos1, pos2);
+                edge2 = Vec.Sub(pos3, pos2);
+                deltaUV1 = Vec.Sub(uv1, uv2);
+                deltaUV2 = Vec.Sub(uv3, uv2);
+            } else if (numberOfAttempts === 1) {
+                edge1 = Vec.Sub(pos2, pos3);
+                edge2 = Vec.Sub(pos1, pos3);
+                deltaUV1 = Vec.Sub(uv2, uv3);
+                deltaUV2 = Vec.Sub(uv1, uv3);
+            } else if (numberOfAttempts === 2) {
+                uv1.x = uv1.x * 1.3;
+                uv1.y = uv1.y * 0.8;
+                deltaUV1 = Vec.Sub(uv2, uv1);
+                deltaUV2 = Vec.Sub(uv3, uv1);
+            } else if (numberOfAttempts === 3) {
+                uv3.x = uv3.x * 1.1;
+                uv3.y = uv3.y * 0.9;
+                deltaUV1 = Vec.Sub(uv2, uv1);
+                deltaUV2 = Vec.Sub(uv3, uv1);
             }
+            
 
-            if (!isFinite(r)) {
-                v2.uv.x = v2.uv.x * 1.1;
-                v2.uv.y = v2.uv.y * 0.9;
-                uv1 = createUV(v1, v0);
-                uv2 = createUV(v2, v0);
-                r = calcR(uv1, uv2);
-            }
+            f = 1 / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
-            const tangent = new Vec(
-                ((edge1.x * uv2.y) - (edge2.x * uv1.y)) * r,
-                ((edge1.y * uv2.y) - (edge2.y * uv1.y)) * r,
-                ((edge1.z * uv2.y) - (edge2.z * uv1.y)) * r
-            );
-            tangent.normalize();
-            
-            result.push(tangent.x);
-            result.push(tangent.y);
-            result.push(tangent.z);
-            
-            result.push(tangent.x);
-            result.push(tangent.y);
-            result.push(tangent.z);
-            
-            result.push(tangent.x);
-            result.push(tangent.y);
-            result.push(tangent.z);
-        }
-    }
-    else {
-        for (let i=0; i<plist.vertex.length; i+=3) {
-            result.push(0,0,1);
+            numberOfAttempts++;
         }
 
-        console.warn("Could not generate tangents: invalid type of faces found.");
+        const tangent = new Vec(
+            f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x),
+            f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y),
+            f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z)
+        );
+        tangent.normalize();
+
+        result.push(tangent.x);
+        result.push(tangent.y);
+        result.push(tangent.z);
+
+        result.push(tangent.x);
+        result.push(tangent.y);
+        result.push(tangent.z);
+
+        result.push(tangent.x);
+        result.push(tangent.y);
+        result.push(tangent.z);
+
+        result[i1 * 3] = tangent.x;
+        result[i1 * 3 + 1] = tangent.y;
+        result[i1 * 3 + 2] = tangent.z;
+
+        result[i2 * 3] = tangent.x;
+        result[i2 * 3 + 1] = tangent.y;
+        result[i2 * 3 + 2] = tangent.z;
+
+        result[i3 * 3] = tangent.x;
+        result[i3 * 3 + 1] = tangent.y;
+        result[i3 * 3 + 2] = tangent.z;
     }
 
     plist._tangent = result;
 }
+
+// function buildTangents(plist) {
+//     const result = [];
+
+//     const createVertex = (index) => {
+//         return {
+//             pos: new Vec(plist.vertex[index] * 3, plist.vertex[index + 1] * 3, plist.vertex[index + 2] * 3 ),
+//             uv: new Vec(plist.texCoord0[index] * 2, plist.texCoord0[index + 1] * 2 )
+//         }
+//     }
+
+//     const createUV = (v1, v2) => Vec.Sub(v1.uv, v2.uv);
+
+//     const calcR = (uv1, uv2) =>  1.0 / (uv1.x * uv2.y - uv1.y * uv2.x);
+
+//     if (plist.index.length % 3 === 0) {
+//         for (let i = 0; i < plist.index.length - 2; i += 3) {
+//             let v0 = createVertex(plist.index[i + 1]);
+//             let v1 = createVertex(plist.index[i]);
+//             let v2 = createVertex(plist.index[i + 2]);
+
+//             let edge1 = Vec.Sub(v1.pos, v0.pos);
+//             let edge2 = Vec.Sub(v2.pos, v0.pos);
+
+//             let uv1 = createUV(v1, v0);
+//             let uv2 = createUV(v2, v0);
+//             let r = calcR(uv1, uv2);
+
+//             if (!isFinite(r)) {
+//                 v0.uv.x = v0.uv.x * 1.3;
+//                 v0.uv.y = v0.uv.y * 0.8;
+//                 uv1 = createUV(v1, v0);
+//                 uv2 = createUV(v2, v0);
+//                 r = calcR(uv1, uv2);
+//             }
+
+//             if (!isFinite(r)) {
+//                 v2.uv.x = v2.uv.x * 1.1;
+//                 v2.uv.y = v2.uv.y * 0.9;
+//                 uv1 = createUV(v1, v0);
+//                 uv2 = createUV(v2, v0);
+//                 r = calcR(uv1, uv2);
+//             }
+
+//             const tangent = new Vec(
+//                 ((edge1.x * uv2.y) - (edge2.x * uv1.y)) * r,
+//                 ((edge1.y * uv2.y) - (edge2.y * uv1.y)) * r,
+//                 ((edge1.z * uv2.y) - (edge2.z * uv1.y)) * r
+//             );
+//             tangent.normalize();
+            
+//             result.push(tangent.x);
+//             result.push(tangent.y);
+//             result.push(tangent.z);
+            
+//             result.push(tangent.x);
+//             result.push(tangent.y);
+//             result.push(tangent.z);
+            
+//             result.push(tangent.x);
+//             result.push(tangent.y);
+//             result.push(tangent.z);
+//         }
+//     }
+//     else {
+//         for (let i=0; i<plist.vertex.length; i+=3) {
+//             result.push(0,0,1);
+//         }
+
+//         console.warn("Could not generate tangents: invalid type of faces found.");
+//     }
+
+//     plist._tangent = result;
+// }
 
 export default class PolyList {
     constructor() {
