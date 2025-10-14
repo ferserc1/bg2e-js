@@ -201,19 +201,19 @@ export default class BasicPBRLightShader extends Shader {
             this._program.bindVector('uCameraPos',this._cameraPosition);
         }
 
-        materialRenderer.bindTexture(this._program, 'diffuse', 'uAlbedoTexture', 0);
-        materialRenderer.bindTexture(this._program, 'normal', 'uNormalTexture', 1, normalTexture(this.renderer));
-        materialRenderer.bindTexture(this._program, 'metallic', 'uMetallicTexture', 2);
-        materialRenderer.bindTexture(this._program, 'roughness', 'uRoughnessTexture', 3);
+        materialRenderer.bindTexture(this._program, 'albedoTexture', 'uAlbedoTexture', 0);
+        materialRenderer.bindTexture(this._program, 'normalTexture', 'uNormalTexture', 1, normalTexture(this.renderer));
+        materialRenderer.bindTexture(this._program, 'metalnessTexture', 'uMetallicTexture', 2);
+        materialRenderer.bindTexture(this._program, 'roughnessTexture', 'uRoughnessTexture', 3);
 
-        materialRenderer.bindColor(this._program, 'diffuse', 'uAlbedo');
-        materialRenderer.bindValue(this._program, 'metallic', 'uMetallic');
+        materialRenderer.bindColor(this._program, 'albedo', 'uAlbedo');
+        materialRenderer.bindValue(this._program, 'metalness', 'uMetallic');
         materialRenderer.bindValue(this._program, 'roughness', 'uRoughness');
         
         
         this._program.bindVector("uAlbedoScale", material.diffuseScale);
         this._program.bindVector("uNormalScale", material.normalScale);
-        this._program.bindVector("uMetallicScale", material.metallicScale);
+        this._program.bindVector("uMetallicScale", material.metalnessScale);
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
 
         this._lights.forEach((light,i) => {

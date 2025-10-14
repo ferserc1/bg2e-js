@@ -51,7 +51,7 @@ float calcAttenuation(vec3 lightPosition, vec3 fragPosition)
     return 1.0 / (distance * distance);
 }
 
-vec3 calcRadiancePoint( Light light, vec3 viewDir, vec3 fragPos, float metallic, float roughness, vec3 F0, vec3 normal, vec3 albedo) {
+vec3 calcRadiancePoint( Light light, vec3 viewDir, vec3 fragPos, float metallic, float roughness, vec3 F0, vec3 normal, vec3 albedo, float sheenIntensity, vec3 sheenColor, float ambientOcclussion) {
     // calculate per-light radiance
     vec3 L = normalize(light.position - fragPos);
     vec3 H = normalize(viewDir + L);
@@ -73,10 +73,12 @@ vec3 calcRadiancePoint( Light light, vec3 viewDir, vec3 fragPos, float metallic,
         
     // add to outgoing radiance Lo
     float NdotL = max(dot(normal, L), 0.0);
-    return (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 base = (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 sheen = calcSheen(normal, viewDir, sheenColor, sheenIntensity) * ambientOcclussion;
+    return base + sheen;
 }
 
-vec3 calcRadianceDirectional(Light light, vec3 viewDir, vec3 fragPos, float metallic, float roughness, vec3 F0, vec3 normal, vec3 albedo)
+vec3 calcRadianceDirectional(Light light, vec3 viewDir, vec3 fragPos, float metallic, float roughness, vec3 F0, vec3 normal, vec3 albedo, float sheenIntensity, vec3 sheenColor, float ambientOcclussion)
 {
     vec3 L = normalize(-light.direction);
     vec3 H = normalize(viewDir + L);
@@ -97,17 +99,19 @@ vec3 calcRadianceDirectional(Light light, vec3 viewDir, vec3 fragPos, float meta
         
     // add to outgoing radiance Lo
     float NdotL = max(dot(normal, L), 0.0);
-    return (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 base = (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 sheen = calcSheen(normal, viewDir, sheenColor, sheenIntensity) * ambientOcclussion;
+    return base + sheen;
 }
 
-vec3 calcRadiance( Light light, vec3 viewDir, vec3 fragPos, float metallic, float roughness, vec3 F0, vec3 normal, vec3 albedo) {
+vec3 calcRadiance( Light light, vec3 viewDir, vec3 fragPos, float metallic, float roughness, vec3 F0, vec3 normal, vec3 albedo, float sheenIntensity, vec3 sheenColor, float ambientOcclussion) {
     if (light.type == LIGHT_TYPE_POINT)
     {
-        return calcRadiancePoint(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo);
+        return calcRadiancePoint(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo, sheenIntensity, sheenColor, ambientOcclussion);
     }
     else if (light.type == LIGHT_TYPE_DIRECTIONAL)
     {
-        return calcRadianceDirectional(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo);
+        return calcRadianceDirectional(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo, sheenIntensity, sheenColor, ambientOcclussion);
     }
     return vec3(0.0);
 }
@@ -123,16 +127,16 @@ vec3 getPrefilteredColor(float roughness,vec3 refVec,samplerCube irrMap,samplerC
     return mix(specMap1, specMap2, (roughness - 0.4) / 0.6);
 }
 
-vec3 calcAmbientLight( vec3 viewDir, vec3 normal, vec3 F0, vec3 albedo, float metallic, float roughness, samplerCube irradianceMap, samplerCube prefilteredEnvMap, samplerCube envMap, sampler2D brdfLUT, float ambientOcclussion) {
+vec3 calcAmbientLight( vec3 viewDir, vec3 normal, vec3 F0, vec3 albedo, float metallic, float roughness, samplerCube irradianceMap, samplerCube prefilteredEnvMap, samplerCube envMap, sampler2D brdfLUT, float ambientOcclussion, float sheenIntensity, vec3 sheenColor, vec3 shadowColor, float ambientIntensity) {
     vec3 R = reflect(-viewDir, normal);
 
-    vec3 F = fresnelSchlickRoughness(max(dot(normal, viewDir), 0.0), F0, roughness);
+    vec3 F = fresnelSchlickRoughness(max(dot(normal, viewDir), 0.0), F0, roughness)  * max(shadowColor, vec3(0.8));
     
     vec3 Ks = F;
     vec3 Kd = 1.0 - Ks;
     Kd *= 1.0 - metallic;
 
-    vec3 irradiance = textureCube(irradianceMap, normal).rgb;
+    vec3 irradiance = textureCube(irradianceMap, normal).rgb * ambientIntensity;
     vec3 diffuse = irradiance * albedo;
 
     vec3 prefilteredColor = getPrefilteredColor(roughness, R, irradianceMap, prefilteredEnvMap, envMap);
@@ -141,7 +145,9 @@ vec3 calcAmbientLight( vec3 viewDir, vec3 normal, vec3 F0, vec3 albedo, float me
     vec2 envBRDF = texture2D(brdfLUT, brdfUV).rg;
     vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
-    return (Kd * diffuse + specular) * ambientOcclussion;
+    vec3 base = (Kd * diffuse + specular) * ambientOcclussion;
+    vec3 sheen = calcSheen(normal, viewDir, sheenColor, sheenIntensity) * ambientOcclussion * shadowColor;
+    return base + sheen;
 }
 
 // TODO: Extract this function to a shadow map shader function

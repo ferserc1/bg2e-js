@@ -107,7 +107,9 @@ function getShaderProgramForLights(renderer, numLights) {
         uniform float uRoughness;
         uniform float uLightEmission;
 
-        uniform vec4 uFresnel;
+        uniform vec4 uFresnelTint;
+        uniform vec4 uSheenColor;
+        uniform float uSheenIntensity;
 
         uniform vec2 uAlbedoScale;
         uniform vec2 uNormalScale;
@@ -148,7 +150,7 @@ function getShaderProgramForLights(renderer, numLights) {
         `,
         [
             new ShaderFunction('void','main','',`{
-                float gamma = 1.8;
+                float gamma = 2.2;
 
                 PBRMaterialData mat;
                 mat.albedo = uAlbedo;
@@ -166,6 +168,9 @@ function getShaderProgramForLights(renderer, numLights) {
                 mat.roughnessUVSet = uRoughnessMap;
                 mat.lightEmissionUVSet = uLightemissionMap;
                 mat.aoUVSet = uAOMap;
+                mat.fresnelTint = uFresnelTint;
+                mat.sheenColor = uSheenColor;
+                mat.sheenIntensity = uSheenIntensity;
 
                 vec4 albedo = sampleAlbedo(uAlbedoTexture, fragTexCoord, fragTexCoord2, mat, gamma);
                 float metallic = sampleMetallic(uMetallicRoughnessHeightAOTexture, fragTexCoord, fragTexCoord2, mat);
@@ -195,7 +200,7 @@ function getShaderProgramForLights(renderer, numLights) {
                         light.direction = uLightDirections[i];
                         light.position = fragLightPositions[i];
 
-                        Lo += calcRadiance(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo.rgb);
+                        Lo += calcRadiance(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo.rgb, mat.sheenIntensity, mat.sheenColor.rgb, ambientOcclussion);
                         
                     }
 
@@ -203,11 +208,15 @@ function getShaderProgramForLights(renderer, numLights) {
                     
                     Lo = Lo * shadowColor;
 
+                    float ambientIntensity = 2.0;
                     vec3 ambient = calcAmbientLight(
                         viewDir, normal, F0,
                         albedo.rgb, metallic, roughness,
                         uIrradianceMap, uSpecularMap, uEnvMap,
-                        uBRDFIntegrationMap, ambientOcclussion
+                        uBRDFIntegrationMap, ambientOcclussion,
+                        mat.sheenIntensity, mat.sheenColor.rgb,
+                        shadowColor,
+                        ambientIntensity
                     );
 
                     vec3 color = ambient + Lo;
@@ -229,8 +238,8 @@ export default class PBRLightIBLShader extends Shader {
         this._lights = [];
         this._lightTransforms = [];
 
-        this._brightness = 0.34;
-        this._contrast = 1.4;
+        this._brightness = 0.2;
+        this._contrast = 1.1;
 
         if (renderer.typeId !== "WebGL") {
             throw Error("PresentTextureShader is only compatible with WebGL renderer");
@@ -361,29 +370,31 @@ export default class PBRLightIBLShader extends Shader {
             this._program.bindVector('uCameraPos',this._cameraPosition);
         }
 
-        materialRenderer.bindTexture(this._program, 'diffuse', 'uAlbedoTexture', 0);
-        materialRenderer.bindTexture(this._program, 'normal', 'uNormalTexture', 1, normalTexture(this.renderer));
-        materialRenderer.bindMetallicRoughnessHeightAOTexture(this._program, 'uMetallicRoughnessHeightAOTexture', 2);
+        materialRenderer.bindTexture(this._program, 'albedoTexture', 'uAlbedoTexture', 0);
+        materialRenderer.bindTexture(this._program, 'normalTexture', 'uNormalTexture', 1, normalTexture(this.renderer));
+        materialRenderer.bindMetalnessRoughnessHeightAOTexture(this._program, 'uMetallicRoughnessHeightAOTexture', 2);
         this._program.uniform1f('uAlphaTresshold', material.alphaCutoff);
 
-        materialRenderer.bindColor(this._program, 'diffuse', 'uAlbedo');
-        materialRenderer.bindValue(this._program, 'metallic', 'uMetallic');
+        materialRenderer.bindColor(this._program, 'albedo', 'uAlbedo');
+        materialRenderer.bindValue(this._program, 'metalness', 'uMetallic');
         materialRenderer.bindValue(this._program, 'roughness', 'uRoughness');
         materialRenderer.bindValue(this._program, 'lightEmission', 'uLightEmission', 0);
     
-        this._program.uniform1i('uAlbedoMap', material.diffuseUV);
+        this._program.uniform1i('uAlbedoMap', material.albedoUV);
         this._program.uniform1i('uNormalMap', material.normalUV);
         this._program.uniform1i('uAOMap', material.ambientOcclussionUV);
-        this._program.uniform1i('uMetallicMap', material.metallicChannel);
+        this._program.uniform1i('uMetallicMap', material.metalnessChannel);
         this._program.uniform1i('uRoughnessMap', material.roughnessChannel);
         this._program.uniform1i('uLightemissionMap', material.lightEmissionChannel);
     
-        this._program.bindVector("uAlbedoScale", material.diffuseScale);
+        this._program.bindVector("uAlbedoScale", material.albedoScale);
         this._program.bindVector("uNormalScale", material.normalScale);
-        this._program.bindVector("uMetallicScale", material.metallicScale);
+        this._program.bindVector("uMetallicScale", material.metalnessScale);
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
         this._program.bindVector("uLightEmissionScale", material.lightEmissionScale);
-        this._program.bindVector("uFresnel", material.fresnel);
+        this._program.bindVector("uFresnelTint", material.fresnelTint);
+        this._program.bindVector("uSheenColor", material.sheenColor);
+        this._program.uniform1f("uSheenIntensity", material.sheenIntensity);
 
         this._program.bindTexture("uIrradianceMap", this.renderer.factory.texture(this.irradianceMap), 3);
         this._program.bindTexture("uSpecularMap", this.renderer.factory.texture(this.specularMap), 4);

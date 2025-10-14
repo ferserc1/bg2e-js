@@ -28,6 +28,12 @@ export default class Color extends Vec {
             const a = arguments[0].a || arguments[0].a || 1;
             super(r, g, b, a);
         }
+        else if (arguments.length === 3) {
+            super(arguments[0], arguments[1], arguments[2], 1);
+        }
+        else if (arguments.length === 4) {
+            super(arguments[0], arguments[1], arguments[2], arguments[3]);
+        }
         else if (arguments.length === 0) {
             super([0, 0, 0, 1]);
         }

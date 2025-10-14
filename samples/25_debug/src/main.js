@@ -155,6 +155,9 @@ class MyAppController extends SceneAppController {
     }
 
     async loadDone() {
+        
+        globalThis.sceneRenderer = this.sceneRenderer;
+
         this.initDebugger();
     }
 

@@ -122,7 +122,7 @@
 								1,
 								1
 							],
-							"intensity": 0.6,
+							"intensity": 10.6,
 							"spotCutoff": 20,
 							"spotExponent": 30,
 							"shadowStrength": 0.3,
@@ -368,13 +368,13 @@
 			"components": [
 				{
 					"type": "Environment",
-					"equirectangularTexture": "interior_house.jpg",
+					"equirectangularTexture": "mirrored_hall_4k.png",
 					"irradianceIntensity": 1,
 					"showSkybox": true,
-					"cubemapSize": 512,
+					"cubemapSize": 4096,
 					"irradianceMapSize": 32,
-					"specularMapSize": 32,
-					"specularMapL2Size": 32
+					"specularMapSize": 64,
+					"specularMapL2Size": 64
 				},
 				{
 					"type": "Selectable"

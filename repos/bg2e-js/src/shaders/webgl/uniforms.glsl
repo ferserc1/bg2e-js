@@ -19,6 +19,10 @@ struct PBRMaterialData
     int roughnessUVSet;
     int lightEmissionUVSet;
     int aoUVSet;
+
+    vec4 fresnelTint;
+    vec4 sheenColor;
+    float sheenIntensity;
 };
 
 struct Light
@@ -73,5 +77,15 @@ float sampleAmbientOcclussion(sampler2D tex, vec2 uv0, vec2 uv1, PBRMaterialData
 
 vec3 calcF0(vec3 albedo, PBRMaterialData mat)
 {
-    return mix(vec3(0.04), albedo, mat.metalness);
+    return mix(vec3(0.04), albedo, mat.metalness) * mat.fresnelTint.rgb;
+}
+
+vec3 calcSheen(vec3 normal, vec3 viewDir, vec3 sheenColor, float sheenIntensity)
+{
+    float NdotV = max(dot(normal, viewDir), 0.0);
+    float facing = 1.0 - NdotV;
+    
+    // Adjustable power: controls how concentrated the brightness is
+    float falloff = pow(facing, 5.0);
+    return sheenColor * falloff * sheenIntensity;
 }

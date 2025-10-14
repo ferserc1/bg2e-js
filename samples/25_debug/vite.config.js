@@ -5,6 +5,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 const bg2ioPath = '../../node_modules/bg2io/';
 
 export default defineConfig({
+  appType: 'mpa',
   plugins: [
     viteStaticCopy({
       targets: [

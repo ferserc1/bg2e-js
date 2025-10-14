@@ -114,8 +114,8 @@ function buildTangents(plist) {
             if (!isFinite(r)) {
                 v0.uv.x = v0.uv.x * 1.3;
                 v0.uv.y = v0.uv.y * 0.8;
-                uv1 = createUV(v1, v0);
-                uv2 = createUV(v2, v0);
+                uv1 = createUV(v0, v1);
+                uv2 = createUV(v2, v1);
                 r = calcR(uv1, uv2);
             }
 

@@ -88,7 +88,10 @@ export default class Drawable extends Component {
                 return result;
             }
             catch (err) {
-
+                if (!/not found/i.test(err.message)) {
+                    console.error(err);
+                }
+                return null;
             }
         }
 

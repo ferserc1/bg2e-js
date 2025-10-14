@@ -10,94 +10,155 @@ export const MaterialType = Object.freeze({
     PBR: "pbr"
 });
 
-export const MaterialAttributeNames = [
-    "type",
-    "class",    // Alias of "type"
-    "diffuse",
-    "diffuseScale",
-    "diffuseUV",
-    "alphaCutoff",
-    "isTransparent",
-    "metallic",
-    "metallicChannel",
-    "metallicScale",
-    "metallicUV",
-    "roughness",
-    "roughnessChannel",
-    "roughnessScale",
-    "roughnessUV",
-    "fresnel",
-    "lightEmission",
-    "lightEmissionChannel",
-    "lightEmissionScale",
-    "lightEmissionUV",
-    "ambientOcclussion",
-    "ambientOcclussionChannel",
-    "ambientOcclussionUV",
-    "normal",
-    "normalScale",
-    "normalUV",
-    "height",
-    "heightChannel",
-    "heightScale",
-    "heightUV",
-    "heightIntensity",
-    "castShadows",
-    "unlit"
-];
+const textureTypeLoader = {
+    serialize: (attName, obj) => {
+        if (obj instanceof Texture) {
+            return obj.fileName;
+        }
+        else {
+            throw new Error(`Invalid parameter found in material serialization. The required parameter type is Texture`);
+        }
+    },
 
-export const ColorTextureAttributes = [
-    "diffuse",
-    "normal"
-];
+    deserialize: (attName, obj, relativePath = "", canvas = null) => {
+        if (!obj) {
+            return null;
+        }
+        else if (attName === "ambientOcclussion" && typeof(obj) === "number") {
+            // Compatibility with v1.4 where ambient occlussion could be a float value
+            return null;
+        }
+        else if (typeof(obj) === "string") {
+            const texturePath = relativePath + obj;
+            const textureCache = TextureCache.Get(canvas);
+            if (textureCache.findTexture(texturePath)) {
+                console.debug(`Texture '${ texturePath }' already loaded. Reusing texture.`);
+                return textureCache.getTexture(texturePath);
+            }
+            else {
+                console.log(`Texture not found in cache. Loading texture '${ texturePath }'`);
+                const tex = new Texture(canvas);
+                tex.fileName = relativePath + obj;
+                tex.dataType = TextureDataType.IMAGE;
+                tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+                tex.magFilter = TextureFilter.LINEAR;
+                tex.wrapModeX = TextureWrap.REPEAT;
+                tex.wrapModeY = TextureWrap.REPEAT;
+                textureCache.registerTexture(tex);
+                return tex;
+            }
+        }
+        else {
+            throw new Error(`Invalid parameter found in material deserialization. The required parameter type is string (file path)`);
+        }
+    }
+}
 
-export const ValueTextureAttributes = [
-    "metallic",
-    "roughness",
-    "lightEmission",
-    "ambientOcclussion",
-    "height"
-];
+const colorTypeLoader = {
+    serialize: (attName, obj) => {
+        if (obj instanceof Color) {
+            return obj;
+        }
+        else  {
+            throw new Error(`Invalid parameter found in material serialization. The required parameter type is Color`);
+        }
+    },
 
-export const VectorAttribures = [
-    "diffuseScale",
-    "metallicScale",
-    "roughnessScale",
-    "lightEmissionScale",
-    "normalScale",
-    "heightScale"
-];
+    deserialize: (attName, obj) => {
+        if (!obj) {
+            return null;
+        }
+        else if (Array.isArray(obj) && (obj.length === 3 || obj.length === 4)) {
+            if (obj.length === 3) {
+                return new Color(obj[0], obj[1], obj[2], 1);
+            }
+            else if (obj.length === 4) {
+                return new Color(obj[0], obj[1], obj[2], obj[3]);
+            }
+        }
+        else {
+            throw new Error(`Invalid parameter found in material deserialization. The required parameter type is array with 3 or 4 elements`);
+        }
+    }
+}
 
-export const ColorAttributes = [
-    "fresnel"
-];
+const vectorTypeLoader = {
+    serialize: (attName, obj) => {
+        if (obj instanceof Vec) {
+            return obj;
+        }
+        else {
+            throw new Error(`Invalid parameter found in material serialization. The required parameter type is Vec`);
+        }
+    },
 
-export const PrimitiveTypeAttributes = [
-    "type",
-    "class",    // alias off type
-    "alphaCutoff",
-    "isTransparent",
-    "diffuseUV",
-    "metallicChannel",
-    "metallicUV",
-    "roughnessChannel",
-    "roughnessUV",
-    "lightEmissionChannel",
-    "lightEmissionUV",
-    "ambientOcclussionChannel",
-    "ambientOcclussionUV",
-    "normalUV",
-    "heightChannel",
-    "heightUV",
-    "heightIntensity",
-    "castShadows",
-    "unlit"
-];
+    deserialize: (attName, obj) => {
+        if (!obj) {
+            return null;
+        }
+        else if (obj.length >= 2 && obj.length <= 4) {
+            return new Vec(obj);
+        }
+        else {
+            throw new Error(`Invalid parameter found in material deserialization. The required parameter type is array with 2, 3 or 4 elements`);
+        }
+    }
+}
 
+const primitiveTypeLoader = {
+    serialize: (attName, obj) => {
+        return obj;
+    },
 
-export const assertColorTexture = (v, name) => {
-    if (!v instanceof Color && !v instanceof Texture) {
-        throw new Error(`Invalid parameter setting '${ name }' material attribute. The required parameter type is Color or Texture`);
+    deserialize: (attName, obj) => {
+        return obj;
+    }
+}
+
+export const MaterialAttributeNames = {
+    type: { loader: primitiveTypeLoader },
+    alphaCutoff: { loader: primitiveTypeLoader },
+    isTransparent: { loader: primitiveTypeLoader },
+    albedo: { loader: colorTypeLoader },
+    albedoTexture: { loader: textureTypeLoader },
+    albedoScale: { loader: vectorTypeLoader },
+    albedoUV: { loader: primitiveTypeLoader },
+    normalTexture: { loader: textureTypeLoader },
+    normalScale: { loader: vectorTypeLoader },
+    normalUV: { loader: primitiveTypeLoader },
+    metalness: { loader: primitiveTypeLoader },
+    metalnessTexture: { loader: textureTypeLoader },
+    metalnessChannel: { loader: primitiveTypeLoader },
+    metalnessScale: { loader: vectorTypeLoader },
+    metalnessUV: { loader: primitiveTypeLoader },
+    roughness: { loader: primitiveTypeLoader },
+    roughnessTexture: { loader: textureTypeLoader },
+    roughnessChannel: { loader: primitiveTypeLoader },
+    roughnessScale: { loader: vectorTypeLoader },
+    roughnessUV: { loader: primitiveTypeLoader },
+    fresnelTint: { loader: colorTypeLoader },
+    sheenIntensity: { loader: primitiveTypeLoader },
+    sheenColor: { loader: colorTypeLoader },
+    lightEmission: { loader: colorTypeLoader },
+    lightEmissionTexture: { loader: textureTypeLoader },
+    lightEmissionChannel: { loader: primitiveTypeLoader },
+    lightEmissionScale: { loader: vectorTypeLoader },
+    lightEmissionUV: { loader: primitiveTypeLoader },
+    ambientOcclussion: { loader: textureTypeLoader },
+    ambientOcclussionChannel: { loader: primitiveTypeLoader },
+    ambientOcclussionUV: { loader: primitiveTypeLoader },
+    heightTexture: { loader: textureTypeLoader },
+    heightChannel: { loader: primitiveTypeLoader },
+    heightScale: { loader: vectorTypeLoader },
+    heightUV: { loader: primitiveTypeLoader },
+    heightIntensity: { loader: primitiveTypeLoader },
+    castShadows: { loader: primitiveTypeLoader },
+    unlit: { loader: primitiveTypeLoader }
+};
+
+export const assertTexture = (v, name) => {
+    if (!v instanceof Texture) {
+        throw new Error(`Invalid parameter setting '${ name }' material attribute. The required parameter type is Texture`);
     }
 }
 
@@ -110,12 +171,6 @@ export const assertColor = (v, name) => {
 export const assertScale = (v, name) => {
     if (!v instanceof Vec || v.length != 2) {
         throw new Error(`Invalid parameter setting '${ name }' material attribute. The required parameter type is Vec with two elements.`);
-    }
-}
-
-export const assertValueTexture = (v, name) => {
-    if (!v instanceof Texture && typeof(v) !== "number") {
-        throw new Error(`Invalid parameter setting '${ name }' material attribute. The required parameter type is Texture or numeric value.`);
     }
 }
 
@@ -139,184 +194,6 @@ export const cloneObject = (obj) => {
     }
 }
 
-export const serializeColorTexture = (obj) => {
-    const result = { type: "", data: {} };
-    if (obj instanceof Color) {
-        result.type = "Color";
-        result.data = obj;
-    }
-    else if (obj instanceof Texture) {
-        result.type = "Texture";
-        obj.serialize(result.data);
-    }
-    else {
-        throw new Error(`Invalid parameter found in material serialization`);
-    }
-    return result;
-}
-
-
-export const deserializeColorTexture = (obj,relativePath = "", canvas = null) => {
-    if (obj === null || obj === undefined) {
-        return null;
-    }
-    else if (typeof(obj) === "string") {
-        // bg2e v1 texture compatibility
-        const texturePath = relativePath + obj;
-        const textureCache = TextureCache.Get(canvas);
-        if (textureCache.findTexture(texturePath)) {
-            console.debug(`Texture '${ texturePath }' already loaded. Reusing texture.`);
-            return textureCache.getTexture(texturePath);
-        }
-        else {
-            console.log(`Texture not found in cache. Loading texture '${ texturePath }'`);
-            const tex = new Texture(canvas);
-            tex.fileName = relativePath + obj;
-            tex.dataType = TextureDataType.IMAGE;
-            tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-            tex.magFilter = TextureFilter.LINEAR;
-            tex.wrapModeX = TextureWrap.REPEAT;
-            tex.wrapModeY = TextureWrap.REPEAT;
-            textureCache.registerTexture(tex);
-            return tex;
-        }
-    }
-    else if (Array.isArray(obj) && (obj.length === 3 || obj.length === 4)) {
-        // bg2e v1 color compatibility
-        if (obj.length === 3) {
-            return new Vec(obj[0], obj[1], obj[2], 1);
-        }
-        else if (obj.length === 4) {
-            return new Vec(obj[0], obj[1], obj[2], obj[3]);
-        }
-    }
-    else if (obj.type === "Color") {
-        return new Color(obj.data);
-    }
-    else if (obj.type === "Texture") {
-        const tex = new Texture(canvas);
-        tex.deserialize(obj.data);
-        return tex;
-    }
-    else {
-        reject(new Error(`Invalid parameter found in material deserialization`));
-    }
-}
-
-export const deserializeVector = (obj) => {
-    if (!obj) {
-        return null;
-    }
-    else if (obj.length >= 2 && obj.length <= 4) {
-        return new Vec(obj);
-    }
-    else if (obj._v && obj._v.length >= 2 && obj._v.length <= 4) {
-        return new Vec(obj._v);
-    }
-    else {
-        throw new Error(`Invalid parameter found in material serialization`);
-    }
-}
-
-export const serializeValueTexture = (obj) => {
-    const result = { type: "", data: "" };
-    if (obj instanceof Texture) {
-        result.type = "Texture";
-        obj.serialize(result.data);
-    }
-    else if (typeof(obj) === "number") {
-        result.type = "number";
-        result.data = obj;
-    }
-    else {
-        throw new Error(`Invalid parameter found in material serialization`);
-    }
-    return result;
-}
-
-export const deserializeValueTexture = (obj,relativePath, canvas = null) => {
-    if (obj === null || obj === undefined) {
-        return null;
-    }
-    else if (typeof(obj) === "string") {
-        const texturePath = relativePath + obj;
-        const textureCache = TextureCache.Get(canvas);
-        if (textureCache.findTexture(texturePath)) {
-            console.debug(`Texture '${ texturePath }' already loaded. Reusing texture.`);
-            return textureCache.getTexture(texturePath);
-        }
-        else {
-            console.log(`Texture not found in cache. Loading texture '${ texturePath }'`);
-            const tex = new Texture(canvas);
-            tex.fileName = relativePath + obj;
-            tex.dataType = TextureDataType.IMAGE;
-            tex.wrapModeX = TextureWrap.REPEAT;
-            tex.wrapModeY = TextureWrap.REPEAT;
-            tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-            tex.magFilter = TextureFilter.LINEAR;
-            textureCache.registerTexture(tex);
-            return tex;
-        }
-    }
-    else if (typeof(obj) === "number") {
-        return obj;
-    }
-    else if (Array.isArray(obj)) {
-        // Obsolete option. Return the mean array value
-        return obj.reduce((a,b) => a + b) / obj.length;
-    }
-    else if (obj.type === "Texture") {
-        const tex = new Texture(canvas);
-        tex.deserialize(obj.data);
-        return tex;
-    }
-    else if (obj.type === "number") {
-        return obj.data;
-    }
-    else {
-        throw new Error(`Invalid parameter found in material serialization`)
-    }
-}
-
-export const serializeAttribute = (att,mat) => {
-    if (ColorTextureAttributes.indexOf(att) !== -1) {
-        return serializeColorTexture(mat[att]);
-    }
-    else if (ValueTextureAttributes.indexOf(att) !== -1) {
-        return serializeValueTexture(mat[att]);
-    }
-    else if (VectorAttribures.indexOf(att) !== -1 ||
-             ColorAttributes.indexOf(att) !== -1  ||
-             PrimitiveTypeAttributes.indexOf(att) !== -1
-    ) {
-        return mat[att];
-    }
-    else {
-        throw new Error(`Error in material attribute deserialization: invalid attribute '${ att }'`);
-    }
-}
-
-export const deserializeAttribute = (att,obj,relativePath,canvas = null) => {
-    if (ColorTextureAttributes.indexOf(att) !== -1) {
-        return deserializeColorTexture(obj[att],relativePath,canvas);
-    }
-    else if (ValueTextureAttributes.indexOf(att) !== -1) {
-        return deserializeValueTexture(obj[att],relativePath,canvas);
-    }
-    else if (VectorAttribures.indexOf(att) !== -1) {
-        return deserializeVector(obj[att]);
-    }
-    else if (ColorAttributes.indexOf(att) !== -1) {
-        return new Color(obj[att]);
-    }
-    else if (PrimitiveTypeAttributes.indexOf(att) !== -1) {
-        return obj[att];
-    }
-    else {
-        throw new Error(`Error in material attribute deserialization: invalid attribute '${ att }'`);
-    }
-}
-
 export default class Material {
     static async Deserialize(sceneData,relativePath = "",canvas = null) {
         const result = new Material(canvas);
@@ -329,31 +206,37 @@ export default class Material {
         this._type = MaterialType.PBR;
         this._renderer = null;
 
-        this._diffuse = Color.White();
-        this._diffuseScale = new Vec(1, 1);
-        this._diffuseUV = 0;
         this._alphaCutoff = 0.5;
         this._isTransparent = false;
-        this._metallic = 0;
-        this._metallicChannel = 0;
-        this._metallicScale = new Vec(1, 1);
-        this._metallicUV = 0;
+        this._albedo = Color.White();
+        this._albedoTexture = null;
+        this._albedoScale = new Vec(1, 1);
+        this._albedoUV = 0;
+        this._normalTexture = null;
+        this._normalScale = new Vec(1, 1);
+        this._normalUV = 0;
+        this._metalness = 0;
+        this._metalnessTexture = null;
+        this._metalnessChannel = 0;
+        this._metalnessScale = new Vec(1, 1);
+        this._metalnessUV = 0;
         this._roughness = 1;
+        this._roughnessTexture = null;
         this._roughnessChannel = 0;
         this._roughnessScale = new Vec(1, 1);
         this._roughnessUV = 0;
-        this._fresnel = Color.White();
+        this._fresnelTint = Color.White();
+        this._sheenIntensity = 0.0;
+        this._sheenColor = Color.White();
         this._lightEmission = 0;
+        this._lightEmissionTexture = null;
         this._lightEmissionChannel = 0;
         this._lightEmissionScale = new Vec(1, 1);
         this._lightEmissionUV = 0;
         this._ambientOcclussion = 1;
         this._ambientOcclussionChannel = 0;
         this._ambientOcclussionUV = 1;
-        this._normal = new Color({ r: 0.5, g: 0.5, b: 1 });
-        this._normalScale = new Vec(1, 1);
-        this._normalUV = 0;
-        this._height = 0;
+        this._heightTexture = 0;
         this._heightChannel = 0;
         this._heightScale = new Vec(1, 1);
         this._heightUV = 0;
@@ -387,38 +270,45 @@ export default class Material {
     }
 
     assign(other) {
-        this.type = other._type;
-        this.diffuse = cloneObject(other._diffuse);
-        this.diffuseScale = cloneObject(other._diffuseScale);
-        this.diffuseUV = other._diffuseUV;
-        this.alphaCutoff = other._alphaCutoff;
-        this.isTransparent = other._isTransparent;
-        this.metallic = cloneObject(other._metallic);
-        this.metallicChannel = other._metallicChannel;
-        this.metallicScale = cloneObject(other._metallicScale);
-        this.metallicUV = other._metallicUV;
-        this.roughness = cloneObject(other._roughness);
-        this.roughnessChannel = other._roughnessChannel;
-        this.roughnessScale = cloneObject(other._roughnessScale);
-        this.roughnessUV = other._roughnessUV;
-        this.fresnel = cloneObject(other._fresnel);
-        this.lightEmission = cloneObject(other._lightEmission);
-        this.lightEmissionChannel = other._lightEmissionChannel;
-        this.lightEmissionScale = cloneObject(other._lightEmissionScale);
-        this.lightEmissionUV = other._lightEmissionUV;
-        this.ambientOcclussion = cloneObject(other._ambientOcclussion);
-        this.ambientOcclussionChannel = other._ambientOcclussionChannel;
-        this.ambientOcclussionUV = other._ambientOcclussionUV;
-        this.normal = cloneObject(other._normal);
-        this.normalScale = cloneObject(other._normalScale);
-        this.normalUV = other._normalUV;
-        this.height = cloneObject(other._height);
-        this.heightChannel = other._heightChannel;
-        this.heightScale = cloneObject(other._heightScale);
-        this.heightUV = other._heightUV;
-        this.heightIntensity = other._heightIntensity;
-        this.castShadows = other._castShadows;
-        this.unlit = other._unlit;
+        this._type = other._type;
+        this._alphaCutoff = other._alphaCutoff;;
+        this._isTransparent = other._isTransparent;
+        this._albedo = cloneObject(other._albedo);
+        this._albedoTexture = cloneObject(other._albedoTexture);
+        this._albedoScale = cloneObject(other._albedoScale);
+        this._albedoUV = other._albedoUV;
+        this._normalTexture = this.cloneObject(other._normalTexture);
+        this._normalScale = cloneObject(other._normalScale);
+        this._normalUV = other._normalUV;
+        this._metalness = other._metalness;
+        this._metalnessTexture = this.cloneObject(other._metalnessTexture);
+        this._metalnessChannel = other._metalnessChannel;
+        this._metalnessScale = cloneObject(other._metalnessScale);
+        this._metalnessUV = other._metalnessUV;
+        this._roughness = other._roughness;
+        this._roughnessTexture = this.cloneObject(other._roughnessTexture);
+        this._roughnessChannel = other._roughnessChannel;
+        this._roughnessScale = cloneObject(other._roughnessScale);
+        this._roughnessUV = other._roughnessUV;
+        this._fresnelTint = cloneObject(other._fresnelTint);
+        this._sheenIntensity = other._sheenIntensity;
+        this._sheenColor = cloneObject(other._sheenColor);
+        this._lightEmission = other._lightEmission;
+        this._lightEmissionTexture = this.cloneObject(other._lightEmissionTexture);
+        this._lightEmissionChannel = other._lightEmissionChannel;
+        this._lightEmissionScale = cloneObject(other._lightEmissionScale);
+        this._lightEmissionUV = other._lightEmissionUV;
+        this._ambientOcclussion = other._ambientOcclussion;
+        this._ambientOcclussionChannel = other._ambientOcclussionChannel;
+        this._ambientOcclussionUV = other._ambientOcclussionUV;
+        this._heightTexture = this.cloneObject(other._heightTexture);
+        this._heightChannel = other._heightChannel;
+        this._heightScale = cloneObject(other._heightScale);
+        this._heightUV = other._heightUV;
+        this._heightIntensity = other._heightIntensity;
+        this._castShadows = other._castShadows;
+        this._unlit = other._unlit;
+
         this._dirty = true;
     }
 
@@ -432,62 +322,98 @@ export default class Material {
         this._dirty = true;
     }
 
-    // Compatibility with v1.4
-    set class(v) { this.type = v; this._dirty = true; }
-    get class() { return this.type; }
-
-
-    get diffuse() { return this._diffuse; }
-    set diffuse(v) { 
-        assertColorTexture(v, "diffuse");
-        if (this._diffuse instanceof Texture) {
-            this._diffuse.decReferences();
+    get albedo() { return this._albedo; }
+    set albedo(v) {
+        this._albedo = v;
+        this._dirty = true;
+    }
+    get albedoTexture() { return this._albedoTexture; }
+    set albedoTexture(v) {
+        assertTexture(v, "albedoTexture");
+        if (this._albedoTexture instanceof Texture) {
+            this._albedoTexture.decReferences();
         }
-        this._diffuse = v;
-        if (this._diffuse instanceof Texture) {
-            this._diffuse.incReferences();
+        this._albedoTexture = v;
+        if (this._albedoTexture instanceof Texture) {
+            this._albedoTexture.incReferences();
         }
         this._dirty = true;
     }
 
-    get diffuseScale() { return this._diffuseScale; }
-    set diffuseScale(v) { assertScale(v, "diffuseScale"); this._diffuseScale = new Vec(v); this._dirty = true; }
-    get diffuseUV() { return this._diffuseUV; }
-    set diffuseUV(v) { this._diffuseUV = v; this._dirty = true; }
+    get albedoScale() { return this._albedoScale; }
+    set albedoScale(v) { assertScale(v, "albedoScale"); this._albedoScale = new Vec(v); this._dirty = true; }
+    get albedoUV() { return this._albedoUV; }
+    set albedoUV(v) { this._albedoUV = v; this._dirty = true; }
     get alphaCutoff() { return this._alphaCutoff; }
     set alphaCutoff(v) { this._alphaCutoff = v; this._dirty = true; }
     get isTransparent() { return this._isTransparent; }
     set isTransparent(v) { this._isTransparent = v; this._dirty = true; }
-    
-    get metallic() { return this._metallic; }
-    set metallic(v) {
-        assertValueTexture(v, "metallic");
-        if (this._metallic instanceof Texture) {
-            this._metallic.decReferences();
+
+    get normalTexture() { return this._normalTexture; }
+    set normalTexture(v) {
+        assertTexture(v, "normalTexture");
+        if (this._normalTexture instanceof Texture) {
+            this._normalTexture.decReferences();
         }
-        this._metallic = v;
-        if (this._metallic instanceof Texture) {
-            this._metallic.incReferences();
+        this._normalTexture = v;
+        if (this._normalTexture instanceof Texture) {
+            this._normalTexture.incReferences();
+        }
+        this._dirty = true;
+    }
+
+    get normalChannel() { return this._normalChannel; }
+    set normalChannel(v) { this._normalChannel = v; this._dirty = true; }
+    get normalScale() { return this._normalScale; }
+    set normalScale(v) { assertScale(v, "normalScale"); this._normalScale = new Vec(v); this._dirty = true; }
+    get normalUv() { return this._normalUv; }
+    set normalUv(v) { this._normalUv = v; this._dirty = true; }
+    get normalScale() { return this._normalScale; }
+    set normalScale(v) { assertScale(v, "normalScale"); this._normalScale = new Vec(v); this._dirty = true; }
+    get normalUv() { return this._normalUv; }
+    set normalUv(v) { this._normalUv = v; this._dirty = true; }
+    
+    get metalness() { return this._metalness; }
+    set metalness(v) {
+        this._metalness = v;
+        this._dirty = true;
+    }
+
+    get metalnessTexture() { return this._metalnessTexture; }
+    set metalnessTexture(v) {
+        assertTexture(v, "metalness");
+        if (this._metalnessTexture instanceof Texture) {
+            this._metalnessTexture.decReferences();
+        }
+        this._metalnessTexture = v;
+        if (this._metalnessTexture instanceof Texture) {
+            this._metalnessTexture.incReferences();
         }
         this._dirty = true;
     }
     
-    get metallicChannel() { return this._metallicChannel; }
-    set metallicChannel(v) { this._metallicChannel = v; this._dirty = true; }
-    get metallicScale() { return this._metallicScale; }
-    set metallicScale(v) { assertScale(v, "metallicScale"); this._metallicScale = new Vec(v); this._dirty = true; }
-    get metallicUV() { return this._metallicUV; }
-    set metallicUV(v) { this._metallicUV = v; this._dirty = true; }
+    get metalnessChannel() { return this._metalnessChannel; }
+    set metalnessChannel(v) { this._metalnessChannel = v; this._dirty = true; }
+    get metalnessScale() { return this._metalnessScale; }
+    set metalnessScale(v) { assertScale(v, "metalnessScale"); this._metalnessScale = new Vec(v); this._dirty = true; }
+    get metalnessUV() { return this._metalnessUV; }
+    set metalnessUV(v) { this._metalnessUV = v; this._dirty = true; }
 
     get roughness() { return this._roughness; }
     set roughness(v) {
-        assertValueTexture(v, "roughness");
-        if (this._roughness instanceof Texture) {
-            this._roughness.decReferences();
-        }
         this._roughness = v;
-        if (this._roughness instanceof Texture) {
-            this._roughness.incReferences();
+        this._dirty = true;
+    }
+    
+    get roughnessTexture() { return this._roughnessTexture; }
+    set roughnessTexture (v) {
+        assertTexture(v, "roughness");
+        if (this._roughnessTexture instanceof Texture) {
+            this._roughnessTexture.decReferences();
+        }
+        this._roughnessTexture = v;
+        if (this._roughnessTexture instanceof Texture) {
+            this._roughnessTexture.incReferences();
         }
         this._dirty = true;
     }
@@ -498,18 +424,25 @@ export default class Material {
     set roughnessScale(v) { assertScale(v, "roughnessScale"); this._roughnessScale = new Vec(v); this._dirty = true; }
     get roughnessUV() { return this._roughnessUV; }
     set roughnessUV(v) { this._roughnessUV = v; this._dirty = true; }
-    get fresnel() { return this._fresnel; }
-    set fresnel(v) { assertColor(v, "fresnel"); this._fresnel = v; this._dirty = true; }
-    
+
+    get fresnelTint() { return this._fresnelTint; }
+    set fresnelTint(v) { assertColor(v, "fresnelTint"); this._fresnelTint = v; this._dirty = true; }
+    get sheenIntensity() { return this._sheenIntensity; }
+    set sheenIntensity(v) { this._sheenIntensity = v; this._dirty = true; }
+    get sheenColor() { return this._sheenColor; }
+    set sheenColor(v) { assertColor(v, "sheenColor"); this._sheenColor = v; this._dirty = true; }
+
     get lightEmission() { return this._lightEmission; }
-    set lightEmission(v) {
-        assertValueTexture(v, 'lightEmission'); 
-        if (this._lightEmission instanceof Texture) {
-            this._lightEmission.decReferences();
+    set lightEmission(v) { assertColor(v, "lightEmission"); this._lightEmission = v; this._dirty = true; }
+    get lightEmissionTexture() { return this._lightEmissionTexture; }
+    set lightEmissionTexture(v) {
+        assertTexture(v, 'lightEmissionTexture');
+        if (this._lightEmissionTexture instanceof Texture) {
+            this._lightEmissionTexture.decReferences();
         }
-        this._lightEmission = v;
-        if (this._lightEmission instanceof Texture) {
-            this._lightEmission.incReferences();
+        this._lightEmissionTexture = v;
+        if (this._lightEmissionTexture instanceof Texture) {
+            this._lightEmissionTexture.incReferences();
         }
         this._dirty = true;
     }
@@ -523,7 +456,7 @@ export default class Material {
 
     get ambientOcclussion() { return this._ambientOcclussion; }
     set ambientOcclussion(v) {
-        assertColorTexture(v, "ambientOcclussion");
+        assertTexture(v, "ambientOcclussion");
         if (this._ambientOcclussion instanceof Texture) {
             this._ambientOcclussion.decReferences();
         }
@@ -539,25 +472,10 @@ export default class Material {
     get ambientOcclussionUV() { return this._ambientOcclussionUV; }
     set ambientOcclussionUV(v) { this._ambientOcclussionUV = v; this._dirty = true; }
 
-    get normal() { return this._normal; }
-    set normal(v) {
-        assertColorTexture(v, "normal");
-        if (this._normal instanceof Texture) {
-            this._normal.decReferences();
-        }
-        this._normal = v;
-        if (this._normal instanceof Texture) {
-            this._normal.incReferences();
-        }
-        this._dirty = true;
-    }
     
-    get normalScale() { return this._normalScale; }
-    set normalScale(v) { assertScale(v, "normalScale"); this._normalScale = new Vec(v); this._dirty = true; }
-    get normalUV() { return this._normalUV; }
-    set normalUV(v) { this._normalUV = v; this._dirty = true; }
-    get height() { return this._height; }
-    set height(v) { assertValueTexture(v, "height"); this._height = v; this._dirty = true; }
+    
+    get heightTexture() { return this._heightTexture; }
+    set heightTexture(v) { assertTexture(v, "heightTexture"); this._heightTexture = v; this._dirty = true; }
     get heightChannel() { return this._heightChannel; }
     set heightChannel(v) { this._heightChannel = v; this._dirty = true; }
     get heightScale() { return this._heightScale; }
@@ -580,22 +498,21 @@ export default class Material {
 
     async deserialize(sceneData, relativePath) {
         const P = [];
-        for (const i in MaterialAttributeNames) {
-            const att = MaterialAttributeNames[i];
-            if (sceneData[att] !== undefined) {
-                let value = null;
-                if (att === "type") {
-                    value = deserializeAttribute("class", sceneData, relativePath, this.canvas);
-                }
-                else {
-                    value = deserializeAttribute(att, sceneData, relativePath, this.canvas);
-                    if (value instanceof Texture) {
-                        P.push(value.loadImageData());
-                    }
+        
+        this.type = sceneData.type || MaterialType.PBR;
+        this.alphaCutoff = sceneData.alphaCutoff || 0.5;
+        this.isTransparent = sceneData.isTransparent || false;
+
+        for (const attName in MaterialAttributeNames) {
+            const loader = MaterialAttributeNames[attName]?.loader;
+            if (loader) {
+                const value = loader.deserialize(attName, sceneData[attName], relativePath, this.canvas);
+                if (value instanceof Texture) {
+                    P.push(value.loadImageData());
                 }
 
-                if (value !== null) {
-                    this[att] = value;
+                if (value !== null && value !== undefined) {
+                    this[attName] = value;
                 }
             }
         }
@@ -609,9 +526,16 @@ export default class Material {
             }
         }
 
-        ColorTextureAttributes.forEach(decReferences);
-        ValueTextureAttributes.forEach(decReferences);
+        decReferences("albedoTexture");
+        decReferences("normalTexture");
+        decReferences("metalnessTexture");
+        decReferences("roughnessTexture");
+        decReferences("lightEmissionTexture");
+        decReferences("ambientOcclussion");
+        decReferences("height");
 
+        this._canvas = null;
+        
         if (this.renderer) {
             this.renderer.destroy();
         }

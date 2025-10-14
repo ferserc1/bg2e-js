@@ -99,6 +99,14 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
         const buffer = await this._resource.load(path);
         const jsonData = bg2io.loadBg2FileAsJson(buffer);
 
+        // Compatibility with 1.4 models
+        jsonData.materials.forEach(mat => {
+            if (!mat.type) {
+                mat.type = mat["class"];
+                delete mat["class"];
+            }
+        });
+        
         switch (resourceType) {
         case ResourceType.PolyList:
             return createPolyList(jsonData,loader).map(item => item.plist);

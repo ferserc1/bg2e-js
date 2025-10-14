@@ -31,8 +31,8 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
                 }
             }
 
-            this._textureMerger.setTexture(getTexture('metallic'), TextureChannel.R, TextureChannel.R + this.material.metallicChannel);
-            this._textureMerger.setTexture(getTexture('roughness'), TextureChannel.G, TextureChannel.R + this.material.roughnessChannel);
+            this._textureMerger.setTexture(getTexture('metalnessTexture'), TextureChannel.R, TextureChannel.R + this.material.metalnessChannel);
+            this._textureMerger.setTexture(getTexture('roughnessTexture'), TextureChannel.G, TextureChannel.R + this.material.roughnessChannel);
             this._textureMerger.setTexture(getTexture('lightEmission', this._blackTexture), TextureChannel.B, TextureChannel.R + this.material.lightEmissionChannel);
             this._textureMerger.setTexture(getTexture('ambientOcclussion'), TextureChannel.A, TextureChannel.R + this.material.ambientOcclussionChannel);
             this._textureMerger.update();
@@ -40,7 +40,7 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
         }
     }
 
-    get metallicRoughnessHeightAOTexture() {
+    get metalnessRoughnessHeightAOTexture() {
         return this._textureMerger.mergedTexture;
     }
 
@@ -51,9 +51,9 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
         }
     }
 
-    // Bind the metallic, roughness, height and ambient occlussion combined texture
-    bindMetallicRoughnessHeightAOTexture(shaderProgram, uniformName, textureUnit) {
-        shaderProgram.bindTexture(uniformName, this.renderer.factory.texture(this.metallicRoughnessHeightAOTexture), textureUnit);
+    // Bind the metalness, roughness, height and ambient occlussion combined texture
+    bindMetalnessRoughnessHeightAOTexture(shaderProgram, uniformName, textureUnit) {
+        shaderProgram.bindTexture(uniformName, this.renderer.factory.texture(this.metalnessRoughnessHeightAOTexture), textureUnit);
         return true;
     }
 

@@ -9,6 +9,8 @@ const checkImageData = (texture) => {
     return texture instanceof Texture ? texture.loadImageData() : Promise.resolve();
 }
 
+
+// TODO: Update all material properties
 export default class MaterialModifier {
     constructor(jsonData = null) {
         if (jsonData) {
