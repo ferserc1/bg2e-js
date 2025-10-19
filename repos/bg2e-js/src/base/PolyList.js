@@ -100,28 +100,28 @@ function buildTangents(plist) {
 
     if (plist.index.length % 3 === 0) {
         for (let i = 0; i < plist.index.length - 2; i += 3) {
-            let v0 = createVertex(plist.index[i + 1]);
-            let v1 = createVertex(plist.index[i]);
+            let v0 = createVertex(plist.index[i]);
+            let v1 = createVertex(plist.index[i + 1]);
             let v2 = createVertex(plist.index[i + 2]);
 
             let edge1 = Vec.Sub(v1.pos, v0.pos);
-            let edge2 = Vec.Sub(v2.pos, v0.pos);
+            let edge2 = Vec.Sub(v2.pos, v1.pos);
 
             let uv1 = createUV(v1, v0);
             let uv2 = createUV(v2, v0);
             let r = calcR(uv1, uv2);
 
             if (!isFinite(r)) {
-                v0.uv.x = v0.uv.x * 1.3;
-                v0.uv.y = v0.uv.y * 0.8;
-                uv1 = createUV(v0, v1);
-                uv2 = createUV(v2, v1);
+                v0.uv.x = v0.uv.x * 1.1;
+                v0.uv.y = v0.uv.y * 0.94;
+                uv1 = createUV(v1, v0);
+                uv2 = createUV(v2, v0);
                 r = calcR(uv1, uv2);
             }
 
             if (!isFinite(r)) {
-                v2.uv.x = v2.uv.x * 1.1;
-                v2.uv.y = v2.uv.y * 0.9;
+                v2.uv.x = v2.uv.x * 1.3;
+                v2.uv.y = v2.uv.y * 1.82;
                 uv1 = createUV(v1, v0);
                 uv2 = createUV(v2, v0);
                 r = calcR(uv1, uv2);
