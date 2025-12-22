@@ -68,12 +68,22 @@ export default class Loader {
         return result;
     }
 
+    async loadResourceBuffer(buffer, format, dependencies, type) {
+        const plugin = getLoaderPlugin(`file.${ format }`, type);
+        const result = await plugin.loadBuffer(buffer, format, dependencies, type, this);
+        return result;
+    }
+
     async loadPolyList(path) {
         return await this.loadResource(path, ResourceType.PolyList);
     }
 
     async loadDrawable(path) {
         return await this.loadResource(path, ResourceType.Drawable);
+    }
+
+    async loadDrawableBuffer(buffer, format, dependencies) {
+        return await this.loadResourceBuffer(buffer, format, dependencies, ResourceType.Drawable);
     }
 
     async loadNode(path) {
