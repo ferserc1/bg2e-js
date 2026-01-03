@@ -25,12 +25,6 @@ switch (processType) {
 case ProcessType.BROWSER:
     console.log("The application is running in a browser");
     break;
-case ProcessType.ELECTRON_RENDERER:
-    console.log("The application is running in Electron (renderer process)");
-    break;
-case ProcessType.ELECTRON_MAIN:
-    console.log("The application is running in Electron (main process)");
-    break;
 case ProcessType.NODE:
     console.log("The application is running in Node.js");
     break;

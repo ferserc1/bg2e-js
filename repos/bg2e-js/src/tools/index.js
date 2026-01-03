@@ -23,6 +23,7 @@ import {
     ProcessType,
     ProcessTypeName,
     getProcessType,
+    getProcessTypeName,
     isBrowser, isNode
 } from './processType';
 
@@ -36,5 +37,5 @@ export default {
     VideoResourceProvider,
     BinaryResourceProvider,
     TextResourceProvider,
-    ProcessType, ProcessTypeName, getProcessType, isBrowser, isNode
+    ProcessType, ProcessTypeName, getProcessType, getProcessTypeName, isBrowser, isNode
 };

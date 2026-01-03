@@ -1,18 +1,23 @@
 
-import Color from 'bg2e/base/Color';
-import Light from 'bg2e/base/Light';
-import PolyList from 'bg2e/base/PolyList';
-import Texture, {
+import { base, math } from 'bg2e-js';
+
+const {
+    Color,
+    Light,
+    PolyList,
+    Texture,
     TextureDataType,
     TextureWrap,
     TextureFilter,
     TextureWrapName,
     TextureFilterName,
-    TextureDataTypeName
-} from 'bg2e/base/Texture';
-import Material from 'bg2e/base/Material';
-import Vec from 'bg2e/math/Vec';
+    TextureDataTypeName,
+    Material
+} = base;
 
+const {
+    Vec
+} = math;
 
 console.log(Vec);
 
