@@ -2,8 +2,10 @@ import Mat4 from "./Mat4";
 
 
 export default class MatrixStrategy {
-    constructor(target) {
-        if (!target instanceof Mat4) {
+    private _target: Mat4 | null;
+
+    constructor(target: Mat4 | null = null) {
+        if (target !== null && !(target instanceof Mat4)) {
             throw Error("MatrixStrategy: invalid target object. Target object must be of type bg.math.Mat4");
         }
         this._target = target;

@@ -1,27 +1,32 @@
 import Vec from "./Vec";
 
 export default class Quat extends Vec {
-    constructor(a,b,c,d) {
+    constructor();
+    constructor(quat: ArrayLike<number>);
+    constructor(matrix3: ArrayLike<number>);
+    constructor(matrix4: ArrayLike<number>);
+    constructor(alpha: number, x: number, y: number, z: number);
+    constructor(a?: number | ArrayLike<number>, b?: number, c?: number, d?: number) {
         super(0,0,0,0);
 
         if (a === undefined) {
-            Vec.Zero(this);
+            this.setValue(0, 0, 0, 0);
         }
         else if (b === undefined) {
-            if (a.length === 4) {
-                Vec.Assign(this, a);
+            if (typeof a === 'object' && a.length === 4) {
+                this.assign(a);
             }
-            else if (a.length === 9) {
+            else if (typeof a === 'object' && a.length === 9) {
                 this.initWithMatrix3(a);
             }
-            else if (a.length === 16) {
+            else if (typeof a === 'object' && a.length === 16) {
                 this.initWithMatrix4(a);
             }
             else {
                 throw new Error("Invalid parameter initializing Quaternion");
             }
         }
-        else if (a !== undefined && b !== undefined && c !== undefined && d !== undefined) {
+        else if (typeof a === 'number' && b !== undefined && c !== undefined && d !== undefined) {
             this.initWithValues(a, b, c, d);
         }
         else {
@@ -29,7 +34,7 @@ export default class Quat extends Vec {
         }
     }
 
-    initWithMatrix3(m) {
+    initWithMatrix3(m: ArrayLike<number>): void {
         const w = Math.sqrt(1 + m[0] + m[4] + m[8]) / 2;
         const w4 = 4 * w;
         
@@ -39,7 +44,7 @@ export default class Quat extends Vec {
         this[3] = w;
     }
 
-    initWithMatrix4(m) {
+    initWithMatrix4(m: ArrayLike<number>): void {
         const w = Math.sqrt(1 + m[0] + m[5] + m[10]) / 2;
         const w4 = 4 * w;
         
@@ -49,7 +54,7 @@ export default class Quat extends Vec {
         this[3] = w;
     }
 
-    initWithValues(alpha, x, y, z) {
+    initWithValues(alpha: number, x: number, y: number, z: number): this {
         this[0] = x * Math.sin( alpha / 2 );
         this[1] = y * Math.sin( alpha / 2 );
         this[2] = z * Math.sin( alpha / 2 );

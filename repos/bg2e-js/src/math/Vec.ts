@@ -1,61 +1,67 @@
-
 import { NumericArray } from "./constants";
 import { isZero, equals, lerp, clamp } from "./functions";
 
-const checkEqualLength = (v1,v2) => {
+const checkEqualLength = (v1: ArrayLike<number>, v2: ArrayLike<number>): void => {
     if (v1.length!=v2.length) throw new Error(`Invalid vector length in operation`);
 }
 
 export default class Vec extends NumericArray {
-    constructor() {
-        switch (arguments.length) {
+    constructor();
+    constructor(v: ArrayLike<number>);
+    constructor(v: ArrayLike<number>, z: number);
+    constructor(v: ArrayLike<number>, z: number, w: number);
+    constructor(x: number, y: number);
+    constructor(x: number, y: number, z: number);
+    constructor(x: number, y: number, z: number, w: number);
+    constructor(...args: any[]) {
+        switch (args.length) {
         case 0:
             super([0, 0]);
             break;
         case 1:
-            if (arguments[0].length>1 && arguments[0].length<5)
+            if (args[0].length>1 && args[0].length<5)
             {
-                super(arguments[0]);
+                super(args[0]);
             }
             break;
         case 2:
-            if (arguments[0].length === 2 && typeof(arguments[1]) === "number"
+            if (args[0].length === 2 && typeof(args[1]) === "number"
             ) {
-                super([ arguments[0][0], arguments[0][1], arguments[1]]);
+                super([ args[0][0], args[0][1], args[1]]);
             }
-            else if (arguments[0].length === 3 &&
-                typeof(arguments[1]) === "number"
+            else if (args[0].length === 3 &&
+                typeof(args[1]) === "number"
             ) {
-                super([ arguments[0][0], arguments[0][1], arguments[0][2], arguments[1]]);
+                super([ args[0][0], args[0][1], args[0][2], args[1]]);
             }
-            else if (typeof(arguments[0]) === "number" &&
-                typeof(arguments[1]) === "number"
+            else if (typeof(args[0]) === "number" &&
+                typeof(args[1]) === "number"
             ) {
-                super([arguments[0],arguments[1]]);
+                super([args[0],args[1]]);
             }
             break;
         case 3:
-            if (arguments[0].length === 2 &&
-                typeof(arguments[1]) === "number" && typeof(arguments[2]) === "number"
+            if (args[0].length === 2 &&
+                typeof(args[1]) === "number" && typeof(args[2]) === "number"
             ) {
-                super([ arguments[0][0], arguments[0][1], arguments[1], arguments[2]])
+                super([ args[0][0], args[0][1], args[1], args[2]])
             }
-            else if (typeof(arguments[0]) === "number" &&
-                typeof(arguments[1]) === "number" &&
-                typeof(arguments[2]) === "number"
+            else if (typeof(args[0]) === "number" &&
+                typeof(args[1]) === "number" &&
+                typeof(args[2]) === "number"
             ) {
-                super([arguments[0],arguments[1],arguments[2]]);
+                super([args[0],args[1],args[2]]);
             }
             break;
         case 4:
-            super([arguments[0],arguments[1],arguments[2],arguments[3]]);
+            super([args[0],args[1],args[2],args[3]]);
             break;
         default:
             throw new Error(`Invalid parameters in Vec constructor`);
         }
     }
 
-    normalize() {
+    normalize(): this {
         const m = Vec.Magnitude(this);
         switch (this.length) {
         case 4:
@@ -72,7 +78,7 @@ export default class Vec extends NumericArray {
         return this;
     }
 
-    assign(src) {
+    assign(src: ArrayLike<number>): void {
         checkEqualLength(this,src);
         switch (this.length) {
         case 4:
@@ -88,17 +94,18 @@ export default class Vec extends NumericArray {
         }
     }
 
-    set(x, y, z = null, w = null) {
+    
+    setValue(x: number, y: number, z?: number | null, w?: number | null): void {
         if (this.length === 2) {
             this[0] = x;
             this[1] = y;
         }
-        else if (this.length === 3 && z !== null) {
+        else if (this.length === 3 && z !== null && z !== undefined) {
             this[0] = x;
             this[1] = y;
             this[2] = z;
         }
-        else if (this.length === 4 && w !== null) {
+        else if (this.length === 4 && z !== null && z !== undefined && w !== null && w !== undefined) {
             this[0] = x;
             this[1] = y;
             this[2] = z;
@@ -109,7 +116,11 @@ export default class Vec extends NumericArray {
         }
     }
 
-    scale(s) {
+    set(array: ArrayLike<number>, offset?: number): this {
+        throw new Error("Vec.set() is not available. Use Vec.setValue() to set individual components or Vec.assign() to copy from another vector.");
+    }
+
+    scale(s: number): this {
         switch (this.length) {
         case 4:
             this[3] = this[3] * s;
@@ -120,84 +131,76 @@ export default class Vec extends NumericArray {
             this[0] = this[0] * s;
             break;
         default:
-            throw new Error(`Invalid vector size: ${ v.length }`);
+            throw new Error(`Invalid vector size: ${ this.length }`);
         }
         return this;
     }
 
-    get x() {
+    get x(): number {
         return this[0];
     }
 
-    get y() {
+    get y(): number {
         return this[1];
     }
 
-    get z() {
+    get z(): number {
         return this[2];
     }
 
-    get w() {
+    get w(): number {
         return this[3];
     }
 
-    set x(v) {
+    set x(v: number) {
         this[0] = v;
-        return this;
     }
 
-    set y(v) {
+    set y(v: number) {
         this[1] = v;
-        return this;
     }
 
-    set z(v) {
+    set z(v: number) {
         this[2] = v;
-        return this;
     }
 
-    set w(v) {
+    set w(v: number) {
         this[3] = v;
-        return this;
     }
 
-    get r() {
+    get r(): number {
         return this[0];
     }
 
-    get g() {
+    get g(): number {
         return this[1];
     }
 
-    get b() {
+    get b(): number {
         return this[2];
     }
 
-    get a() {
+    get a(): number {
         return this[3];
     }
 
-    set r(v) {
+    set r(v: number) {
         this[0] = v;
-        return this;
     }
 
-    set g(v) {
+    set g(v: number) {
         this[1] = v;
-        return this;
     }
 
-    set b(v) {
+    set b(v: number) {
         this[2] = v;
-        return this;
     }
 
-    set a(v) {
+    set a(v: number) {
         this[3] = v;
-        return this;
     }
 
-    get width() {
+    get width(): number {
         switch (this.length) {
         case 2:
             return this[0];
@@ -208,7 +211,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    get height() {
+    get height(): number {
         switch (this.length) {
             case 2:
                 return this[1];
@@ -219,17 +222,15 @@ export default class Vec extends NumericArray {
             }
     }
 
-    set width(w) {
+    set width(w: number) {
         this[0] = w;
-        return this;
     }
 
-    set height(h) {
+    set height(h: number) {
         this[1] = h;
-        return this;
     }
     
-    get xy() {
+    get xy(): Vec {
         switch (this.length) {
         case 2:
             return new Vec(this);
@@ -241,7 +242,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    get xz() {
+    get xz(): Vec {
         switch (this.length) {
         case 3:
         case 4:
@@ -252,7 +253,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    get yz() {
+    get yz(): Vec {
         switch (this.length) {
         case 3:
         case 4:
@@ -263,49 +264,45 @@ export default class Vec extends NumericArray {
         }
     }
 
-    set xy(v) {
+    set xy(v: ArrayLike<number>) {
         this[0] = v[0];
         this[1] = v[1];
-        return this;
     }
 
-    set xz(v) {
+    set xz(v: ArrayLike<number>) {
         if (this.length<3) {
             throw new Error('Invalid vector size');
         }
         this[0] = v[0];
         this[2] = v[1];
-        return this;
     }
 
-    set yz(v) {
+    set yz(v: ArrayLike<number>) {
         if (this.length<3) {
             throw new Error('Invalid vector size');
         }
         this[1] = v[0];
         this[2] = v[1];
-        return this;
     }
 
-    get xyz() {
+    get xyz(): Vec {
         if (this.length < 3) {
             throw new Error(`Invalid vector size: ${ this.length }`);
         }
         return new Vec(this[0], this[1], this[2]);
     }
 
-    set xyz(v) {
+    set xyz(v: ArrayLike<number>) {
         if (v.length<3 || this.length<3) {
             throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
         }
         this[0] = v[0];
         this[1] = v[1];
         this[2] = v[2];
-        return this;
     }
 
     // Copy operator
-    get xyzw() {
+    get xyzw(): Vec {
         if (this.length < 4) {
             throw new Error(`Invalid vector size: ${ this.length }, 4 required`);
         }
@@ -313,7 +310,7 @@ export default class Vec extends NumericArray {
     }
 
     // Assign operator
-    set xyzw(v) {
+    set xyzw(v: ArrayLike<number>) {
         if (this.length < 4 || v.length<4) {
             throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
         }
@@ -321,64 +318,62 @@ export default class Vec extends NumericArray {
         this[1] = v[1];
         this[2] = v[2];
         this[3] = v[3];
-        return this;
     }
 
-    get rgb() {
+    get rgb(): Vec {
         if (this.length < 3) {
             throw new Error(`Invalid vector size: ${this.length}, but at least 3 required`);
         }
         return new Vec(this[0],this[1],this[2]);
     }
 
-    set rgb(v) {
+    set rgb(v: ArrayLike<number>) {
         if (v.length<3 || this.length<3) {
             throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
         }
         this[0] = v[0];
         this[1] = v[1];
         this[2] = v[2];
-        return this;
     }
 
-    get rg() {
-        if (v.length<3 || this.length<3) {
-            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+    get rg(): Vec {
+        if (this.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${this.length}`);
         }
         return new Vec(this[0], this[1]);
     }
 
-    get gb() {
-        if (v.length<3 || this.length<3) {
-            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+    get gb(): Vec {
+        if (this.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${this.length}`);
         }
         return new Vec(this[1], this[2]);
     }
 
-    get rb() {
-        if (v.length<3 || this.length<3) {
-            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+    get rb(): Vec {
+        if (this.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${this.length}`);
         }
         return new Vec(this[0], this[2]);
     }
 
-    get hexColor() {
+    get hexColor(): string {
         const r = Math.round(this.r * 255);
         const g = Math.round(this.g * 255);
         const b = Math.round(this.b * 255);
-        const hex = (color) => color.toString(16).toUpperCase();
+        const hex = (color: number): string => color.toString(16).toUpperCase();
         return `#${ hex(r) }${ hex(g) }${ hex(b) }`;
     }
 
-    get cssColor() {
-        // Return rgb(x,y,z) or rgba(x,y,z,w);
+    get cssColor(): string | undefined {
+        return `rgb(${ Math.round(this.r * 255) } ${ Math.round(this.g * 255) } ${ Math.round(this.b * 255) }${ this.length>=4 ? `, ${ this.a }` : ''})`;
     }
 
-    get aspectRatio() {
+    get aspectRatio(): number {
         return this.width / this.height;
     }
 
-    toString() {
+    toString(): string {
         switch (this.length) {
         case 2:
             return `[${this[0]}, ${this[1]}]`;
@@ -387,13 +382,14 @@ export default class Vec extends NumericArray {
         case 4:
             return `[${this[0]}, ${this[1]}, ${this[2]}, ${this[3]}]`;
         }
+        return "[]";
     }
 
-    static CheckEqualLength(v1,v2) {
+    static CheckEqualLength(v1: ArrayLike<number>, v2: ArrayLike<number>): void {
         checkEqualLength(v1,v2);
     }
 
-    static Max(v1,v2) {
+    static Max(v1: ArrayLike<number>, v2: ArrayLike<number>): Vec {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
@@ -419,7 +415,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Min(v1,v2) {
+    static Min(v1: ArrayLike<number>, v2: ArrayLike<number>): Vec {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
@@ -445,7 +441,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Add(v1,v2) {
+    static Add(v1: ArrayLike<number>, v2: ArrayLike<number>): Vec {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
@@ -471,7 +467,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Sub(v1,v2) {
+    static Sub(v1: ArrayLike<number>, v2: ArrayLike<number>): Vec {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
@@ -497,7 +493,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Magnitude(v) {
+    static Magnitude(v: ArrayLike<number>): number {
         switch (v.length) {
         case 2:
             return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
@@ -510,12 +506,12 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Distance(v1,v2) {
+    static Distance(v1: ArrayLike<number>, v2: ArrayLike<number>): number {
         checkEqualLength(v1,v2);
         return Vec.Magnitude(Vec.Sub(v1,v2));
     }
 
-    static Dot(v1,v2) {
+    static Dot(v1: ArrayLike<number>, v2: ArrayLike<number>): number {
         checkEqualLength(v1,v2);
         switch (v1.length) {
         case 2:
@@ -529,11 +525,11 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Cross(v1,v2) {
-        checkEqualLength(v1,v2);
+    static Cross(v1: ArrayLike<number>, v2: ArrayLike<number>): Vec | number {
+        checkEqualLength(v1, v2);
         switch (v1.length) {
         case 2:
-            return v1[0] * v2[1] - v1[1] - v2[0];
+            return v1[0] * v2[1] - v1[1] * v2[0];
         case 3:
             return new Vec([
                 v1[1] * v2[2] - v1[2] * v2[1],
@@ -541,11 +537,11 @@ export default class Vec extends NumericArray {
                 v1[0] * v2[1] - v1[1] * v2[0],
             ]);
         default:
-            throw new Error(`Invalid vector size for cross product: ${ v1.length }`);
+            throw new Error(`Invalid vector size for cross product: ${v1.length}`);
         }
     }
 
-    static Normalized(v) {
+    static Normalized(v: ArrayLike<number>): Vec {
         const m = Vec.Magnitude(v);
         switch (v.length) {
         case 2:
@@ -559,7 +555,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Mult(v,s) {
+    static Mult(v: ArrayLike<number>, s: number): Vec {
         switch (v.length) {
         case 2:
             return new Vec([ v[0] * s, v[1] * s ]);
@@ -572,7 +568,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Div(v,s) {
+    static Div(v: ArrayLike<number>, s: number): Vec {
         switch (v.length) {
         case 2:
             return new Vec([ v[0] / s, v[1] / s ]);
@@ -585,32 +581,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Distance(v1,v2) {
-        if (v1.length != v2.length) {
-            throw new Error(`Different vector sizes calculating distance`);
-        }
-        else {
-            switch (v1.length) {
-            case 2:
-            {
-                const a = v1[0] - v2[0];
-                const b = v1[1] - v2[1];
-                return Math.sqrt(a * a +  b * b);
-            }
-            case 3:
-            {
-                const a = v1[0] - v2[0];
-                const b = v1[1] - v2[1];
-                const c = v1[2] - v2[2];
-                return Math.sqrt(a * a +  b * b + c * c);
-            }
-            default:
-                throw new Error(`Invalid vector size: ${ v1.length }`);
-            }
-        }
-    }
-
-    static Equals(v1,v2) {
+    static Equals(v1: ArrayLike<number>, v2: ArrayLike<number>): boolean {
         if (v1.length != v2.length) {
             return false;
         }
@@ -634,7 +605,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static IsZero(v) {
+    static IsZero(v: ArrayLike<number>): boolean {
         switch (v.length) {
         case 2:
             return isZero(v[0]) || isZero(v[1]);
@@ -647,7 +618,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static IsNaN(v) {
+    static IsNaN(v: ArrayLike<number>): boolean {
         switch (v.length) {
         case 2:
             return isNaN(v[0]) || isNaN(v[1]);
@@ -660,7 +631,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Lerp(u,v,d) {
+    static Lerp(u: ArrayLike<number>, v: ArrayLike<number>, d: number): Vec {
         if (u.length != v.length) {
             throw new Error(`Different vector sizes calculating linear interpolation`);
         }
@@ -688,7 +659,7 @@ export default class Vec extends NumericArray {
         }
     }
 
-    static Clamp(v, min, max) {
+    static Clamp(v: ArrayLike<number>, min: ArrayLike<number>, max: ArrayLike<number>): Vec {
         switch (v.length) {
         case 2:
             return new Vec(
@@ -709,20 +680,20 @@ export default class Vec extends NumericArray {
                 clamp(v[3], min[3], max[3])
             );
         default:
-            throw new Error(`Invalid vector size: ${ u.length }`);
+            throw new Error(`Invalid vector size: ${ v.length }`);
         }
     }
 
     /////// Constructors
-    static Vec2() {
+    static Vec2(): Vec {
         return new Vec(0,0);
     }
 
-    static Vec3() {
+    static Vec3(): Vec {
         return new Vec(0,0,0);
     }
 
-    static Vec4() {
+    static Vec4(): Vec {
         return new Vec(0,0,0,0);
     }
 }
