@@ -53,7 +53,7 @@ These methods are instance methods, for example, normalize a vector. These metho
 
 ```js
 console.log(
-    v1.set(1,2,3)
+    v1.setValue(1,2,3)
         .normalize()
         .scale(10)
         .toString()

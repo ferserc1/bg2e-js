@@ -308,7 +308,7 @@ export default class OrbitCameraController extends Component {
         if (this.transform && this._lastPos && this.enabled) {
             let delta = new Vec(this._lastPos.y - evt.y,
                                 this._lastPos.x - evt.x);
-            this._lastPos.set(evt.x,evt.y);
+            this._lastPos.setValue(evt.x,evt.y);
             let orthoStrategy = this.camera && this.camera.projectionStrategy instanceof OrthographicProjectionStrategy || false;
 
             switch (getOrbitAction(this)) {

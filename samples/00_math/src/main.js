@@ -74,10 +74,10 @@ log("v = [s, 9.7, 4.32] = ", new Vec(s, 9.7, 4.32));
 p.assign(q);
 log("p = q => p = ", p);
 
-p.set(6, 7, 8);
+p.setValue(6, 7, 8);
 log("p = (6, 7, 8) => ", p);
 
-p.set(9, 10, Math.sqrt(-1));
+p.setValue(9, 10, Math.sqrt(-1));
 log("p = (9, 10, sqrt(-1))", p);
 log("isNaN(p) = ", Vec.IsNaN(p));
 
