@@ -3,14 +3,29 @@ import Vec from '../math/Vec';
 import Mat4 from '../math/Mat4';
 import Color from './Color';
 
-export const LightType = Object.freeze({
-    DIRECTIONAL: 4,
-    SPOT: 1,
-    POINT: 5,
-    DISABLED: 10
-});
+export enum LightType {
+    DIRECTIONAL = 4,
+    SPOT = 1,
+    POINT = 5,
+    DISABLED = 10
+}
 
 export default class Light {
+    _enabled: boolean;
+    _type: LightType;
+    _direction: Vec;
+    _position: Vec;
+    _color: Color;
+    _intensity: number;
+    _spotCutoff: number;
+    _spotExponent: number;
+    _shadowStrength: number;
+    _castShadows: boolean;
+    _shadowBias: number;
+    _projection: Mat4;
+    _depthTexture: any;
+    _viewMatrix?: Mat4;
+
     constructor() {
         this._enabled = true;
         
@@ -39,7 +54,7 @@ export default class Light {
         return newLight;
     }
     
-    assign(other) {
+    assign(other: Light) {
         this.enabled = other.enabled;
         this.type = other.type;
         this.direction.assign(other.direction);
@@ -112,7 +127,7 @@ export default class Light {
         this._viewMatrix = m;
     }
 
-    async deserialize(sceneData) {
+    async deserialize(sceneData: any) {
         switch (sceneData.lightType) {
         case 'kTypeDirectional':
         case LightType.DIRECTIONAL:
@@ -156,7 +171,7 @@ export default class Light {
         this._castShadows = sceneData.castShadows !== undefined ? sceneData.castShadows : true;
     }
 
-    async serialize(sceneData) {
+    async serialize(sceneData: any) {
         const lightTypes = [];
         lightTypes[LightType.DIRECTIONAL] = "kTypeDirectional";
         lightTypes[LightType.SPOT] = "kTypeSpot";
