@@ -1,10 +1,84 @@
 
+interface VersionInfo {
+    major: number;
+    minor: number;
+    revision: number;
+    stringValue: string;
+    name: string;
+    versionString: string;
+}
+
+interface SystemInfo {
+    OSX: boolean;
+    Windows: boolean;
+    iPhone: boolean;
+    iPodTouch: boolean;
+    iPad: boolean;
+    iOS: boolean;
+    Android: boolean;
+    Linux: boolean;
+    OSName: string;
+    Version: VersionInfo;
+}
+
+interface BrowserInfo {
+    Version: VersionInfo;
+    Safari: boolean;
+    Chrome: boolean;
+    Opera: boolean;
+    Firefox: boolean;
+    Edge: boolean;
+    Explorer: boolean;
+    MobileSafari: boolean;
+    Android: boolean;
+    IsMobileVersion: boolean;
+    Name: string;
+    Vendor: string;
+}
 
 export default class UserAgent {
-    constructor(userAgentString) {
-        this.system = {};
-        this.browser = {};
-        
+    system: SystemInfo = {
+        OSX: false,
+        Windows: false,
+        iPhone: false,
+        iPodTouch: false,
+        iPad: false,
+        iOS: false,
+        Android: false,
+        Linux: false,
+        OSName: "",
+        Version: {
+            major: 0,
+            minor: 0,
+            revision: 0,
+            stringValue: "",
+            name: "",
+            versionString: ""
+        }
+    }
+    browser: BrowserInfo = {
+        Version: {
+            major: 0,
+            minor: 0,
+            revision: 0,
+            stringValue: "",
+            name: "",
+            versionString: ""
+        },
+        Safari: false,
+        Chrome: false,
+        Opera: false,
+        Firefox: false,
+        Edge: false,
+        Explorer: false,
+        MobileSafari: false,
+        Android: false,
+        IsMobileVersion: false,
+        Name: "",
+        Vendor: ""
+    }
+
+    constructor(userAgentString?: string) {
         if (!userAgentString) {
             userAgentString = navigator.userAgent;
         }
@@ -12,7 +86,7 @@ export default class UserAgent {
         this.parseBrowser(userAgentString);
     }
 
-    parseOperatingSystem(userAgentString) {
+    parseOperatingSystem(userAgentString: string): void {
         this.system.OSX = /Macintosh/.test(userAgentString);
         this.system.Windows = /Windows/.test(userAgentString);
         this.system.iPhone = /iPhone/.test(userAgentString);
@@ -44,13 +118,12 @@ export default class UserAgent {
         }
     }
 
-    parseBrowser(userAgentString) {
+    parseBrowser(userAgentString: string): void {
         // Safari: Version/X.X.X Safari/XXX
         // Chrome: Chrome/XX.X.XX.XX Safari/XXX
         // Opera: Opera/X.XX
         // Firefox: Gecko/XXXXXX Firefox/XX.XX.XX
         // Explorer: MSIE X.X
-        this.browser.Version = {};
         this.browser.Safari = /Version\/([\d\.]+) Safari\//.test(userAgentString);
         if (this.browser.Safari) {
             this.browser.Name = "Safari";
@@ -86,7 +159,7 @@ export default class UserAgent {
             this.browser.Name = "Edge";
             this.browser.Chrome = false;
             this.browser.Vendor = "Microsoft";
-            this.browser.Version.versionString = result[1];
+            this.browser.Version.versionString = result && result[1] || "unknown";
         } 
 
         this.browser.Explorer = /MSIE ([\d\.]+)/.test(userAgentString);
@@ -147,7 +220,7 @@ export default class UserAgent {
         this.parseBrowserVersion(userAgentString);
     }
 
-    parseBrowserVersion(userAgentString) {
+    parseBrowserVersion(userAgentString: string): void {
         if (/([\d]+)\.([\d]+)\.*([\d]*)/.test(this.browser.Version.versionString)) {
             this.browser.Version.major = Number(RegExp.$1);
             this.browser.Version.minor = Number(RegExp.$2);
@@ -155,9 +228,8 @@ export default class UserAgent {
         }
     }
 
-    parseOSXVersion(userAgentString) {
+    parseOSXVersion(userAgentString: string): void {
         var versionString = (/Mac OS X (\d+_\d+_*\d*)/.test(userAgentString)) ? RegExp.$1:'';
-        this.system.Version = {};
         // Safari/Chrome
         if (versionString!='') {
             if (/(\d+)_(\d+)_*(\d*)/.test(versionString)) {
@@ -212,8 +284,7 @@ export default class UserAgent {
         }
     }
 
-    parseWindowsVersion(userAgentString) {
-        this.system.Version = {};
+    parseWindowsVersion(userAgentString: string): void {
         if (/NT (\d+)\.(\d*)/.test(userAgentString)) {
             this.system.Version.major = Number(RegExp.$1);
             this.system.Version.minor = Number(RegExp.$2);
@@ -240,8 +311,7 @@ export default class UserAgent {
         }
     }
 
-    parseLinuxVersion(userAgentString) {
-        this.system.Version = {};
+    parseLinuxVersion(userAgentString: string): void {
         this.system.Version.major = 0;
         this.system.Version.minor = 0;
         this.system.Version.revision = 0;
@@ -249,8 +319,7 @@ export default class UserAgent {
         this.system.Version.stringValue = "Unknown distribution";
     }
 
-    parseIOSVersion(userAgentString) {
-        this.system.Version = {};
+    parseIOSVersion(userAgentString: string): void {
         if (/iPhone OS (\d+)_(\d+)_*(\d*)/i.test(userAgentString)) {
             this.system.Version.major = Number(RegExp.$1);
             this.system.Version.minor = Number(RegExp.$2);
@@ -266,8 +335,7 @@ export default class UserAgent {
         }
     }
 
-    parseAndroidVersion(userAgentString) {
-        this.system.Version = {};
+    parseAndroidVersion(userAgentString: string): void {
         if (/Android (\d+)\.(\d+)\.*(\d*)/.test(userAgentString)) {
             this.system.Version.major = Number(RegExp.$1);
             this.system.Version.minor = Number(RegExp.$2);
@@ -288,7 +356,7 @@ export default class UserAgent {
         this.system.Version.stringValue = this.system.Version.major + "." + this.system.Version.minor + '.' + this.system.Version.revision;
     }
 
-    getInfoString() {
+    getInfoString(): string {
         return navigator.userAgent;
     }
 }
