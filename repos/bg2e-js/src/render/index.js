@@ -1,5 +1,4 @@
 import Environment from "./Environment";
-import EnvironmentRenderer from "./EnvironmentRenderer";
 import FrameBuffer from "./FrameBuffer";
 import MaterialRenderer from "./MaterialRenderer";
 import Pipeline, {
@@ -36,7 +35,6 @@ import WebGLRenderer from "../render/webgl/Renderer";
 
 export default {
     Environment,
-    EnvironmentRenderer,
     FrameBuffer,
     MaterialRenderer,
     Pipeline,

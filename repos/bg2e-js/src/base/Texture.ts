@@ -77,6 +77,79 @@ export enum TextureChannel {
     A = 4
 }
 
+export const TextureDataTypeName = Object.freeze({
+    0: "NONE",
+    1: "IMAGE",
+    2: "IMAGE_DATA",
+    3: "CUBEMAP",
+    4: "CUBEMAP_DATA",
+    5: "VIDEO",
+    6: "PROCEDURAL",
+    7: "RENDER_TARGET"
+});
+
+export const TextureWrapName = Object.freeze({
+    0: "REPEAT",
+    1: "CLAMP",
+    2: "MIRRORED_REPEAT"
+});
+
+export const TextureFilterName = Object.freeze({
+     0: "NEAREST_MIPMAP_NEAREST",
+     1: "LINEAR_MIPMAP_NEAREST",
+     2: "NEAREST_MIPMAP_LINEAR",
+     3: "LINEAR_MIPMAP_LINEAR",
+     4: "NEAREST",
+     5: "LINEAR"
+});
+
+export const TextureTargetName = Object.freeze({
+    0: "TEXTURE_2D",
+    1: "CUBE_MAP"
+});
+
+export const ProceduralTextureFunctionName = Object.freeze({
+    0: "PLAIN_COLOR",
+    1: "RANDOM_NOISE",
+    2: "DYNAMIC_CUBEMAP",
+    3: "FROM_BASE64",
+    4: "CANVAS_2D"
+});
+
+export const TextureRenderTargetAttachmentNames = Object.freeze({
+    0: "COLOR_ATTACHMENT_0",
+    1: "COLOR_ATTACHMENT_1",
+    2: "COLOR_ATTACHMENT_2",
+    3: "COLOR_ATTACHMENT_3",
+    4: "COLOR_ATTACHMENT_4",
+    5: "COLOR_ATTACHMENT_5",
+    6: "COLOR_ATTACHMENT_6",
+    7: "COLOR_ATTACHMENT_7",
+    8: "COLOR_ATTACHMENT_8",
+    9: "COLOR_ATTACHMENT_9",
+    10: "COLOR_ATTACHMENT_10",
+    11: "COLOR_ATTACHMENT_11",
+    12: "COLOR_ATTACHMENT_12",
+    13: "COLOR_ATTACHMENT_13",
+    14: "COLOR_ATTACHMENT_14",
+    15: "COLOR_ATTACHMENT_15",
+    100: "DEPTH_ATTACHMENT",
+    200: "STENCIL_ATTACHMENT"
+});
+
+export const TextureComponentFormatNames = Object.freeze({
+    0: "UNSIGNED_BYTE",
+    1: "FLOAT32"
+});
+
+export const TextureChannelNames = Object.freeze({
+    1: "R",
+    2: "G",
+    3: "B",
+    4: "A"
+});
+
+
 interface ExtendedHTMLImageElement extends HTMLImageElement {
     _hash?: string;
 }
