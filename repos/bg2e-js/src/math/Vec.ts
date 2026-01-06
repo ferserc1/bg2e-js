@@ -292,7 +292,7 @@ export default class Vec extends NumericArray {
         return new Vec(this[0], this[1], this[2]);
     }
 
-    set xyz(v: ArrayLike<number>) {
+    set xyz(v: readonly number[]) {
         if (v.length<3 || this.length<3) {
             throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
         }

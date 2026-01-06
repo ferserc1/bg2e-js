@@ -1,24 +1,24 @@
 
 import { math } from 'bg2e-js';
 
-const container = document.getElementById('app');
+const container: HTMLElement | null = document.getElementById('app');
 
-function log() {
+function log(...args: any[]): void {
     if (container) {
-        const p = document.createElement('p');
-        p.textContent = Array.from(arguments).join(' ');
+        const p: HTMLParagraphElement = document.createElement('p');
+        p.textContent = args.join(' ');
         container.appendChild(p);
     }
 }
 
-const xAxis = math.Axis.X;
-const yAxis = math.Axis.Y;
-const zAxis = math.Axis.Z;
+const xAxis: number = math.Axis.X;
+const yAxis: number = math.Axis.Y;
+const zAxis: number = math.Axis.Z;
 log(`Axis: ${math.Axis.name(xAxis)}, ${math.Axis.name(yAxis)}, ${math.Axis.name(zAxis)}`);
 
-const deg = 90;
+const deg: number = 90;
 log(`${deg}º = ${math.degreesToRadians(deg)} radians`);
-const rad = math.PI_4;
+const rad: number = math.PI_4;
 log(`${rad} radians = ${math.radiansToDegrees(rad)}º`);
 
 // Convert degrees and radians using numeric constants. See that using RAD_TO_DEG, the converted

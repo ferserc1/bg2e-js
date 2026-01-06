@@ -19,6 +19,6 @@ export default class TextResourceProvider extends ResourceProvider {
     }
 
     async write(url: string, data: any): Promise<void> {
-        return await this.writeStrategy.writeData(url, data, { encoding: 'utf-8' });
+        throw new Error('TextResourceProvider.write not implemented.');
     }
 }

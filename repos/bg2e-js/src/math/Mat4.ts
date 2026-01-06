@@ -254,7 +254,7 @@ export default class Mat4 extends NumericArray {
 
     setRow(i: number, a: ArrayLike<number>): this;
     setRow(i: number, x: number, y: number, z: number, w: number): this;
-    setRow(i: number, a: number | ArrayLike<number>, y: number | null = null, z: number | null = null, w: number | null = null): this {
+    setRow(i: number, a: number | ArrayLike<number>, y?: number, z?: number, w?: number): this {
         if (typeof a === 'object' && a.length >= 4) {
             this[i * 4]      = a[0];
             this[i * 4 + 1]  = a[1];
@@ -293,7 +293,7 @@ export default class Mat4 extends NumericArray {
 
     setCol(i: number, a: ArrayLike<number>): this;
     setCol(i: number, x: number, y: number, z: number, w: number): this;
-    setCol(i: number, a: number | ArrayLike<number>, y: number | null = null, z: number | null = null, w: number | null = null): this {
+    setCol(i: number, a: number | ArrayLike<number>, y?: number, z?: number, w?: number): this {
         if (typeof a === 'object' && a.length >= 4) {
             this[i]         = a[0];
             this[i + 4]     = a[1];

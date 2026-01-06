@@ -44,7 +44,7 @@ export default class Mat3 extends NumericArray {
 
     setRow(i: number, a: ArrayLike<number>): this;
     setRow(i: number, x: number, y: number, z: number): this;
-    setRow(i: number, a: number | ArrayLike<number>, y: number | null = null, z: number | null = null): this {
+    setRow(i: number, a: number | ArrayLike<number>, y?: number, z?: number): this {
         if (typeof a === 'object' && a.length >= 3) {
             this[i * 3]      = a[0];
             this[i * 3 + 1]  = a[1];
