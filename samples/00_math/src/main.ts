@@ -225,7 +225,7 @@ log(color32);
 (() => {
     const v1 = new Vec(0, 0, 0, 0);
     log(v1);
-    v1.xyzw = [9, 8, 7, 6];
+    v1.setXYZW([9, 8, 7, 6]);
     log(v1);
 })();
 

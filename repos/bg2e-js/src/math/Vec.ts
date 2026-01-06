@@ -264,12 +264,12 @@ export default class Vec extends NumericArray {
         }
     }
 
-    set xy(v: ArrayLike<number>) {
+    set xy(v: Vec) {
         this[0] = v[0];
         this[1] = v[1];
     }
 
-    set xz(v: ArrayLike<number>) {
+    set xz(v: Vec) {
         if (this.length<3) {
             throw new Error('Invalid vector size');
         }
@@ -277,7 +277,7 @@ export default class Vec extends NumericArray {
         this[2] = v[1];
     }
 
-    set yz(v: ArrayLike<number>) {
+    set yz(v: Vec) {
         if (this.length<3) {
             throw new Error('Invalid vector size');
         }
@@ -292,7 +292,7 @@ export default class Vec extends NumericArray {
         return new Vec(this[0], this[1], this[2]);
     }
 
-    set xyz(v: readonly number[]) {
+    set xyz(v: Vec) {
         if (v.length<3 || this.length<3) {
             throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
         }
@@ -310,7 +310,7 @@ export default class Vec extends NumericArray {
     }
 
     // Assign operator
-    set xyzw(v: ArrayLike<number>) {
+    set xyzw(v: Vec) {
         if (this.length < 4 || v.length<4) {
             throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
         }
@@ -327,7 +327,7 @@ export default class Vec extends NumericArray {
         return new Vec(this[0],this[1],this[2]);
     }
 
-    set rgb(v: ArrayLike<number>) {
+    set rgb(v: Vec) {
         if (v.length<3 || this.length<3) {
             throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
         }
@@ -371,6 +371,56 @@ export default class Vec extends NumericArray {
 
     get aspectRatio(): number {
         return this.width / this.height;
+    }
+
+    // Tuple/array setters
+    setXY(v: [number, number]) {
+        this[0] = v[0];
+        this[1] = v[1];
+    }
+
+    setXZ(v: [number, number]) {
+        if (this.length<3) {
+            throw new Error('Invalid vector size');
+        }
+        this[0] = v[0];
+        this[2] = v[1];
+    }
+
+    setYZ(v: [number, number]) {
+        if (this.length<3) {
+            throw new Error('Invalid vector size');
+        }
+        this[1] = v[0];
+        this[2] = v[1];
+    }
+    
+    setXYZ(v: [number, number, number]) {
+        if (v.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        this[0] = v[0];
+        this[1] = v[1];
+        this[2] = v[2];
+    }
+    
+    setXYZW(v: [number, number, number, number]) {
+        if (this.length < 4 || v.length<4) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        this[0] = v[0];
+        this[1] = v[1];
+        this[2] = v[2];
+        this[3] = v[3];
+    }
+    
+    setRGB(v: [number, number, number]) {
+        if (v.length<3 || this.length<3) {
+            throw new Error(`Invalid vector size to set: l;${ this.length }, r:${v.length}`);
+        }
+        this[0] = v[0];
+        this[1] = v[1];
+        this[2] = v[2];
     }
 
     toString(): string {
