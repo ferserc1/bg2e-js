@@ -14,7 +14,7 @@ interface TypeLoader {
     deserialize: (attName: string, obj: any, relativePath?: string, canvas?: Canvas | null) => any;
 }
 
-const textureTypeLoader: TypeLoader = {
+export const textureTypeLoader: TypeLoader = {
     serialize: (attName: string, obj: any) => {
         if (obj instanceof Texture) {
             return obj.fileName;
@@ -58,7 +58,7 @@ const textureTypeLoader: TypeLoader = {
     }
 }
 
-const colorTypeLoader: TypeLoader = {
+export const colorTypeLoader: TypeLoader = {
     serialize: (attName: string, obj: any) => {
         if (obj instanceof Color) {
             return obj;
@@ -86,7 +86,7 @@ const colorTypeLoader: TypeLoader = {
     }
 }
 
-const vectorTypeLoader: TypeLoader = {
+export const vectorTypeLoader: TypeLoader = {
     serialize: (attName: string, obj: any) => {
         if (obj instanceof Vec) {
             return obj;
@@ -109,7 +109,7 @@ const vectorTypeLoader: TypeLoader = {
     }
 }
 
-const primitiveTypeLoader: TypeLoader = {
+export const primitiveTypeLoader: TypeLoader = {
     serialize: (attName: string, obj: any) => {
         return obj;
     },
