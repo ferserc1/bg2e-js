@@ -250,6 +250,38 @@ const loadBase64Image = async (base64Img: string): Promise<HTMLImageElement> => 
     return flipImage;
 }
 
+export function textureWrapString(wrap: TextureWrap): string {
+    return TextureWrapName[wrap] || "UNKNOWN";
+}
+
+export function textureDataTypeString(dataType: TextureDataType): string {
+    return TextureDataTypeName[dataType] || "UNKNOWN";
+}
+
+export function textureFilterString(filter: TextureFilter): string {
+    return TextureFilterName[filter] || "UNKNOWN";
+}
+
+export function textureTargetString(target: TextureTarget): string {
+    return TextureTargetName[target] || "UNKNOWN";
+}
+
+export function proceduralTextureFunctionString(func: ProceduralTextureFunction): string {
+    return ProceduralTextureFunctionName[func] || "UNKNOWN";
+}
+
+export function textureRenderTargetAttachmentString(attachment: TextureRenderTargetAttachment): string {
+    return TextureRenderTargetAttachmentNames[attachment] || "UNKNOWN";
+}
+
+export function textureComponentFormatString(format: TextureComponentFormat): string {
+    return TextureComponentFormatNames[format] || "UNKNOWN";
+}
+
+export function textureChannelString(channel: TextureChannel): string {
+    return TextureChannelNames[channel] || "UNKNOWN";
+}
+
 export default class Texture {
     private _canvas: Canvas;
     private _dirty: boolean;

@@ -12,6 +12,9 @@ const {
     TextureWrapName,
     TextureFilterName,
     TextureDataTypeName,
+    textureDataTypeString,
+    textureWrapString,
+    textureFilterString,
     Material
 } = base;
 
@@ -28,7 +31,7 @@ const gray = new Color({ rgb: 0.8 });
 console.log(gray.toString());
 
 const l = new Light();
-l.diffuse = Color.Red();
+l.color = Color.Red();
 const sceneData = {};
 await l.serialize(sceneData);
 //console.log(JSON.stringify(sceneData, "", "  "));
@@ -95,14 +98,14 @@ const t2 = new Texture();
 t2.deserialize(textureData);
 console.log("Size: ", t2.size.toString());
 console.log("File name: ", t2.fileName);
-console.log("Wrap mode X: ", TextureWrapName[t2.wrapModeX]);
-console.log("Data type: ", TextureDataTypeName[t2.dataType]);
-console.log("Min filter: ", TextureFilterName[t2.minFilter]);
-console.log("Mag filter: ", TextureFilterName[t2.magFilter]);
+console.log("Wrap mode X: ", textureWrapString(t2.wrapModeX));
+console.log("Data type: ", textureDataTypeString(t2.dataType));
+console.log("Min filter: ", textureFilterString(t2.minFilter));
+console.log("Mag filter: ", textureFilterString(t2.magFilter));
 
 const m = new Material();
-m.diffuse = t;
-m.diffuseScale = [0.5, 0.5];
+m.albedoTexture = t;
+m.albedoScale = new Vec(0.5, 0.5);
 const data = {};
 m.serialize(data);
 console.log(data);
@@ -116,4 +119,4 @@ console.log(data);
 const m3 = m2.clone();
 const m3Data = {}
 m3.serialize(m3Data);
-console.log(JSON.stringify(m3Data, "", "  "));
+console.log(JSON.stringify(m3Data, null, "  "));

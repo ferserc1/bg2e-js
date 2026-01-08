@@ -4,6 +4,7 @@ import Color from './Color';
 import Texture, { TextureDataType, TextureFilter, TextureWrap } from './Texture';
 import Canvas from '../app/Canvas';
 import TextureCache from '../tools/TextureCache';
+import { NumericArray } from '../math/constants';
 
 export enum MaterialType {
     PBR = "pbr"
@@ -16,6 +17,9 @@ interface TypeLoader {
 
 export const textureTypeLoader: TypeLoader = {
     serialize: (attName: string, obj: any) => {
+        if (!obj) {
+            return null;
+        }
         if (obj instanceof Texture) {
             return obj.fileName;
         }
@@ -60,6 +64,10 @@ export const textureTypeLoader: TypeLoader = {
 
 export const colorTypeLoader: TypeLoader = {
     serialize: (attName: string, obj: any) => {
+        if (!obj) {
+            return null;
+        }
+
         if (obj instanceof Color) {
             return obj;
         }
@@ -72,7 +80,9 @@ export const colorTypeLoader: TypeLoader = {
         if (!obj) {
             return null;
         }
-        else if (Array.isArray(obj) && (obj.length === 3 || obj.length === 4)) {
+        else if ((Array.isArray(obj) || obj instanceof NumericArray) &&
+            (obj.length === 3 || obj.length === 4)
+        ) {
             if (obj.length === 3) {
                 return new Color([obj[0], obj[1], obj[2], 1]);
             }
@@ -88,6 +98,10 @@ export const colorTypeLoader: TypeLoader = {
 
 export const vectorTypeLoader: TypeLoader = {
     serialize: (attName: string, obj: any) => {
+        if (!obj) {
+            return null;
+        }
+
         if (obj instanceof Vec) {
             return obj;
         }
@@ -111,6 +125,10 @@ export const vectorTypeLoader: TypeLoader = {
 
 export const primitiveTypeLoader: TypeLoader = {
     serialize: (attName: string, obj: any) => {
+        if (!obj) {
+            return null;
+        }
+
         return obj;
     },
 
@@ -241,10 +259,10 @@ export default class Material {
     private _lightEmissionChannel: number;
     private _lightEmissionScale: Vec;
     private _lightEmissionUV: number;
-    private _ambientOcclussion: Texture | number | null;
+    private _ambientOcclussion: Texture | null;
     private _ambientOcclussionChannel: number;
     private _ambientOcclussionUV: number;
-    private _heightTexture: Texture | number | null;
+    private _heightTexture: Texture | null;
     private _heightChannel: number;
     private _heightScale: Vec;
     private _heightUV: number;
@@ -287,10 +305,10 @@ export default class Material {
         this._lightEmissionChannel = 0;
         this._lightEmissionScale = new Vec(1, 1);
         this._lightEmissionUV = 0;
-        this._ambientOcclussion = 1;
+        this._ambientOcclussion = null;
         this._ambientOcclussionChannel = 0;
         this._ambientOcclussionUV = 1;
-        this._heightTexture = 0;
+        this._heightTexture = null;
         this._heightChannel = 0;
         this._heightScale = new Vec(1, 1);
         this._heightUV = 0;
@@ -509,9 +527,12 @@ export default class Material {
     get lightEmissionUV(): number { return this._lightEmissionUV; }
     set lightEmissionUV(v: number) { this._lightEmissionUV = v; this._dirty = true; }
 
-    get ambientOcclussion(): Texture | number | null { return this._ambientOcclussion; }
-    set ambientOcclussion(v: Texture | number | null) {
-        assertTexture(v, "ambientOcclussion");
+    get ambientOcclussion(): Texture | null { return this._ambientOcclussion; }
+    set ambientOcclussion(v: Texture | null) {
+        if (typeof v !== "number") {
+            assertTexture(v, "ambientOcclussion");
+        }
+
         if (this._ambientOcclussion instanceof Texture) {
             this._ambientOcclussion.decReferences();
         }
@@ -529,8 +550,8 @@ export default class Material {
 
     
     
-    get heightTexture(): Texture | number | null { return this._heightTexture; }
-    set heightTexture(v: Texture | number | null) { assertTexture(v, "heightTexture"); this._heightTexture = v; this._dirty = true; }
+    get heightTexture(): Texture | null { return this._heightTexture; }
+    set heightTexture(v: Texture | null) { assertTexture(v, "heightTexture"); this._heightTexture = v; this._dirty = true; }
     get heightChannel(): number { return this._heightChannel; }
     set heightChannel(v: number) { this._heightChannel = v; this._dirty = true; }
     get heightScale(): Vec { return this._heightScale; }
@@ -547,7 +568,9 @@ export default class Material {
     async serialize(sceneData: any): Promise<void> {
         for (const att in MaterialAttributeNames) {
             const value = MaterialAttributeNames[att].loader.serialize(att, (this as any)[att]);
-            sceneData[att] = value;
+            if (value) {
+                sceneData[att] = value;
+            }
         }
     }
 

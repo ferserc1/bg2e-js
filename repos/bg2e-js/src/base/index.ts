@@ -28,7 +28,15 @@ import Texture, {
     ProceduralTextureFunctionName,
     TextureRenderTargetAttachmentNames,
     TextureComponentFormatNames,
-    TextureChannelNames
+    TextureChannelNames,
+    textureWrapString,
+    textureDataTypeString,
+    textureFilterString,
+    textureTargetString,
+    proceduralTextureFunctionString,
+    textureRenderTargetAttachmentString,
+    textureComponentFormatString,
+    textureChannelString,
 } from './Texture';
 
 export default {
@@ -60,6 +68,14 @@ export default {
     ProceduralTextureFunctionName,
     TextureRenderTargetAttachmentNames,
     TextureComponentFormatNames,
-    TextureChannelNames
+    TextureChannelNames,
+    textureWrapString,
+    textureDataTypeString,
+    textureFilterString,
+    textureTargetString,
+    proceduralTextureFunctionString,
+    textureRenderTargetAttachmentString,
+    textureComponentFormatString,
+    textureChannelString,
 }
 
