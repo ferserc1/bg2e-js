@@ -5,9 +5,9 @@ import Texture, { TextureDataType, TextureFilter, TextureWrap } from './Texture'
 import Canvas from '../app/Canvas';
 import TextureCache from '../tools/TextureCache';
 
-export const MaterialType = Object.freeze({
-    PBR: "pbr"
-});
+export enum MaterialType {
+    PBR = "pbr"
+}
 
 interface TypeLoader {
     serialize: (attName: string, obj: any) => any;

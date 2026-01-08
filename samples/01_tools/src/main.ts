@@ -15,12 +15,13 @@ const {
     getValidBinaryFormats,
     ProcessType,
     ProcessTypeName,
-    getProcessType
+    getProcessType,
+    getProcessTypeName
 } = tools;
 
 
 const processType = getProcessType();
-console.log(`Current process: ${ ProcessTypeName[processType] }`);
+console.log(`Current process: ${ getProcessTypeName(processType) }`);
 switch (processType) {
 case ProcessType.BROWSER:
     console.log("The application is running in a browser");
@@ -41,22 +42,20 @@ console.log(userAgent.system);
 
 console.log(isFormat("http://www.pepe.com/image.jpg",["jpg","jpeg","tif","png"]));
 
-window.isFormat = isFormat;
-
 const resource = new Resource();
-const data = await resource.load("../resources/data-load.json");
+const data = await resource.load("/resources/data-load.json");
 console.log(data);
-const text = await resource.load("../resources/test-data.txt");
+const text = await resource.load("/resources/test-data.txt");
 console.log(text);
 try {
     const notFound = await resource.load("pepe.txt");
 
 }
-catch (e) {
+catch (e: any) {
     console.log("Exception catched: " + e.message);
 }
 
-const binaryFile = await resource.load("../resources/sphere.bg2");
+const binaryFile = await resource.load("/resources/sphere.bg2");
 console.log(binaryFile);
 
 addImageFormats("bmp");
@@ -72,7 +71,7 @@ console.log(getValidBinaryFormats());
 addBinaryFormats(["dat","fbx"]);
 console.log(getValidBinaryFormats());
 
-const testImage = await resource.load("../resources/logo.png");
+const testImage = await resource.load("/resources/logo.png");
 console.log(testImage);
 const imgContainer = document.createElement("div");
 imgContainer.appendChild(testImage);

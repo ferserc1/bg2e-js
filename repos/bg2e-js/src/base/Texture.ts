@@ -77,76 +77,77 @@ export enum TextureChannel {
     A = 4
 }
 
+// Mapeos de enums a nombres para compatibilidad
 export const TextureDataTypeName = Object.freeze({
-    0: "NONE",
-    1: "IMAGE",
-    2: "IMAGE_DATA",
-    3: "CUBEMAP",
-    4: "CUBEMAP_DATA",
-    5: "VIDEO",
-    6: "PROCEDURAL",
-    7: "RENDER_TARGET"
+    [TextureDataType.NONE]: "NONE",
+    [TextureDataType.IMAGE]: "IMAGE",
+    [TextureDataType.IMAGE_DATA]: "IMAGE_DATA",
+    [TextureDataType.CUBEMAP]: "CUBEMAP",
+    [TextureDataType.CUBEMAP_DATA]: "CUBEMAP_DATA",
+    [TextureDataType.VIDEO]: "VIDEO",
+    [TextureDataType.PROCEDURAL]: "PROCEDURAL",
+    [TextureDataType.RENDER_TARGET]: "RENDER_TARGET"
 });
 
 export const TextureWrapName = Object.freeze({
-    0: "REPEAT",
-    1: "CLAMP",
-    2: "MIRRORED_REPEAT"
+    [TextureWrap.REPEAT]: "REPEAT",
+    [TextureWrap.CLAMP]: "CLAMP",
+    [TextureWrap.MIRRORED_REPEAT]: "MIRRORED_REPEAT"
 });
 
 export const TextureFilterName = Object.freeze({
-     0: "NEAREST_MIPMAP_NEAREST",
-     1: "LINEAR_MIPMAP_NEAREST",
-     2: "NEAREST_MIPMAP_LINEAR",
-     3: "LINEAR_MIPMAP_LINEAR",
-     4: "NEAREST",
-     5: "LINEAR"
+    [TextureFilter.NEAREST_MIPMAP_NEAREST]: "NEAREST_MIPMAP_NEAREST",
+    [TextureFilter.LINEAR_MIPMAP_NEAREST]: "LINEAR_MIPMAP_NEAREST",
+    [TextureFilter.NEAREST_MIPMAP_LINEAR]: "NEAREST_MIPMAP_LINEAR",
+    [TextureFilter.LINEAR_MIPMAP_LINEAR]: "LINEAR_MIPMAP_LINEAR",
+    [TextureFilter.NEAREST]: "NEAREST",
+    [TextureFilter.LINEAR]: "LINEAR"
 });
 
 export const TextureTargetName = Object.freeze({
-    0: "TEXTURE_2D",
-    1: "CUBE_MAP"
+    [TextureTarget.TEXTURE_2D]: "TEXTURE_2D",
+    [TextureTarget.CUBE_MAP]: "CUBE_MAP"
 });
 
 export const ProceduralTextureFunctionName = Object.freeze({
-    0: "PLAIN_COLOR",
-    1: "RANDOM_NOISE",
-    2: "DYNAMIC_CUBEMAP",
-    3: "FROM_BASE64",
-    4: "CANVAS_2D"
+    [ProceduralTextureFunction.PLAIN_COLOR]: "PLAIN_COLOR",
+    [ProceduralTextureFunction.RANDOM_NOISE]: "RANDOM_NOISE",
+    [ProceduralTextureFunction.DYNAMIC_CUBEMAP]: "DYNAMIC_CUBEMAP",
+    [ProceduralTextureFunction.FROM_BASE64]: "FROM_BASE64",
+    [ProceduralTextureFunction.CANVAS_2D]: "CANVAS_2D"
 });
 
 export const TextureRenderTargetAttachmentNames = Object.freeze({
-    0: "COLOR_ATTACHMENT_0",
-    1: "COLOR_ATTACHMENT_1",
-    2: "COLOR_ATTACHMENT_2",
-    3: "COLOR_ATTACHMENT_3",
-    4: "COLOR_ATTACHMENT_4",
-    5: "COLOR_ATTACHMENT_5",
-    6: "COLOR_ATTACHMENT_6",
-    7: "COLOR_ATTACHMENT_7",
-    8: "COLOR_ATTACHMENT_8",
-    9: "COLOR_ATTACHMENT_9",
-    10: "COLOR_ATTACHMENT_10",
-    11: "COLOR_ATTACHMENT_11",
-    12: "COLOR_ATTACHMENT_12",
-    13: "COLOR_ATTACHMENT_13",
-    14: "COLOR_ATTACHMENT_14",
-    15: "COLOR_ATTACHMENT_15",
-    100: "DEPTH_ATTACHMENT",
-    200: "STENCIL_ATTACHMENT"
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_0]: "COLOR_ATTACHMENT_0",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_1]: "COLOR_ATTACHMENT_1",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_2]: "COLOR_ATTACHMENT_2",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_3]: "COLOR_ATTACHMENT_3",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_4]: "COLOR_ATTACHMENT_4",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_5]: "COLOR_ATTACHMENT_5",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_6]: "COLOR_ATTACHMENT_6",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_7]: "COLOR_ATTACHMENT_7",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_8]: "COLOR_ATTACHMENT_8",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_9]: "COLOR_ATTACHMENT_9",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_10]: "COLOR_ATTACHMENT_10",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_11]: "COLOR_ATTACHMENT_11",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_12]: "COLOR_ATTACHMENT_12",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_13]: "COLOR_ATTACHMENT_13",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_14]: "COLOR_ATTACHMENT_14",
+    [TextureRenderTargetAttachment.COLOR_ATTACHMENT_15]: "COLOR_ATTACHMENT_15",
+    [TextureRenderTargetAttachment.DEPTH_ATTACHMENT]: "DEPTH_ATTACHMENT",
+    [TextureRenderTargetAttachment.STENCIL_ATTACHMENT]: "STENCIL_ATTACHMENT"
 });
 
 export const TextureComponentFormatNames = Object.freeze({
-    0: "UNSIGNED_BYTE",
-    1: "FLOAT32"
+    [TextureComponentFormat.UNSIGNED_BYTE]: "UNSIGNED_BYTE",
+    [TextureComponentFormat.FLOAT32]: "FLOAT32"
 });
 
 export const TextureChannelNames = Object.freeze({
-    1: "R",
-    2: "G",
-    3: "B",
-    4: "A"
+    [TextureChannel.R]: "R",
+    [TextureChannel.G]: "G",
+    [TextureChannel.B]: "B",
+    [TextureChannel.A]: "A"
 });
 
 
