@@ -1,7 +1,7 @@
 
 import PolyList from "../base/PolyList";
 
-function parseM(line) {
+function parseM(this: ObjParser, line: string) {
     // mtllib
     let res = /mtllib\s+(.*)/.exec(line);
     if (res) {
@@ -9,26 +9,27 @@ function parseM(line) {
     }
 }
 
-function parseG(line) {
+function parseG(this: ObjParser, line: string) {
     // g
     let res = /g\s+(.*)/.exec(line);
-    if (res) {
+    if (res && this._currentPlist) {
         this._currentPlist.name = res[1];
     }
 }
 
-function parseU(line) {
+function parseU(this: ObjParser, line: string) {
     // usemtl
     let res = /usemtl\s+(.*)/.exec(line);
-    if (res) {
-        this._currentPlist._matName = res[1];
+    if (res && this._currentPlist) {
+        // Temporarily store the material name in a custom property
+        (this._currentPlist as any)._matName = res[1];
         if (this._currentPlist.name=="") {
             this._currentPlist.name = res[1];
         }
     }
 }
 
-function parseS(line) {
+function parseS(this: ObjParser, line: string) {
     // s
     let res = /s\s+(.*)/.exec(line);
     if (res) {
@@ -36,7 +37,8 @@ function parseS(line) {
     }
 }
 
-function addPoint(pointData) {
+function addPoint(this: ObjParser, pointData: any) {
+    if (!this._currentPlist) return;
     this._currentPlist.vertex.push(pointData.vertex[0],pointData.vertex[1],pointData.vertex[2]);
     if (pointData.normal) {
         this._currentPlist.normal.push(pointData.normal[0],pointData.normal[1],pointData.normal[2]);
@@ -47,11 +49,11 @@ function addPoint(pointData) {
     this._currentPlist.index.push(this._currentPlist.index.length);
 }
 
-function isValid(point) {
+function isValid(point: any): boolean {
     return point && point.vertex && point.tex && point.normal;
 }
 
-function addPolygon(polygonData) {
+function addPolygon(this: ObjParser, polygonData: any[]) {
     let currentVertex = 0;
     let sides = polygonData.length;
     if (sides<3) return;
@@ -83,7 +85,7 @@ function addPolygon(polygonData) {
     }
 }
 
-function parseF(line) {
+function parseF(this: ObjParser, line: string) {
     // f
     this._addPlist = true;
     let res = /f\s+(.*)/.exec(line);
@@ -99,12 +101,20 @@ function parseF(line) {
             let iN = res[3] ? Number(res[3]):null;
             let iT = res[2] ? Number(res[2]):null;
             iV = iV<0 ? this._vertexArray.length + iV : iV - 1;
-            iN = iN<0 ? this._normalArray.length + iN : (iN===null ? null : iN - 1);
-            iT = iT<0 ? this._texCoordArray.length + iT : (iT===null ? null : iT - 1)
-
+            
             let v = this._vertexArray[iV];
-            let n = iN!==null ? this._normalArray[iN] : null;
-            let t = iT!==null ? this._texCoordArray[iT] : null;
+            let n: number[] | null = null;
+            let t: number[] | null = null;
+
+            if (iN !== null) {
+                iN = iN<0 ? this._normalArray.length + iN : (iN===null ? null : iN - 1);
+                n = iN!==null ? this._normalArray[iN] : null;
+            }
+            if (iT !== null) {
+                iT = iT<0 ? this._texCoordArray.length + iT : (iT===null ? null : iT - 1);
+                t = iT!==null ? this._texCoordArray[iT] : null;
+            }
+
             polygon.push({
                 vertex:v,
                 normal:n,
@@ -115,15 +125,15 @@ function parseF(line) {
     }
 }
 
-function parseO(line) {
+function parseO(this: ObjParser, line: string) {
     // o
     let res = /s\s+(.*)/.exec(line);
-    if (res && this._currentPlist.name=="") {
+    if (res && this._currentPlist?.name=="") {
         this._currentPlist.name = res[1];
     }
 }
 
-function checkAddPlist() {
+function checkAddPlist(this: ObjParser) {
     if (this._addPlist) {
         if (this._currentPlist) {
             this._plistArray.push(this._currentPlist);
@@ -133,7 +143,7 @@ function checkAddPlist() {
     }
 }
 
-function loadObjData() {
+function loadObjData(this: ObjParser) {
     let lines = this._textData.split('\n');
     let multiLine = "";
     lines.forEach(line => {
@@ -210,7 +220,16 @@ function loadObjData() {
 }
 
 export default class ObjParser {
-    constructor(objText) {
+    _textData: string;
+    _plistArray: PolyList[];
+    _vertexArray: number[][];
+    _normalArray: number[][];
+    _texCoordArray: number[][];
+    _mtlLib: string;
+    _currentPlist?: PolyList | null;
+    _addPlist: boolean;
+
+    constructor(objText: string) {
         this._textData = objText;
 
         this._plistArray = [];

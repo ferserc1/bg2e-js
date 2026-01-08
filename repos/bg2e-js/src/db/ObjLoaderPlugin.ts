@@ -3,12 +3,14 @@ import Resource, { getFileName, removeExtension, removeFileName, ResourceType } 
 import ObjParser from './ObjParser';
 import Drawable from '../scene/Drawable';
 import Material from '../base/Material';
+import PolyList from '../base/PolyList';
+import Loader from './Loader';
 
-const buildDrawable = (polyListArray,mtlData,filePath) => {
+const buildDrawable = (polyListArray: PolyList[], mtlData: any, filePath: string): Drawable => {
     const name = removeExtension(getFileName(filePath));
     const drawable = new Drawable(name);
 
-    polyListArray.forEach(plist => {
+    polyListArray.forEach((plist: PolyList) => {
         // TODO: set mtl data
         const mat = new Material();
         drawable.addPolyList(plist,mat);
@@ -18,21 +20,23 @@ const buildDrawable = (polyListArray,mtlData,filePath) => {
 }
 
 export default class ObjLoaderPlugin extends LoaderPlugin {
+    private _resource: Resource;
+
     constructor() {
         super();
         this._resource = new Resource();
     }
 
-    get supportedExtensions() { return ['obj']; }
+    get supportedExtensions(): string[] { return ['obj']; }
 
-    get resourceTypes() {
+    get resourceTypes(): ResourceType[] {
         return [
             ResourceType.PolyList,
             ResourceType.Drawable
         ];
     }
 
-    async load(path,resourceType,loader) {
+    async load(path: string, resourceType: ResourceType, loader: Loader): Promise<PolyList[] | Drawable> {
         const objText = await this._resource.load(path);
         const parser = new ObjParser(objText);
 
