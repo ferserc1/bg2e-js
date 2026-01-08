@@ -11,6 +11,7 @@ import PolyList from "bg2e-js/src/base/PolyList";
 // bg2ioPath is the path from the html file to the distribution files of the bg2io library, if
 // this path is different from the compiled js file (generated from this file, in this case, 
 // using Rollup)
+// @ts-ignore
 registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist/" }));
 registerLoaderPlugin(new ObjLoaderPlugin());
 
