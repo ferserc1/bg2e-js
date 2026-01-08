@@ -27,4 +27,8 @@ export default class LoaderPlugin {
     get dependencies(): LoaderPlugin[] {
         return [];
     }
+
+    async write(path: string, data: any, type: ResourceType, writer: any): Promise<any> {
+        throw new Error("LoaderPlugin.write(): method not implemented");
+    }
 }
