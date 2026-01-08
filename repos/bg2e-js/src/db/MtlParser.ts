@@ -1,7 +1,7 @@
 
 
 export default class MtlParser {
-    constructor(mtlText) {
+    constructor(mtlText: string) {
         
     }
 }

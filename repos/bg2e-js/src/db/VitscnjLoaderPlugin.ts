@@ -3,8 +3,17 @@ import LoaderPlugin from "./LoaderPlugin";
 import Node from "../scene/Node";
 import { deserializeComponent } from "../scene/Component";
 import Bg2LoaderPlugin from "./Bg2LoaderPlugin";
+import Loader from "./Loader";
 
-const deserializeNode = async (nodeData, loader) => {
+interface NodeData {
+    name: string;
+    enabled?: boolean;
+    steady?: boolean;
+    children?: NodeData[];
+    components?: any[];
+}
+
+const deserializeNode = async (nodeData: NodeData, loader: Loader): Promise<Node> => {
     nodeData.children = nodeData.children || [];
     nodeData.components = nodeData.components || [];
 
@@ -19,7 +28,7 @@ const deserializeNode = async (nodeData, loader) => {
                 node.addComponent(component);
             }
         }
-        catch (err) {
+        catch (err: any) {
             console.warn(`Deserialization of node with name "${node.name}": ${err.message}`);
         }
     }
@@ -35,30 +44,34 @@ const deserializeNode = async (nodeData, loader) => {
 export const DrawableFormat = {
     LEGACY: 'vwglb',
     BG2: 'bg2'
-};
+} as const;
 
-let g_prefDrawableFormat = DrawableFormat.BG2;
+export type DrawableFormatValue = typeof DrawableFormat[keyof typeof DrawableFormat];
+
+let g_prefDrawableFormat: DrawableFormatValue = DrawableFormat.BG2;
 export default class VitscnjLoaderPlugin extends LoaderPlugin {
-    static PreferredDrawableFormat() {
+    private _bg2ioPath: string | null;
+
+    static PreferredDrawableFormat(): DrawableFormatValue {
         return g_prefDrawableFormat;
     }
 
-    constructor({ bg2ioPath = null, preferedDrawableFormat = DrawableFormat.BG2 }) {
+    constructor({ bg2ioPath = null, preferedDrawableFormat = DrawableFormat.BG2 }: { bg2ioPath?: string | null; preferedDrawableFormat?: DrawableFormatValue } = {}) {
         super();
 
         this._bg2ioPath = bg2ioPath;
         g_prefDrawableFormat = preferedDrawableFormat;
     }
 
-    get supportedExtensions() { return ["vitscnj"]; }
+    get supportedExtensions(): string[] { return ["vitscnj"]; }
 
-    get resourceTypes() {
+    get resourceTypes(): ResourceType[] {
         return [
             ResourceType.Node
         ];
     }
 
-    async load(path,resourceType,loader) {
+    async load(path: string, resourceType: ResourceType, loader: Loader): Promise<Node> {
         if (resourceType !== ResourceType.Node) {
             throw new Error(`VitscnjLoaderPlugin.load() unexpected resource type received: ${resourceType}`);
         }
@@ -81,7 +94,7 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
         return root;
     }
 
-    get dependencies() {
+    get dependencies(): LoaderPlugin[] {
         return [new Bg2LoaderPlugin({ bg2ioPath: this._bg2ioPath })];
     }
 }
