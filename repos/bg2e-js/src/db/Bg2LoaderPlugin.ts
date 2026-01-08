@@ -7,11 +7,13 @@ import Node from "../scene/Node";
 import Material from "../base/Material";
 import { deserializeComponent } from "../scene/Component";
 
+// @ts-ignore: module not typed
 import Bg2ioWrapper from 'bg2io/Bg2ioBrowser';
+import Loader from './Loader';
 
-let g_bg2Wrapper = null;
+let g_bg2Wrapper: any = null;
 
-const bg2ioFactory = async (path) => {
+const bg2ioFactory = async (path?: string | null): Promise<any> => {
     if (g_bg2Wrapper === null) {
         const params = path ? { wasmPath: path } : {};
         g_bg2Wrapper = await Bg2ioWrapper(params);
@@ -22,10 +24,10 @@ const bg2ioFactory = async (path) => {
     return g_bg2Wrapper;
 }
 
-const createPolyList = (jsonData,loader) => {
-    const result = jsonData.polyLists.map(plData => {
+const createPolyList = (jsonData: any, loader: Loader): Array<{ plist: PolyList, materialData: any }> => {
+    const result = jsonData.polyLists.map((plData: any) => {
         const plist = new PolyList();
-        const materialData = jsonData.materials.find(m => m.name === plData.matName);
+        const materialData = jsonData.materials.find((m: any) => m.name === plData.matName);
         plist.name = plData.name
         plist.visible = plData.visible;
         if (materialData) {
@@ -44,11 +46,11 @@ const createPolyList = (jsonData,loader) => {
     return result;
 }
 
-const createDrawable = async (jsonData,filePath,loader) => {
+const createDrawable = async (jsonData: any, filePath: string, loader: Loader): Promise<Drawable> => {
     const name = removeExtension(getFileName(filePath));
     const relativePath = removeFileName(filePath);
     const drawable = new Drawable(name);
-    for (const item of createPolyList(jsonData)) {
+    for (const item of createPolyList(jsonData, loader)) {
         const mat = new Material(loader.canvas);
         await mat.deserialize(item.materialData, relativePath);
         drawable.addPolyList(item.plist, mat);
@@ -61,7 +63,7 @@ const createDrawable = async (jsonData,filePath,loader) => {
     return drawable;
 }
 
-const createNode = async (jsonData,filePath,loader) => {
+const createNode = async (jsonData: any, filePath: string, loader: Loader): Promise<Node> => {
     const name = removeExtension(getFileName(filePath));
     const drawable = await createDrawable(jsonData,filePath,loader);
     const node = new Node(name);
@@ -71,7 +73,7 @@ const createNode = async (jsonData,filePath,loader) => {
             const comp = await deserializeComponent(compData,loader);
             node.addComponent(comp);
         }
-        catch (err) {
+        catch (err: any) {
             console.warn(err.message);
         }
     }
@@ -80,16 +82,18 @@ const createNode = async (jsonData,filePath,loader) => {
 }
 
 export default class Bg2LoaderPlugin extends LoaderPlugin {
+    private _bg2ioPath: string | null;
+    private _resource: Resource;
 
-    constructor( { bg2ioPath = null } = {}) {
+    constructor( { bg2ioPath = null }: { bg2ioPath?: string | null } = {}) {
         super();
         this._bg2ioPath = bg2ioPath;
         this._resource = new Resource();
     }
 
-    get supportedExtensions() { return ["bg2","vwglb"]; }
+    get supportedExtensions(): string[] { return ["bg2","vwglb"]; }
 
-    get resourceTypes() {
+    get resourceTypes(): ResourceType[] {
         return [
             ResourceType.PolyList, 
             ResourceType.Drawable,
@@ -97,14 +101,14 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
         ]; 
     }
 
-    async load(path,resourceType,loader) {
+    async load(path: string, resourceType: ResourceType, loader: Loader): Promise<any> {
         const bg2io = await bg2ioFactory(this._bg2ioPath);
 
         const buffer = await this._resource.load(path);
         const jsonData = bg2io.loadBg2FileAsJson(buffer);
 
         // Compatibility with 1.4 models
-        jsonData.materials.forEach(mat => {
+        jsonData.materials.forEach((mat: any) => {
             if (!mat.type) {
                 mat.type = mat["class"];
                 delete mat["class"];
