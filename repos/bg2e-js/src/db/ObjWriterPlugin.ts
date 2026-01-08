@@ -1,16 +1,17 @@
 import { ResourceType } from "../tools/Resource";
 import WriterPlugin from "./WriterPlugin";
+import Writer from "./Writer";
 
 export default class ObjWriterPlugin extends WriterPlugin {
-    get supportedExtensions() {
+    get supportedExtensions(): string[] {
         return ["obj"];
     }
 
-    get resourceTypes() {
-        return ResourceType.Drawable;
+    get resourceTypes(): ResourceType[] {
+        return [ResourceType.Drawable];
     }
 
-    async write(path, data, type) {
+    async write(path: string, data: any, type: ResourceType | string, writer: Writer): Promise<void> {
         console.log(path);
         console.log(data);
         console.log(type);

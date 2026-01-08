@@ -1,7 +1,13 @@
 
 import PolyList from "../base/PolyList";
 
-function parseM(line) {
+interface PointData {
+    vertex: [number, number, number];
+    normal: [number, number, number] | null;
+    tex: [number, number] | null;
+}
+
+function parseM(this: ObjParser, line: string): void {
     // mtllib
     let res = /mtllib\s+(.*)/.exec(line);
     if (res) {
@@ -9,7 +15,7 @@ function parseM(line) {
     }
 }
 
-function parseG(line) {
+function parseG(this: ObjParser, line: string): void {
     // g
     let res = /g\s+(.*)/.exec(line);
     if (res) {
@@ -17,18 +23,18 @@ function parseG(line) {
     }
 }
 
-function parseU(line) {
+function parseU(this: ObjParser, line: string): void {
     // usemtl
     let res = /usemtl\s+(.*)/.exec(line);
     if (res) {
-        this._currentPlist._matName = res[1];
+        (this._currentPlist as any)._matName = res[1];
         if (this._currentPlist.name=="") {
             this._currentPlist.name = res[1];
         }
     }
 }
 
-function parseS(line) {
+function parseS(this: ObjParser, line: string): void {
     // s
     let res = /s\s+(.*)/.exec(line);
     if (res) {
@@ -36,7 +42,7 @@ function parseS(line) {
     }
 }
 
-function addPoint(pointData) {
+function addPoint(this: ObjParser, pointData: PointData): void {
     this._currentPlist.vertex.push(pointData.vertex[0],pointData.vertex[1],pointData.vertex[2]);
     if (pointData.normal) {
         this._currentPlist.normal.push(pointData.normal[0],pointData.normal[1],pointData.normal[2]);
@@ -47,11 +53,11 @@ function addPoint(pointData) {
     this._currentPlist.index.push(this._currentPlist.index.length);
 }
 
-function isValid(point) {
-    return point && point.vertex && point.tex && point.normal;
+function isValid(point: PointData): boolean {
+    return !!(point && point.vertex && point.tex && point.normal);
 }
 
-function addPolygon(polygonData) {
+function addPolygon(this: ObjParser, polygonData: PointData[]): void {
     let currentVertex = 0;
     let sides = polygonData.length;
     if (sides<3) return;
@@ -83,28 +89,28 @@ function addPolygon(polygonData) {
     }
 }
 
-function parseF(line) {
+function parseF(this: ObjParser, line: string): void {
     // f
     this._addPlist = true;
-    let res = /f\s+(.*)/.exec(line);
+    let res: RegExpExecArray | null = /f\s+(.*)/.exec(line);
     if (res) {
         let params = res[1];
         let vtnRE = /([\d\-]+)\/([\d\-]*)\/([\d\-]*)/g;
         if (params.indexOf('/')==-1) {
             let vRE = /([\d\-]+)/g;
         }
-        let polygon = [];
+        let polygon: PointData[] = [];
         while ( (res=vtnRE.exec(params)) ) {
-            let iV = Number(res[1]);
-            let iN = res[3] ? Number(res[3]):null;
-            let iT = res[2] ? Number(res[2]):null;
+            let iV: number = Number(res[1]);
+            let iN: number | null = res[3] ? Number(res[3]):null;
+            let iT: number | null = res[2] ? Number(res[2]):null;
             iV = iV<0 ? this._vertexArray.length + iV : iV - 1;
-            iN = iN<0 ? this._normalArray.length + iN : (iN===null ? null : iN - 1);
-            iT = iT<0 ? this._texCoordArray.length + iT : (iT===null ? null : iT - 1)
+            iN = iN !== null ? (iN<0 ? this._normalArray.length + iN : iN - 1) : null;
+            iT = iT !== null ? (iT<0 ? this._texCoordArray.length + iT : iT - 1) : null;
 
-            let v = this._vertexArray[iV];
-            let n = iN!==null ? this._normalArray[iN] : null;
-            let t = iT!==null ? this._texCoordArray[iT] : null;
+            let v: [number, number, number] = this._vertexArray[iV];
+            let n: [number, number, number] | null = iN!==null ? this._normalArray[iN] : null;
+            let t: [number, number] | null = iT!==null ? this._texCoordArray[iT] : null;
             polygon.push({
                 vertex:v,
                 normal:n,
@@ -115,7 +121,7 @@ function parseF(line) {
     }
 }
 
-function parseO(line) {
+function parseO(this: ObjParser, line: string): void {
     // o
     let res = /s\s+(.*)/.exec(line);
     if (res && this._currentPlist.name=="") {
@@ -123,7 +129,7 @@ function parseO(line) {
     }
 }
 
-function checkAddPlist() {
+function checkAddPlist(this: ObjParser): void {
     if (this._addPlist) {
         if (this._currentPlist) {
             this._plistArray.push(this._currentPlist);
@@ -133,7 +139,7 @@ function checkAddPlist() {
     }
 }
 
-function loadObjData() {
+function loadObjData(this: ObjParser): void {
     let lines = this._textData.split('\n');
     let multiLine = "";
     lines.forEach(line => {
@@ -158,7 +164,7 @@ function loadObjData() {
             // Second optimization: parse by the first character
             switch (line[0]) {
             case 'v':
-                let res = /v\s+([\d\.\-e]+)\s+([\d\.\-e]+)\s+([\d\.\-e]+)/.exec(line);
+                let res: RegExpExecArray | null = /v\s+([\d\.\-e]+)\s+([\d\.\-e]+)\s+([\d\.\-e]+)/.exec(line);
                 if (res) {
                     this._vertexArray.push(
                         [ Number(res[1]), Number(res[2]), Number(res[3]) ]
@@ -210,7 +216,16 @@ function loadObjData() {
 }
 
 export default class ObjParser {
-    constructor(objText) {
+    public _textData: string;
+    public _plistArray: PolyList[];
+    public _vertexArray: [number, number, number][];
+    public _normalArray: [number, number, number][];
+    public _texCoordArray: [number, number][];
+    public _mtlLib: string;
+    public _addPlist: boolean;
+    public _currentPlist: PolyList;
+
+    constructor(objText: string) {
         this._textData = objText;
 
         this._plistArray = [];
@@ -222,12 +237,13 @@ export default class ObjParser {
         this._mtlLib = "";
 
         this._addPlist = true;
+        this._currentPlist = new PolyList();
 
         loadObjData.apply(this);
     }
 
 
-    get polyListArray() {
+    get polyListArray(): PolyList[] {
         return this._plistArray;
     }
 }

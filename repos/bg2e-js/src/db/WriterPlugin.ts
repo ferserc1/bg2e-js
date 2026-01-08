@@ -1,20 +1,19 @@
 
-export default class WriterPlugin {
+import { ResourceType } from '../tools/Resource';
+import Writer from './Writer';
+
+export default abstract class WriterPlugin {
     // Returns an array of valid file extensions for this plugin
     //  example: ['obj','dae']
-    get supportedExtensions() {
-        throw new Error("WriterPlugin.supportedExtensions: attribute not implemented");
-    }
+    abstract get supportedExtensions(): string[];
 
     // Returns the resource types that the loader plugin can handle
     // example: [ResourceType.PolyList, ResourceType.Drawable]
-    get resourceTypes() {
-        throw new Error("WriterPlugin.resourceTypes: attribute not implemented");
-    }
+    abstract get resourceTypes(): ResourceType[];
 
     // Performs the write action to the specified path, using the specified data
     // and for the specified type.
-    async write(path, data, type) {
+    async write(path: string, data: any, type: ResourceType | string, writer: Writer): Promise<any> {
         throw new Error("WriterPlugin.write(): method not implemented");
     }
 }
