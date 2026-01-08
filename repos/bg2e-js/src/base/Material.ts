@@ -483,7 +483,12 @@ export default class Material {
     set sheenColor(v: Color) { assertColor(v, "sheenColor"); this._sheenColor = v; this._dirty = true; }
 
     get lightEmission(): Color | number { return this._lightEmission; }
-    set lightEmission(v: Color | number) { assertColor(v, "lightEmission"); this._lightEmission = v; this._dirty = true; }
+    set lightEmission(v: Color | number) {
+        if (typeof v === "number") {
+            v = new Color([v, v, v, 1]);
+        }
+        assertColor(v, "lightEmission"); this._lightEmission = v; this._dirty = true;
+    }
     get lightEmissionTexture(): Texture | null { return this._lightEmissionTexture; }
     set lightEmissionTexture(v: Texture | null) {
         assertTexture(v, 'lightEmissionTexture');

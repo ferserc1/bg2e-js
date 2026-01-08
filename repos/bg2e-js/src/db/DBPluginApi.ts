@@ -1,25 +1,33 @@
 import { getExtension, ResourceType } from '../tools/Resource';
+import LoaderPlugin from './LoaderPlugin';
 
 export const PluginOperationType = {
     Read: "read",
     Write: "write"
-};
+} as const;
 
-export const createPluginDatabase = (operationType) => {
+export type PluginOperationTypeValue = typeof PluginOperationType[keyof typeof PluginOperationType];
+
+export interface PluginDatabase {
+    operationType: PluginOperationTypeValue;
+    plugins: Partial<Record<ResourceType, LoaderPlugin[]>>;
+}
+
+export const createPluginDatabase = (operationType: PluginOperationTypeValue): PluginDatabase => {
     return {
         operationType,
         plugins: {}
     }
 }
 
-export const registerPluginInDatabase = (pluginInstance, pluginDatabase) => {
+export const registerPluginInDatabase = (pluginInstance: LoaderPlugin, pluginDatabase: PluginDatabase): void => {
     pluginInstance.resourceTypes.forEach(type => {
         pluginDatabase.plugins[type] = pluginDatabase.plugins[type] || [];
-        pluginDatabase.plugins[type].push(pluginInstance);
+        pluginDatabase.plugins[type]!.push(pluginInstance);
     });
 }
 
-export const getPluginFromDatabase = function(path, type, pluginDatabase) {
+export const getPluginFromDatabase = function(path: string, type: ResourceType, pluginDatabase: PluginDatabase): LoaderPlugin {
     const ext = getExtension(path);
     const extCheck = new RegExp(ext, "i");
     const errMsg = `Could not find a plugin to ${pluginDatabase.operationType} file '${path}' of type '${type}'.`;
