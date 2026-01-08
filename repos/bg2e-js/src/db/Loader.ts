@@ -71,7 +71,7 @@ export default class Loader {
         this._cache = getClearedCache();
     }
 
-    findCache<T extends keyof LoaderCache>(path: string, type: T): LoaderCache[T][string] | undefined {
+    findCache<T extends keyof LoaderCache>(path: string, type: T): PolyList | Drawable | Node | Texture | Material | undefined {
         return this._cache[type] && this._cache[type][path];
     }
 
@@ -93,7 +93,7 @@ export default class Loader {
         return result;
     }
 
-    async loadPolyList(path: string): Promise<PolyList> {
+    async loadPolyList(path: string): Promise<PolyList[]> {
         return await this.loadResource(path, ResourceType.PolyList);
     }
 

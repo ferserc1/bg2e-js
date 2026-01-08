@@ -54,6 +54,9 @@ const bg2ioFactory = async (path: string | null): Promise<Bg2ioInstance> => {
         const params = path ? { wasmPath: path } : {};
         // @ts-ignore - Bg2ioWrapper has no type definitions
         g_bg2Wrapper = await Bg2ioWrapper(params);
+        if (!g_bg2Wrapper) {
+            throw new Error("Bg2LoaderPlugin: unable to initialize bg2io library");
+        }
     }
     return g_bg2Wrapper;
 }
@@ -116,10 +119,10 @@ const createNode = async (jsonData: Bg2JsonData, filePath: string, loader: Loade
 }
 
 export default class Bg2LoaderPlugin extends LoaderPlugin {
-    private _bg2ioPath: string | null;
+    private _bg2ioPath: string;
     private _resource: Resource;
 
-    constructor( { bg2ioPath = null }: { bg2ioPath?: string | null } = {}) {
+    constructor( { bg2ioPath }: { bg2ioPath: string } ) {
         super();
         this._bg2ioPath = bg2ioPath;
         this._resource = new Resource();

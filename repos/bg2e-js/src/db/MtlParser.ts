@@ -5,4 +5,5 @@ export default class MtlParser {
 
     constructor(mtlText: string) {
         this._mtlText = mtlText;
+    }
 }

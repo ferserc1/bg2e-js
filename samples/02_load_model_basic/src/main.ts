@@ -1,4 +1,5 @@
- import { db } from "bg2e-js";
+import { db } from "bg2e-js";
+import PolyList from "bg2e-js/src/base/PolyList";
 
  const {
   Loader,
@@ -15,7 +16,7 @@ registerLoaderPlugin(new ObjLoaderPlugin());
 
 const loader = new Loader();
 
-const plist = await loader.loadPolyList("../resources/sphere.bg2");
+const plist: PolyList[] = await loader.loadPolyList("../resources/sphere.bg2");
 
 plist.forEach(pl => {
     console.log(pl.tangent);
