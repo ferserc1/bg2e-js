@@ -3,6 +3,8 @@ import ComponentMap from './ComponentMap';
 import Component from './Component';
 import Renderer from '../render/Renderer';
 import Camera from './Camera';
+import Transform from './Transform';
+import Drawable from './Drawable';
 
 export function bindRenderer(node: Node, renderer: Renderer): void {
     (node as any)._bindedRenderer = renderer;
@@ -216,16 +218,16 @@ export default class Node {
     }
     
     // Most usual components
-    get transform(): Component | undefined {
-        return this.component("Transform");
+    get transform(): Transform | undefined {
+        return this.component("Transform") as Transform;
     }
 
     get lightComponent(): Component | undefined {
         return this.component("Light");
     }
 
-    get drawable(): Component | undefined {
-        return this.component("Drawable");
+    get drawable(): Drawable | undefined {
+        return this.component("Drawable") as Drawable;
     }
 
     get camera(): Camera | undefined {

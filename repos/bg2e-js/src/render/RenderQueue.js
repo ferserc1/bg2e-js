@@ -136,7 +136,6 @@ export default class RenderQueue {
         // Clear the depth texture, because this parameter
         // is set each frame by the ShadowRenderer
         light.depthTexture = null;
-        light.mvpMatrix = null;
         this._lights.push({ light, transform });
     }
 

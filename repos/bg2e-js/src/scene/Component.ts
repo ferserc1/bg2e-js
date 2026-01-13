@@ -1,4 +1,5 @@
 import Renderer from "../render/Renderer";
+import Node from "./Node";
 
 // Type definitions
 type ComponentConstructor<T extends Component = Component> = new () => T;
@@ -60,7 +61,7 @@ export default class Component {
         this._typeId = typeId;
     }
 
-    get node(): any { return this._node; }
+    get node(): Node { return this._node; }
 
     get typeId(): string { return this._typeId; }
 
@@ -113,23 +114,23 @@ export default class Component {
     }
 
     // Access to brother components
-    component(identifier: string): Component | null {
+    component(identifier: string): Component | undefined {
         return this.node.component(identifier);
     }
 
-    get transform(): Component | null {
+    get transform(): Component | undefined {
         return this.component("Transform");
     }
 
-    get lightComponent(): Component | null {
+    get lightComponent(): Component | undefined {
         return this.component("Light");
     }
 
-    get drawable(): Component | null {
+    get drawable(): Component | undefined {
         return this.component("Drawable");
     }
 
-    get camera(): Component | null {
+    get camera(): Component | undefined {
         return this.component("Camera");
     }
 
