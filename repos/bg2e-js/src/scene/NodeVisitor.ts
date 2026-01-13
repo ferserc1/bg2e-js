@@ -1,5 +1,8 @@
-
+import Node
+ from "./Node";
 export default class NodeVisitor {
+    private _ignoreDisabled: boolean;
+
     constructor() {
         this._ignoreDisabled = true;
     }
@@ -7,6 +10,6 @@ export default class NodeVisitor {
     get ignoreDisabled() { return this._ignoreDisabled; }
     set ignoreDisabled(i) { this._ignoreDisabled = i; }
 
-    visit(node) {}
-    didVisit(node) {}
+    visit(node: Node) {}
+    didVisit(node: Node) {}
 }

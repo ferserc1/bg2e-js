@@ -1,26 +1,38 @@
 import Mat4 from '../math/Mat4';
 import ComponentMap from './ComponentMap';
+import Component from './Component';
+import Renderer from '../render/Renderer';
+import Camera from './Camera';
 
-export function bindRenderer(node, renderer) {
-    node._bindedRenderer = renderer;
+export function bindRenderer(node: Node, renderer: Renderer): void {
+    (node as any)._bindedRenderer = renderer;
     node.components.forEach(comp => {
         comp.bindRenderer(renderer);
     });
 }
 
-export async function init(node) {
+export async function init(node: Node): Promise<void> {
     for (const i in node.components.array) {
         const comp = node.components.array[i];
-        if (!comp._initialized) {
+        if (!(comp as any)._initialized) {
             await comp.init();
-            comp._initialized = true;
+            (comp as any)._initialized = true;
         }
     }
-    node._sceneChanged = false;
+    (node as any)._sceneChanged = false;
 }
 
 export default class Node {
-    constructor(name = "") {
+    private _name: string;
+    private _enabled: boolean;
+    private _steady: boolean;
+    private _components: ComponentMap;
+    private _parent: Node | null;
+    private _children: Node[];
+    private _bindedRenderer?: Renderer;
+    private _sceneChanged: boolean = false;
+
+    constructor(name: string = "") {
         this._name = name;
         this._enabled = true;
         this._steady = false;
@@ -31,27 +43,27 @@ export default class Node {
         this._children = [];
     }
 
-    get name() { return this._name; }
-    set name(n) { this._name = n; }
+    get name(): string { return this._name; }
+    set name(n: string) { this._name = n; }
 
-    get enabled() { return this._enabled; }
-    set enabled(e) { this._enabled = e; }
+    get enabled(): boolean { return this._enabled; }
+    set enabled(e: boolean) { this._enabled = e; }
 
-    get steady() { return this._steady; }
-    set steady(s) { this._steady = s; }
+    get steady(): boolean { return this._steady; }
+    set steady(s: boolean) { this._steady = s; }
 
-    get components() { return this._components; }
+    get components(): ComponentMap { return this._components; }
 
-    get parent() { return this._parent; }
-    get children() { return this._children; }
+    get parent(): Node | null { return this._parent; }
+    get children(): Node[] { return this._children; }
 
-    clone(cloneChildren=false) {
+    clone(cloneChildren: boolean = false): Node {
         const newNode = new Node();
-        newNode.assign(this,cloneChildren);
+        newNode.assign(this, cloneChildren);
         return newNode;
     }
 
-    assign(other,cloneChildren=false) {
+    assign(other: Node, cloneChildren: boolean = false): void {
         this._name = other.name + "-copy";
         this._enabled = other.enabled;
         this._steady = other.steady;
@@ -64,57 +76,56 @@ export default class Node {
         }
     }
 
-    destroy() {
+    destroy(): void {
         this._components.empty();
         this.emptyChildren();
     }
 
-    async deserialize(sceneData,loader) {
+    async deserialize(sceneData: any, loader: any): Promise<void> {
         throw new Error("Node.deserialize() not implemented");
     }
 
-    async serialize(sceneData,writer) {
+    async serialize(sceneData: any, writer: any): Promise<void> {
         throw new Error("Node.serialice() not implemented");
     }
 
-    addComponent(component) {
+    addComponent(component: Component): Component {
         this.components.add(component);
         this.setSceneChanged();
         return component;
     }
 
-    component(typeId) {
+    component(typeId: string): Component | undefined {
         return this.components.find(typeId);
     }
 
-    removeComponent(component) {
+    removeComponent(component: Component | string): void {
         this.components.remove(component);
         this.setSceneChanged();
-        return component;
     }
 
-    addedToNode(node) {
-
+    addedToNode(node: Node): void {
+        // Override in subclasses if needed
     }
 
-    removedFromNode(node) {
-
+    removedFromNode(node: Node): void {
+        // Override in subclasses if needed
     }
 
     // This attribute returns true if a node or component
     // has been added or removed to this node or any child node
-    get sceneChanged() {
+    get sceneChanged(): boolean {
         return this._sceneChanged;
     }
 
-    setSceneChanged() {
+    setSceneChanged(): void {
         this._sceneChanged = true;
         if (this._parent) {
             this._parent.setSceneChanged();
         }
     }
 
-    addChild(node) {
+    addChild(node: Node): void {
         if (node._parent) {
             node._parent.removeChild(node);
         }
@@ -131,7 +142,7 @@ export default class Node {
         this.setSceneChanged();
     }
 
-    removeChild(node) {
+    removeChild(node: Node): void {
         if (node._parent === this) {
             node._parent = null;
             node.removedFromNode(this);
@@ -149,7 +160,7 @@ export default class Node {
         }
     }
 
-    emptyChildren() {
+    emptyChildren(): void {
         this._children.forEach(ch => {
             ch._parent = null;
             ch.removedFromNode(this);
@@ -158,12 +169,12 @@ export default class Node {
         this.setSceneChanged();
     }
 
-    haveChild(node) {
+    haveChild(node: Node): boolean {
         return this._children.indexOf(node) !== -1;
     }
 
-    isAncientOf(node) {
-        const isNodeAncient = (node, ancient) => {
+    isAncientOf(node: Node): boolean {
+        const isNodeAncient = (node: Node | null, ancient: Node): boolean => {
             if (!node || !ancient) {
                 return false;
             }
@@ -174,11 +185,11 @@ export default class Node {
                 return isNodeAncient(node._parent, ancient);
             }
         }
-        isNodeAncient(this,node);
+        return isNodeAncient(this, node);
     }
 
     // Visitor functions
-    accept(nodeVisitor) {
+    accept(nodeVisitor: any): void {
         if (!nodeVisitor.ignoreDisabled || this.enabled) {
             nodeVisitor.visit(this);
             this._children.forEach(ch => ch.accept(nodeVisitor));
@@ -186,7 +197,7 @@ export default class Node {
         }
     }
 
-    acceptReverse(nodeVisitor) {
+    acceptReverse(nodeVisitor: any): void {
         if (!nodeVisitor.ignoreDisabled || this.enabled) {
             if (this._parent) {
                 this._parent.acceptReverse(nodeVisitor);
@@ -195,7 +206,7 @@ export default class Node {
         }
     }
 
-    async asyncAccept(nodeVisitor) {
+    async asyncAccept(nodeVisitor: any): Promise<void> {
         if (!nodeVisitor.ignoreDisabled || this.enabled) {
             await nodeVisitor.asyncVisit(this);
             for (const ch in this._children) {
@@ -205,26 +216,26 @@ export default class Node {
     }
     
     // Most usual components
-    get transform() {
+    get transform(): Component | undefined {
         return this.component("Transform");
     }
 
-    get lightComponent() {
+    get lightComponent(): Component | undefined {
         return this.component("Light");
     }
 
-    get drawable() {
+    get drawable(): Component | undefined {
         return this.component("Drawable");
     }
 
-    get camera() {
-        return this.component("Camera");
+    get camera(): Camera | undefined {
+        return this.component("Camera") as Camera;
     }
 
-    frame(delta, modelMatrix, renderQueue) {
-        const willUpdateComponents = [];
-        const updateComponents = [];
-        const drawComponents = [];
+    frame(delta: number, modelMatrix: Mat4, renderQueue: any): void {
+        const willUpdateComponents: Component[] = [];
+        const updateComponents: Component[] = [];
+        const drawComponents: Component[] = [];
         this._components.forEach(comp => {
             if (comp.requireWillUpdate) {
                 willUpdateComponents.push(comp);
@@ -235,66 +246,66 @@ export default class Node {
             if (comp.requireDraw) {
                 drawComponents.push(comp);
             }
-        })
+        });
 
-        willUpdateComponents.forEach(comp => comp.willUpdate(delta));
-        updateComponents.forEach(comp => comp.update(delta, modelMatrix));
-        drawComponents.forEach(comp => comp.draw(renderQueue, modelMatrix));
+        willUpdateComponents.forEach(comp => (comp as any).willUpdate(delta));
+        updateComponents.forEach(comp => (comp as any).update(delta, modelMatrix));
+        drawComponents.forEach(comp => (comp as any).draw(renderQueue, modelMatrix));
     }
 
-    keyDown(evt) {
+    keyDown(evt: any): void {
         this._components.forEach(comp => {
             comp.keyDown(evt);
-        })
+        });
     }
-    keyUp(evt) {
+    keyUp(evt: any): void {
         this._components.forEach(comp => {
             comp.keyUp(evt);
-        })
+        });
     }
-    mouseUp(evt) {
+    mouseUp(evt: any): void {
         this._components.forEach(comp => {
             comp.mouseUp(evt);
-        })
+        });
     }
-    mouseDown(evt) {
+    mouseDown(evt: any): void {
         this._components.forEach(comp => {
             comp.mouseDown(evt);
-        })
+        });
     }
-    mouseMove(evt) {
+    mouseMove(evt: any): void {
         this._components.forEach(comp => {
             comp.mouseMove(evt);
-        })
+        });
     }
-    mouseOut(evt) {
+    mouseOut(evt: any): void {
         this._components.forEach(comp => {
             comp.mouseOut(evt);
-        })
+        });
     }
-    mouseDrag(evt) {
+    mouseDrag(evt: any): void {
         this._components.forEach(comp => {
             comp.mouseDrag(evt);
-        })
+        });
     }
-    mouseWheel(evt) {
+    mouseWheel(evt: any): void {
         this._components.forEach(comp => {
             comp.mouseWheel(evt);
-        })
+        });
     }
-    touchStart(evt) {
+    touchStart(evt: any): void {
         this._components.forEach(comp => {
             comp.touchStart(evt);
-        })
+        });
     }
-    touchMove(evt) {
+    touchMove(evt: any): void {
         this._components.forEach(comp => {
             comp.touchMove(evt);
-        })
+        });
     }
-    touchEnd(evt) {
+    touchEnd(evt: any): void {
         this._components.forEach(comp => {
             comp.touchEnd(evt);
-        })
+        });
     }
 }

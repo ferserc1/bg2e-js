@@ -1,38 +1,43 @@
 import NodeVisitor from "./NodeVisitor";
+import Node from "./Node";
 
 export default class FindNodeVisitor extends NodeVisitor {
+    private _name?: string | RegExp;
+    private _result: Node[];
+    private _hasComponents: string[];
+
     constructor() {
         super();
 
-        this._name;
+        this._name = undefined;
         this._result = [];
         this._hasComponents = [];
     }
 
-    set name(n) {
+    set name(n: string | RegExp | undefined) {
         this._name = n;
     }
 
-    get name() {
+    get name(): string | RegExp | undefined {
         return this._name;
     }
 
-    get result() {
+    get result(): Node[] {
         return this._result;
     }
 
-    clear() {
+    clear(): void {
         this._result = [];
     }
 
-    hasComponents(components) {
+    hasComponents(components: string | string[]): void {
         if (!Array.isArray(components)) {
             components = [components];
         }
         this._hasComponents = components;
     }
 
-    visit(node) {
+    visit(node: Node): void {
         let add = false;
         if (typeof(this._name) === "string") {
             add = this._name === node.name;

@@ -1,85 +1,93 @@
 
 import Component from "./Component";
 
-function syncArray() {
-    this._array = [];
-    for (const type in this._obj) {
-        const c = this._obj[type];
-        this._array.push(c);
-    } 
+interface ComponentObject {
+    [typeId: string]: Component;
 }
 
 export default class ComponentMap {
-    constructor(node) {
+    private _node: any;
+    private _obj: ComponentObject;
+    private _array: Component[];
+
+    private syncArray(): void {
+        this._array = [];
+        for (const type in this._obj) {
+            const c = this._obj[type];
+            this._array.push(c);
+        } 
+    }
+
+    constructor(node: any) {
         this._node = node;
         this._obj = {};
         this._array = [];
     }
 
-    get array() {
+    get array(): Component[] {
         return this._array;
     }
 
-    add(comp) {
+    add(comp: Component): void {
         const typeId = comp.typeId;
         const existingComp = this._obj[typeId];
         if (existingComp) {
-            existingComp._node = null;
+            (existingComp as any)._node = null;
             existingComp.removedFromNode(this._node);
         }
         this._obj[typeId] = comp;
-        comp._node = this._node;
+        (comp as any)._node = this._node;
         comp.addedToNode(this._node);
-        syncArray.apply(this);
+        this.syncArray();
     }
 
-    remove(compOrType) {
+    remove(compOrType: Component | string): void {
         const typeId = compOrType instanceof Component ? compOrType.typeId : compOrType;
         const existingComp = this._obj[typeId];
         if (existingComp) {
-            existingComp._node = null;
+            (existingComp as any)._node = null;
             existingComp.removedFromNode(this._node);
             delete this._obj[typeId];
-            syncArray.apply(this);
+            this.syncArray();
         }
     }
 
-    empty() {
+    empty(): void {
         for (const typeId in this._obj) {
             const comp = this._obj[typeId];
-            comp._node = null;
+            (comp as any)._node = null;
             comp.removedFromNode(this._node);
         }
         this._obj = {};
         this._array = [];
     }
 
-    find(typeId) {
+    find(typeId: string): Component | undefined {
         return this._obj[typeId];
     }
 
-    forEach(cb) {
+    forEach(cb: (component: Component, index: number, array: Component[]) => void): void {
         return this._array.forEach(cb);
     }
 
-    every(cb) {
+    every(cb: (component: Component, index: number, array: Component[]) => boolean): boolean {
         return this._array.every(cb);
     }
 
-    some(cb) {
+    some(cb: (component: Component, index: number, array: Component[]) => boolean): boolean {
         return this._array.some(cb);
     }
 
-    map(cb) {
+    map<T>(cb: (component: Component, index: number, array: Component[]) => T): T[] {
         return this._array.map(cb);
     }
 
-    filter(cb) {
+    filter(cb: (component: Component, index: number, array: Component[]) => boolean): Component[] {
         return this._array.filter(cb);
     }
 
-    clone(parentNode) {
-        const result = new Components(parentNode);
+    clone(parentNode: any): ComponentMap {
+        const result = new ComponentMap(parentNode);
         result.assign(this);
         return result;
     }
@@ -87,13 +95,13 @@ export default class ComponentMap {
     // Note: this function clones the components from 'other'
     // instance to this instance.
     // This function doesn't modify this._node reference
-    assign(other) {
+    assign(other: ComponentMap): void {
         this.empty();
         for (const typeId in other._obj) {
             const comp = other._obj[typeId];
             const compClone = comp.clone();
             this._obj[typeId] = compClone;
         }
-        syncArray.apply(this);
+        this.syncArray();
     }
 }
