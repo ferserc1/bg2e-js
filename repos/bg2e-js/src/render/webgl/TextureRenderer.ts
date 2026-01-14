@@ -2,19 +2,19 @@
 
 import TextureRenderer from '../TextureRenderer';
 import Texture, { 
-    TextureWrapName, 
-    TextureFilterName, 
     TextureTargetName,
     TextureDataType,
     TextureComponentFormat,
     TextureRenderTargetAttachment,
-    TextureTarget
+    TextureTarget,
+    textureWrapString,
+    textureFilterString
 } from '../../base/Texture';
 import Vec from '../../math/Vec';
 import { generateUUID } from '../../tools/crypto';
 import Renderer from '../Renderer';
 
-const getTarget = (gl, tex) => {
+const getTarget = (gl: WebGLRenderingContext, tex: Texture): number => {
     switch (tex.target) {
     case TextureTarget.TEXTURE_2D:
         return gl.TEXTURE_2D;
@@ -25,22 +25,22 @@ const getTarget = (gl, tex) => {
     }
 }
 
-const getClampMode = (gl, mode) => {
+const getClampMode = (gl: WebGLRenderingContext, mode: number): number => {
     if (mode === 1) {
         return gl.CLAMP_TO_EDGE;
     }
     else {
-        const name = TextureWrapName[mode];
-        return gl[name];
+        const name = textureWrapString(mode);
+        return (gl as any)[name];
     }
 }
 
-const getTextureFilter = (gl, filter) => {
-    const name = TextureFilterName[filter];
-    return gl[name];
+const getTextureFilter = (gl: WebGLRenderingContext, filter: number): number => {
+    const name = textureFilterString(filter);
+    return (gl as any)[name];
 }
 
-const getDataFormat = (gl,texture) => {
+const getDataFormat = (gl: WebGLRenderingContext, texture: Texture): number => {
     const componentFormat = texture.componentFormat;
     switch (componentFormat) {
     case TextureComponentFormat.UNSIGNED_BYTE:
@@ -52,7 +52,7 @@ const getDataFormat = (gl,texture) => {
     }
 }
 
-const bg2eCreateTexture = (gl, textureObject) => {
+const bg2eCreateTexture = (gl: any, textureObject: any): void => {
     textureObject._apiObject = gl.createTexture();
     textureObject._apiObject._bg2_uuid = generateUUID();
     gl._bg2_textures = gl._bg2_textures || {};
@@ -63,7 +63,7 @@ const bg2eCreateTexture = (gl, textureObject) => {
     gl._bg2_textures[id] = textureObject;
 }
 
-const bg2eDeleteTexture = (gl, textureObject) => {
+const bg2eDeleteTexture = (gl: any, textureObject: any): void => {
     if (textureObject._apiObject) {
         gl.deleteTexture(textureObject._apiObject);
         delete gl._bg2_textures[textureObject._apiObject._bg2_uuid];
@@ -72,7 +72,7 @@ const bg2eDeleteTexture = (gl, textureObject) => {
     }
 }
 
-const getWebGLTexture = (gl, textureObject) => {
+const getWebGLTexture = (gl: WebGLRenderingContext, textureObject: any): void => {
     if (!textureObject.imageData) {
         throw new Error("Error loading WebGL texture: image data not loaded");
     }
@@ -125,43 +125,43 @@ const getWebGLTexture = (gl, textureObject) => {
 }
 
 export default class WebGLTextureRenderer extends TextureRenderer {
-    static ListTextures(glOrRenderer) {
+    static ListTextures(glOrRenderer: Renderer | any): Record<string, any> {
         if (glOrRenderer instanceof Renderer) {
-            glOrRenderer = glOrRenderer.gl;
+            glOrRenderer = (glOrRenderer as any).gl;
         }
         return glOrRenderer._bg2_textures || {};
     }
 
-    getApiObject() {
+    getApiObject(): any {
         if (this.texture.dirty) {
             try {
-                getWebGLTexture(this.renderer.gl, this.texture);
+                getWebGLTexture((this.renderer as any).gl, this.texture);
                 this.texture.setUpdated();
             }
-            catch (err) {
+            catch (err: any) {
                 console.warn(err.message);
             }
         }
-        return this.texture._apiObject;
+        return (this.texture as any)._apiObject;
     }
     
-    destroy() {
-        const { gl } = this.renderer;
+    destroy(): void {
+        const { gl } = this.renderer as any;
         bg2eDeleteTexture(gl, this.texture);
     }
 
     ///// webgl specific functions
     // Returns the webgl target (TEXTURE_2D, TEXTURE_3D...)
-    get target() {
-        return this.renderer.gl[TextureTargetName[this.texture.target]];
+    get target(): number {
+        return (this.renderer as any).gl[TextureTargetName[this.texture.target]];
     }
 
-    activeTexture(index = 0) {
-        const { gl } = this.renderer;
+    activeTexture(index: number = 0): void {
+        const { gl } = this.renderer as any;
         gl.activeTexture(gl.TEXTURE0 + index);
     }
 
-    bindTexture() {
-        this.renderer.gl.bindTexture(this.target, this.getApiObject());
+    bindTexture(): void {
+        (this.renderer as any).gl.bindTexture(this.target, this.getApiObject());
     }
 }

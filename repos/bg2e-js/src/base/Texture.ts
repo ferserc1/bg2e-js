@@ -303,7 +303,11 @@ export default class Texture {
     _renderer?: any;
 
     constructor(canvas: Canvas | null = null) {
-        this._canvas = canvas || Canvas.FirstCanvas();
+        const c = canvas || Canvas.FirstCanvas();
+        if (!c) {
+            throw new Error("Error creating Texture: no Canvas available.");
+        }
+        this._canvas = c;
 
         // This flag allows to the renderer to know if the texture object
         // has been updated. In this case, the renderer texture must to
