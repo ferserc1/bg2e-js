@@ -2,6 +2,15 @@ import { jointUrl } from "../tools/Resource";
 import Component from "./Component";
 
 export default class EnvironmentComponent extends Component {
+    private _equirectangularTexture: string;
+    private _irradianceIntensity: number;
+    private _showSkybox: boolean;
+    private _cubemapSize: number;
+    private _irradianceMapSize: number;
+    private _specularMapSize: number;
+    private _specularMapL2Size: number;
+    private _environment: any;
+
     constructor() {
         super("Environment");
 
@@ -17,73 +26,73 @@ export default class EnvironmentComponent extends Component {
         this._environment = null;
     }
 
-    set equirectangularTexture(v) {
+    set equirectangularTexture(v: string) {
         this._equirectangularTexture = v;
     }
 
-    get equirectangularTexture() {
+    get equirectangularTexture(): string {
         return this._equirectangularTexture;
     }
 
-    set irradianceIntensity(v) {
+    set irradianceIntensity(v: number) {
         this._irradianceIntensity = v;
     }
 
-    get irradianceIntensity() {
+    get irradianceIntensity(): number {
         return this._irradianceIntensity;
     }
 
-    set showSkybox(v) {
+    set showSkybox(v: boolean) {
         this._showSkybox = v;
     }
 
-    get showSkybox() {
+    get showSkybox(): boolean {
         return this._showSkybox;
     }
 
-    set cubemapSize(v) {
+    set cubemapSize(v: number) {
         this._cubemapSize = v;
     }
 
-    get cubemapSize() {
+    get cubemapSize(): number {
         return this._cubemapSize;
     }
 
-    set irradianceMapSize(v) {
+    set irradianceMapSize(v: number) {
         this._irradianceMapSize = v;
     }
 
-    get irradianceMapSize() {
+    get irradianceMapSize(): number {
         return this._irradianceMapSize;
     }
 
-    set specularMapSize(v) {
+    set specularMapSize(v: number) {
         this._specularMapSize = v;
     }
 
-    get specularMapSize() {
+    get specularMapSize(): number {
         return this._specularMapSize;
     }
 
-    set specularMapL2Size(v) {
+    set specularMapL2Size(v: number) {
         this._specularMapL2Size = v;
     }
 
-    get specularMapL2Size() {
+    get specularMapL2Size(): number {
         return this._specularMapL2Size;
     }
 
-    get environment() {
+    get environment(): any {
         return this._environment;
     }
 
-    clone() {
+    clone(): EnvironmentComponent {
         const result = new EnvironmentComponent();
         result.assign(this);
         return result;
     }
 
-    assign(other) {
+    assign(other: EnvironmentComponent): void {
         this.equirectangularTexture = other.equirectangularTexture;
         this.irradianceIntensity = other.irradianceIntensity;
         this.showSkybox = other.showSkybox;
@@ -93,10 +102,10 @@ export default class EnvironmentComponent extends Component {
         this.specularMapL2Size = other.specularMapL2Size;
     }
 
-    async deserialize(sceneData,loader) {
-        super.deserialize(sceneData,loader);
+    async deserialize(sceneData: any, loader: any): Promise<void> {
+        super.deserialize(sceneData, loader);
         if (loader.currentPath && sceneData.equirectangularTexture) {
-            this.equirectangularTexture = jointUrl(loader.currentPath,sceneData.equirectangularTexture);
+            this.equirectangularTexture = jointUrl(loader.currentPath, sceneData.equirectangularTexture);
         }
         this.irradianceIntensity = sceneData.irradianceIntensity || this.irradianceIntensity;
         this.showSkybox = sceneData.showSkybox ?? this.showSkybox;
@@ -106,13 +115,17 @@ export default class EnvironmentComponent extends Component {
         this.specularMapL2Size = sceneData.specularMapL2Size || this.specularMapL2Size;
     }
 
-    async serialize(sceneData,writer) {
-        await super.serialize(sceneData,writer);
+    async serialize(sceneData: any, writer: any): Promise<void> {
+        await super.serialize(sceneData, writer);
         throw Error("EnvironmentComponent.serialize(): not implemented");
     }
 
-    async init() {
-        this._environment = this.renderer.factory.environment();
+    async init(): Promise<void> {
+        this._environment = this.renderer?.factory.environment();
+        if (!this._environment) {
+            throw new Error("EnvironmentComponent.init(): unexpected error. Unable to create environment object from renderer factory");
+        }
+
         await this._environment.load({
             textureUrl: this.equirectangularTexture,
             environmentMapSize: [ this.cubemapSize, this.cubemapSize ],

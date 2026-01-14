@@ -2,8 +2,13 @@ import Vec from '../math/Vec';
 import Mat4 from '../math/Mat4';
 
 export default class Joint {
-    static Factory(linkData) {
-        let result = null;
+    protected _transform: Mat4;
+
+    static Factory(linkData?: any): Joint | null {
+        if (!linkData || !linkData.type) { 
+            return null;
+        }
+        let result: Joint | null = null;
         switch (linkData.type) {
         case 'LinkJoint':
             result = new LinkJoint();
@@ -17,14 +22,18 @@ export default class Joint {
         this._transform = Mat4.MakeIdentity();
     }
 
-    get transform() { return this._transform; }
-    set transform(t) { this._transform.assign(t); }
+    get transform(): Mat4 { return this._transform; }
+    set transform(t: Mat4) { this._transform.assign(t); }
 
-    applyTransform(matrix) {
+    applyTransform(matrix: Mat4): void {
 
     }
 
-    calculateTransform() {
+    calculateTransform(): void {
+
+    }
+
+    deserialize(linkData: any): void {
 
     }
 }
@@ -35,6 +44,10 @@ export const LinkTransformOrder = {
 };
 
 export class LinkJoint extends Joint {
+    private _offset: Vec;
+    private _eulerRotation: Vec;
+    private _transformOrder: number;
+
     constructor() {
         super();
         this._offset = new Vec(0, 0, 0);
@@ -42,28 +55,28 @@ export class LinkJoint extends Joint {
         this._transformOrder = LinkTransformOrder.TRANSLATE_ROTATE;
     }
 
-    get offset() { return this._offset; }
-    set offset(o) { this._offset = new Vec(o); this.calculateTransform(); }
+    get offset(): Vec { return this._offset; }
+    set offset(o: Vec | number[]) { this._offset = new Vec(o); this.calculateTransform(); }
 
-    get eulerRotation() { return this._eulerRotation; }
-    set eulerRotation(e) { this._eulerRotation = new Vec(e); this.calculateTransform(); }
+    get eulerRotation(): Vec { return this._eulerRotation; }
+    set eulerRotation(e: Vec | number[]) { this._eulerRotation = new Vec(e); this.calculateTransform(); }
 
-    get yaw() { return this._eulerRotation.x; }
-    get pitch() { return this._eulerRotation.y; }
-    get roll() { return this._eulerRotation.z; }
+    get yaw(): number { return this._eulerRotation.x; }
+    get pitch(): number { return this._eulerRotation.y; }
+    get roll(): number { return this._eulerRotation.z; }
 
-    set yaw(y) { this._eulerRotation.x = y; this.calculateTransform(); }
-    set pitch(p) { this._eulerRotation.y = p; this.calculateTransform(); }
-    set roll(r) { this._eulerRotation.z = r; this.calculateTransform(); }
+    set yaw(y: number) { this._eulerRotation.x = y; this.calculateTransform(); }
+    set pitch(p: number) { this._eulerRotation.y = p; this.calculateTransform(); }
+    set roll(r: number) { this._eulerRotation.z = r; this.calculateTransform(); }
 
-    get transformOrder() { return this._transformOrder; }
-    set transformOrder(t) { this._transformOrder = t; this.calculateTransform(); }
+    get transformOrder(): number { return this._transformOrder; }
+    set transformOrder(t: number) { this._transformOrder = t; this.calculateTransform(); }
 
-    applyTransform(matrix) {
+    applyTransform(matrix: Mat4): void {
         matrix.mult(this.transform);
     }
 
-    multTransform(dst) {
+    multTransform(dst: Mat4): void {
         const offset = this.offset;
         switch (this.transformOrder) {
         case LinkTransformOrder.TRANSLATE_ROTATE:
@@ -77,31 +90,31 @@ export class LinkJoint extends Joint {
         }
     }
 
-    multRotation(dst) {
+    multRotation(dst: Mat4): void {
         dst .rotate(this.eulerRotation.z, 0, 0, 1)
             .rotate(this.eulerRotation.y, 0, 1, 0)
             .rotate(this.eulerRotation.x, 1, 0, 0);
     }
 
-    calculateTransform() {
+    calculateTransform(): void {
         this.transform.identity();
         this.multTransform(this.transform);
     }
 
-    clone() {
+    clone(): LinkJoint {
         const other = new LinkJoint();
         other.assign(this);
         return other;
     }
 
-    assign(other) {
+    assign(other: LinkJoint): void {
         this._offset = new Vec(other._offset);
         this._eulerRotation = new Vec(other._eulerRotation);
         this._transformOrder = other._transformOrder;
         this.calculateTransform();
     }
 
-    serialize(sceneData) {
+    serialize(sceneData: any): void {
         if (sceneData.offset && sceneData.offset.length >= 3) {
             this._offset = new Vec(sceneData.offset);
         }
@@ -113,7 +126,7 @@ export class LinkJoint extends Joint {
         this._transformOrder = sceneData.order !== undefined ? sceneData.order : LinkTransformOrder.TRANSLATE_ROTATE;
     }
 
-    deserialize(sceneData) {
+    deserialize(sceneData: any): void {
         sceneData.type = 'LinkJoint';
         sceneData.offset = Array.from(this._offset);
         sceneData.yaw = this.yaw;

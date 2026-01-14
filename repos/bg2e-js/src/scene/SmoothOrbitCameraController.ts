@@ -13,29 +13,36 @@ import Mat4 from '../math/Mat4';
 
 
 export default class SmoothOrbitCameraController extends OrbitCameraController {
+    _smoothFactor: number;
+    _action: number;
+    _center0?: Vec;
+    _distance0?: number;
+    _pitch0?: number;
+    _yaw0?: number;
+
     constructor() {
         super("SmoothOrbitCameraController");
         this._smoothFactor = 0.009;
         this._action = Action.NONE;
     }
 
-    clone() {
+    clone(): SmoothOrbitCameraController {
         const result = new SmoothOrbitCameraController();
-        result.asign(this);
+        result.assign(this);
         return result;
     }
 
-    assign(other) {
+    assign(other: SmoothOrbitCameraController): void {
         super.assign(other);
     }
 
-    willUpdate(delta) {
+    willUpdate(delta: number): void {
         if (this.transform && this.enabled) {
-            let orthoStrategy = this.camera && this.camera.projectionStrategy instanceof OrthographicProjectionStrategy ?
+            const orthoStrategy = this.camera && this.camera.projectionStrategy instanceof OrthographicProjectionStrategy ?
             this.camera.projectionStrategy : null;
 
             if (this._mouseButtonPressed) {
-                let displacement = new Vec([0,0,0]);
+                let displacement = new Vec([0, 0, 0]);
                 if (this._keys[SpecialKey.UP_ARROW]) {
                     displacement = Vec.Add(displacement, this.transform.matrix.backwardVector);
                 }
@@ -74,7 +81,7 @@ export default class SmoothOrbitCameraController extends OrbitCameraController {
 
             this.transform.matrix.identity();
             if (orthoStrategy) {
-                orthoStrategy.viewWidth = this._viewWidth;
+                orthoStrategy.viewWidth = this._viewWidth!;
             }
             else {
                 this.transform.matrix.translate(0, 0, this._distance0);
