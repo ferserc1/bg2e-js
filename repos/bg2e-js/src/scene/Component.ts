@@ -1,5 +1,9 @@
 import Renderer from "../render/Renderer";
+import Camera from "./Camera";
+import Drawable from "./Drawable";
+import LightComponent from "./LightComponent";
 import Node from "./Node";
+import Transform from "./Transform";
 
 // Type definitions
 type ComponentConstructor<T extends Component = Component> = new () => T;
@@ -118,20 +122,20 @@ export default class Component {
         return this.node.component(identifier);
     }
 
-    get transform(): Component | undefined {
-        return this.component("Transform");
+    get transform(): Transform | undefined {
+        return this.component("Transform") as Transform;
     }
 
-    get lightComponent(): Component | undefined {
-        return this.component("Light");
+    get lightComponent(): LightComponent | undefined {
+        return this.component("Light") as LightComponent;
     }
 
-    get drawable(): Component | undefined {
-        return this.component("Drawable");
+    get drawable(): Drawable | undefined {
+        return this.component("Drawable") as Drawable;
     }
 
-    get camera(): Component | undefined {
-        return this.component("Camera");
+    get camera(): Camera | undefined {
+        return this.component("Camera") as Camera;
     }
 
     // Life cycle functions and properties

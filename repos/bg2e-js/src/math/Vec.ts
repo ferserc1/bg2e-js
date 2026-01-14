@@ -435,6 +435,10 @@ export default class Vec extends NumericArray {
         return "[]";
     }
 
+    toArray(): number[] {
+        return Array.from(this);
+    }
+
     static CheckEqualLength(v1: ArrayLike<number>, v2: ArrayLike<number>): void {
         checkEqualLength(v1,v2);
     }

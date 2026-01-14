@@ -5,6 +5,7 @@ import Renderer from '../render/Renderer';
 import Camera from './Camera';
 import Transform from './Transform';
 import Drawable from './Drawable';
+import LightComponent from './LightComponent';
 
 export function bindRenderer(node: Node, renderer: Renderer): void {
     (node as any)._bindedRenderer = renderer;
@@ -222,8 +223,8 @@ export default class Node {
         return this.component("Transform") as Transform;
     }
 
-    get lightComponent(): Component | undefined {
-        return this.component("Light");
+    get lightComponent(): LightComponent | undefined {
+        return this.component("Light") as LightComponent;
     }
 
     get drawable(): Drawable | undefined {
