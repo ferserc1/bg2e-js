@@ -1,6 +1,6 @@
 import { generateUUID } from "../tools/crypto";
 
-export const getMouseEventOffset = (evt,canvas) => {
+export const getMouseEventOffset = (evt: any, canvas: Canvas): { x: number; y: number } => {
     const offset = canvas.domElement.getBoundingClientRect();
     return {
         x: evt.clientX - offset.left,
@@ -8,9 +8,9 @@ export const getMouseEventOffset = (evt,canvas) => {
     };
 }
 
-export const getEventTouches = (evt,canvas) => {
+export const getEventTouches = (evt: any, canvas: Canvas): any[] => {
     const offset = canvas.domElement.getBoundingClientRect();
-    const touches = Array.from(evt.touches).map(touch => {
+    const touches = Array.from(evt.touches).map((touch: any) => {
         return {
             identifier: touch.identifier,
             x: touch.clientX - offset.left,
@@ -24,17 +24,21 @@ export const getEventTouches = (evt,canvas) => {
     return touches;
 }
 
-let g_firstCanvas = null;
+let g_firstCanvas: Canvas | null = null;
 
 export default class Canvas {
-    static FirstCanvas() {
+    private _renderer: any;
+    private _domElement: HTMLCanvasElement;
+    _mainLoop: any;
+
+    static FirstCanvas(): Canvas | null {
         return g_firstCanvas;
     }
 
-    constructor(domElement,renderer) {
+    constructor(domElement: HTMLCanvasElement, renderer: any) {
         this._renderer = renderer;
         this._domElement = domElement;
-        this._domElement._bg2e_id = generateUUID();
+        (this._domElement as any)._bg2e_id = generateUUID();
 
         g_firstCanvas = g_firstCanvas || this;
 
@@ -42,35 +46,38 @@ export default class Canvas {
         this._mainLoop = null;
     }
 
-    get id() {
-        return this._domElement._bg2e_id;
+    get id(): string {
+        return (this._domElement as any)._bg2e_id;
     }
 
-    async init() {
+    async init(): Promise<void> {
         await this._renderer.init(this);
     }
 
-    get mainLoop() { return this._mainLoop; }
+    get mainLoop(): any { return this._mainLoop; }
 
-    get renderer() { return this._renderer; }
+    get renderer(): any { return this._renderer; }
 
-    get domElement() { return this._domElement; }
+    get domElement(): HTMLCanvasElement { return this._domElement; }
 
-    get width() { return this._domElement.clientWidth; }
+    get width(): number { return this._domElement.clientWidth; }
 
-    get height() { return this._domElement.clientHeight; }
+    get height(): number { return this._domElement.clientHeight; }
 
-    get viewport() { return { width: this.width, height: this.height, aspectRatio: this.width / this.height }; }
+    get viewport(): { width: number; height: number; aspectRatio: number } { return { width: this.width, height: this.height, aspectRatio: this.width / this.height }; }
 
-    updateViewportSize() {
+    updateViewportSize(): void {
         const sizeInPx = { w: this.domElement.clientWidth, h: this.domElement.clientHeight };
         this.domElement.width = sizeInPx.w * window.devicePixelRatio;
         this.domElement.height = sizeInPx.h * window.devicePixelRatio;
     }
 
-    screenshot(format, width, height) {
+    screenshot(format?: string, width?: number, height?: number): string {
         let canvasStyle = "";
-        const prevSize = {};
+        const prevSize = {
+            width: 0,
+            height: 0
+        };
 
         if (width) {
             height = height ? height : width;
@@ -81,16 +88,16 @@ export default class Canvas {
             this.domElement.style.cssText = `top:auto;left:auto;bottom:auto;right:auto;width:${width}px;height:${height}px;`;
             this.domElement.width = width;
             this.domElement.height = height;
-            this.mainLoop.appController.reshape(width,height);
+            this.mainLoop.appController.reshape(width, height);
             this.mainLoop.appController.display();
         }
 
         const data = this.domElement.toDataURL(format);
         if (width) {
-            this.domElement.cssText = canvasStyle;
+            this.domElement.style.cssText = canvasStyle;
             this.domElement.width = prevSize.width;
             this.domElement.height = prevSize.height;
-            this.mainLoop.appController.reshape(prevSize.width, prevSize.heigth);
+            this.mainLoop.appController.reshape(prevSize.width, prevSize.height);
             this.mainLoop.appController.display();
         }
         return data;

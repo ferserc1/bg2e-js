@@ -1,20 +1,20 @@
 import { getMouseEventOffset } from "./Canvas";
 import EventBase from "./EventBase";
 
-export const MouseButton = {
-    LEFT: 0,
-    MIDDLE: 1,
-    RIGHT: 2,
-    NONE: -1
-};
+export enum MouseButton {
+    LEFT = 0,
+    MIDDLE = 1,
+    RIGHT = 2,
+    NONE = -1
+}
 
-export const MouseButtonEventType = {
-    NONE: 0,
-    UP: 1,
-    DOWN: 2
-};
+export enum MouseButtonEventType {
+    NONE = 0,
+    UP = 1,
+    DOWN = 2
+}
 
-export const createMouseEvent = (evt,mainLoop,buttonType) => {
+export const createMouseEvent = (evt: any, mainLoop: any, buttonType: MouseButtonEventType): MouseEvent => {
     mainLoop.mouseStatus.pos = getMouseEventOffset(evt, mainLoop.canvas);
     if (buttonType !== MouseButtonEventType.NONE) {
         const buttonStatus = buttonType === MouseButtonEventType.DOWN;
@@ -32,26 +32,26 @@ export const createMouseEvent = (evt,mainLoop,buttonType) => {
     return new MouseEvent(evt.button, mainLoop.mouseStatus.pos.x, mainLoop.mouseStatus.pos.y, 0, evt);
 }
 
-const g_mouseButtons = [false,false,false];
-export const leftMouseButton = () => {
+const g_mouseButtons: boolean[] = [false, false, false];
+export const leftMouseButton = (): boolean => {
     return g_mouseButtons[0];
 }
 
-export const middleMouseButton = () => {
+export const middleMouseButton = (): boolean => {
     return g_mouseButtons[1];
 }
 
-export const rightMouseButton = () => {
+export const rightMouseButton = (): boolean => {
     return g_mouseButtons[2];
 }
 
-export const clearMouseButtons = () => {
+export const clearMouseButtons = (): void => {
     g_mouseButtons[0] = false;
     g_mouseButtons[1] = false;
     g_mouseButtons[2] = false;
 }
 
-export const setMouseButton = (event, status) => {
+export const setMouseButton = (event: any, status: boolean): void => {
     switch (event.button) {
     case MouseButton.LEFT:
         g_mouseButtons[0] = status;
@@ -65,8 +65,13 @@ export const setMouseButton = (event, status) => {
     }
 }
 export default class MouseEvent extends EventBase {
+    button: MouseButton;
+    x: number;
+    y: number;
+    delta: number;
+    event: any;
 
-    constructor(button = MouseButton.NONE, x=-1, y=-1, delta=0,event=null) {
+    constructor(button: MouseButton = MouseButton.NONE, x: number = -1, y: number = -1, delta: number = 0, event: any = null) {
         super();
         this.button = button;
         this.x = x;
