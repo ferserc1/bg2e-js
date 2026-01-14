@@ -1,6 +1,7 @@
 import ObjParser from "../db/ObjParser";
+import PolyList from "../base/PolyList";
 
-const objData = radius => {
+const objData = (radius: number) => {
     return `mtllib sphere.mtl
 o Sphere
 v ${radius * 0.000000} ${radius * 0.951057} ${radius * -0.309017}
@@ -801,7 +802,7 @@ f 174/202/174 173/201/181 180/208/15 3/3/2
 `
 }
 
-export default function sphere(r) {
+export default function sphere(r: number): PolyList {
     const objTextData = objData(r);
     const parser = new ObjParser(objTextData);
     return parser.polyListArray[0];

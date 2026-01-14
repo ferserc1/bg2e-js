@@ -1,7 +1,8 @@
 
 import ObjParser from "../db/ObjParser";
+import PolyList from "../base/PolyList";
 
-const objData = (width,height,depth) => {
+const objData = (width: number, height: number, depth: number): string => {
     const w = width / 2;
     const h = height / 2;
     const d = depth / 2;
@@ -52,7 +53,7 @@ f 6/18/6 5/19/6 1/1/6 2/13/6
 `
 }
 
-export default function cube(w,h,d) {
+export default function cube(w: number, h: number, d: number): PolyList {
     const objTextData = objData(w,h,d);
     const parser = new ObjParser(objTextData);
     return parser.polyListArray[0];

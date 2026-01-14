@@ -1,6 +1,6 @@
 import PolyList, { DrawMode } from "../base/PolyList";
 
-export default function plane(w,d) {
+export default function plane(w: number, d: number): PolyList {
     const plist = new PolyList();
     const w2 = w / 2;
     const d2 = d / 2;

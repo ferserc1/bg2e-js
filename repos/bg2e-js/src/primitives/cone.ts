@@ -1,6 +1,7 @@
 import ObjParser from "../db/ObjParser";
+import PolyList from "../base/PolyList";
 
-const objData = (height,radius) => {
+const objData = (height: number, radius: number): string => {
     return `mtllib cone.mtl
 o Cone
 v ${radius * 0.000000} ${height * -0.500000} ${radius * -1.000000}
@@ -130,7 +131,7 @@ f 20/40/21 4/8/21 16/32/21
 `;
 }
 
-export default function cone(height, radius) {
+export default function cone(height: number, radius: number): PolyList {
     const objTextData = objData(height, radius);
     const parser = new ObjParser(objTextData);
     return parser.polyListArray[0];

@@ -1,6 +1,7 @@
 import ObjParser from "../db/ObjParser";
+import PolyList from "../base/PolyList";
 
-const objData = (height,radius) => {
+const objData = (height: number, radius: number) => {
     return `mtllib cylinder.mtl
 o Cylinder
 v ${radius * 0.000000} ${height * -0.500000} ${radius * -1.000000}
@@ -208,7 +209,7 @@ f 39/80/22 7/16/22 31/64/22
 `;
 };
 
-export default function cylinder(height,radius) {
+export default function cylinder(height: number, radius: number): PolyList {
     const objTextData = objData(height,radius);
     const parser = new ObjParser(objTextData);
     return parser.polyListArray[0];

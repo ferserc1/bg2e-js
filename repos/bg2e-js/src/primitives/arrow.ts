@@ -2,7 +2,7 @@ import PolyList, { DrawMode } from "../base/PolyList";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
 
-export default function arrow(length, arrowSize = 0.3, direction = new Vec(0, 0, 1), up = new Vec(0, 1, 0) ) {
+export default function arrow(length: number, arrowSize = 0.3, direction = new Vec(0, 0, 1), up = new Vec(0, 1, 0) ): PolyList {
     const polyList = new PolyList();
     direction.normalize();
 
