@@ -1,24 +1,51 @@
 import Mat4 from "../../math/Mat4";
 import Mat3 from "../../math/Mat3";
 import { TextureTarget, TextureTargetName } from "../../base/Texture";
+import type PolyListRenderer from "./PolyListRenderer";
+import type TextureRenderer from "./TextureRenderer";
+import Vec from "../../math/Vec";
 
 export const ShaderType = {
     VERTEX: 0,
     FRAGMENT: 1
 };
 
-function destroy() {
-    delete this._program.__shaderProgram__;
-    this._gl.deleteProgram(this._program);
-    this._program = null;
+interface WebGLProgramWithExtras extends WebGLProgram {
+    __shaderProgram__?: ShaderProgram;
+    __id__?: symbol;
 }
 
+const g_programId = new WeakMap<WebGLProgram, symbol>();
+
+function getProgramId(program: WebGLProgram): symbol {
+    let id = g_programId.get(program);
+    if (!id) {
+        id = Symbol();
+        g_programId.set(program, id);
+    }
+    return id;
+}
+
+
 export default class ShaderProgram {
-    static Create(gl,name,vertexCode,fragmentCode) {
+    private _gl: WebGLRenderingContext;
+    private _name: string;
+    private _program: WebGLProgram | null;
+    private _attribLocations: { [key: string]: number };
+    private _uniformLocations: { [key: string]: WebGLUniformLocation | null };
+    private _failed: boolean;
+    
+    protected destroy(): void {
+        delete (this._program as WebGLProgramWithExtras).__shaderProgram__;
+        this._gl.deleteProgram(this._program);
+        this._program = null;
+    }
+
+    static Create(gl: WebGLRenderingContext, name: string, vertexCode: string | string[], fragmentCode: string | string[]): ShaderProgram {
         if (!vertexCode ||  !fragmentCode) {
             throw new Error("ShaderProgram.Create(): Invalid vertex or fragment code");
         }
-        const result = new ShaderProgram(gl,name);
+        const result = new ShaderProgram(gl, name);
         if (!Array.isArray(vertexCode)) {
             vertexCode = [vertexCode];
         }
@@ -31,35 +58,35 @@ export default class ShaderProgram {
         return result;
     }
 
-    static GetShaderProgram(glProgram) {
-        return glProgram.__shaderProgram__;
+    static GetShaderProgram(glProgram: WebGLProgram): ShaderProgram | null {
+        return (glProgram as WebGLProgramWithExtras).__shaderProgram__ || null;
     }
 
-    static Delete(shaderProgram) {
-        destroy.apply(shaderProgram);
+    static Delete(shaderProgram: ShaderProgram): void {
+        shaderProgram.destroy();
     }
 
-    constructor(gl, name = "") {
+    constructor(gl: WebGLRenderingContext, name: string = "") {
         this._gl = gl;
         this._name = name;
         this._program = gl.createProgram();
-        this._program.__id__ = Symbol(this._program);
-        this._program.__shaderProgram__ = this;
+        (this._program as WebGLProgramWithExtras).__id__ = getProgramId(this._program);
+        (this._program as WebGLProgramWithExtras).__shaderProgram__ = this;
         this._attribLocations = {};
         this._uniformLocations = {};
         this._failed = false;
     }
 
-    get program() {
+    get program(): WebGLProgram | null {
         return this._program;
     }
 
-    get name() {
+    get name(): string {
         return this._name;
     }
 
-    attachSource(src,type) {
-        if (this._failed) {
+    attachSource(src: string, type: number): void {
+        if (this._failed || !this._program) {
             return;
         }
 
@@ -71,6 +98,7 @@ export default class ShaderProgram {
             type = gl.FRAGMENT_SHADER;
         }
         const shader = gl.createShader(type);
+        if (!shader) return;
         gl.shaderSource(shader, src);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
@@ -85,17 +113,17 @@ export default class ShaderProgram {
         gl.attachShader(this._program, shader);
     }
 
-    attachVertexSource(src) {
+    attachVertexSource(src: string): void {
         this.attachSource(src, ShaderType.VERTEX);
     }
 
-    attachFragmentSource(src) {
+    attachFragmentSource(src: string): void {
         this.attachSource(src, ShaderType.FRAGMENT);
     }
 
-    link() {
-        if (this._failed) {
-            return false;
+    link(): void {
+        if (this._failed || !this._program) {
+            return;
         }
         const gl = this._gl;
         gl.linkProgram(this._program);
@@ -104,16 +132,17 @@ export default class ShaderProgram {
         }
     }
 
-    useProgram() {
+    useProgram(): void {
         this._gl.useProgram(this._program);
     }
 
-    getAttribLocation(name) {
+    getAttribLocation(name: string): number {
+        if (!this._program) return -1;
         this._attribLocations[name] = this._attribLocations[name] || this._gl.getAttribLocation(this._program, name);
         return this._attribLocations[name];
     }
 
-    checkInvalidLocations() {
+    checkInvalidLocations(): boolean {
         let status = true;
         for (const name in this._attribLocations) {
             if (this._attribLocations[name] == -1) {
@@ -124,153 +153,188 @@ export default class ShaderProgram {
         return status;
     }
 
-    getUniformLocation(name) {
+    getUniformLocation(name: string): WebGLUniformLocation | null {
+        if (!this._program) return null;
         this._uniformLocations[name] = this._gl.getUniformLocation(this._program, name);
         return this._uniformLocations[name];
     }
 
-    vertexAttribPointer(name,size,format,normalize,stride,offset) {
+    vertexAttribPointer(name: string, size: number, format: number, normalize: boolean, stride: number, offset: number): void {
         const location = this.getAttribLocation(name);
         this._gl.vertexAttribPointer(location, size, format, normalize, stride, offset);
     }
 
-    enableVertexAttribArray(name) {
+    enableVertexAttribArray(name: string): void {
         const location = this.getAttribLocation(name);
         this._gl.enableVertexAttribArray(location);
     }
 
-    positionAttribPointer({ name, stride, size = 3, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+    positionAttribPointer({ name, stride, size = 3, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }: {
+        name: string;
+        stride: number;
+        size?: number;
+        offset?: number;
+        enable?: boolean;
+        bytesPerElement?: number;
+    }): void {
         this.vertexAttribPointer(name, size, this._gl.FLOAT, false, stride * bytesPerElement, offset * bytesPerElement);
         if (enable) {
             this.enableVertexAttribArray(name);
         }
     }
 
-    normalAttribPointer({ name, size = 3, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+    normalAttribPointer({ name, size = 3, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }: {
+        name: string;
+        size?: number;
+        stride: number;
+        offset?: number;
+        enable?: boolean;
+        bytesPerElement?: number;
+    }): void {
         this.vertexAttribPointer(name, size, this._gl.FLOAT, true, stride * bytesPerElement, offset * bytesPerElement);
         if (enable) {
             this.enableVertexAttribArray(name);
         }
     }
 
-    tangentAttribPointer({ name, size = 3, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+    tangentAttribPointer({ name, size = 3, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }: {
+        name: string;
+        size?: number;
+        stride: number;
+        offset?: number;
+        enable?: boolean;
+        bytesPerElement?: number;
+    }): void {
         this.vertexAttribPointer(name, size, this._gl.FLOAT, true, stride * bytesPerElement, offset * bytesPerElement);
         if (enable) {
             this.enableVertexAttribArray(name);
         }
     }
 
-    texCoordAttribPointer({ name, stride, offset, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+    texCoordAttribPointer({ name, stride, offset, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }: {
+        name: string;
+        stride: number;
+        offset: number;
+        enable?: boolean;
+        bytesPerElement?: number;
+    }): void {
         this.vertexAttribPointer(name, 2, this._gl.FLOAT, false, stride * bytesPerElement, offset * bytesPerElement);
         if (enable) {
             this.enableVertexAttribArray(name);
         }
     }
 
-    colorAttribPointer({ name, size = 4, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }) {
+    colorAttribPointer({ name, size = 4, stride, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }: {
+        name: string;
+        size?: number;
+        stride: number;
+        offset?: number;
+        enable?: boolean;
+        bytesPerElement?: number;
+    }): void {
         this.vertexAttribPointer(name, size, this._gl.FLOAT, false, stride * bytesPerElement, offset * bytesPerElement);
         if (enable) {
             this.enableVertexAttribArray(name);
         }
     }
 
-    uniformMatrix2fv(name, transpose, value) {
+    uniformMatrix2fv(name: string, transpose: boolean, value: Float32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniformMatrix2fv(location, transpose, value);
     }
 
-    uniformMatrix3fv(name, transpose, value) {
+    uniformMatrix3fv(name: string, transpose: boolean, value: Float32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniformMatrix3fv(location, transpose, value);
     }
 
-    uniformMatrix4fv(name, transpose, value) {
+    uniformMatrix4fv(name: string, transpose: boolean, value: Float32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniformMatrix4fv(location, transpose, value);
     }
 
-    uniform1f(name, v0) {
+    uniform1f(name: string, v0: number): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform1f(location, v0);
     }
 
-    uniform1fv(name, value) {
+    uniform1fv(name: string, value: Float32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform1fv(location, value);
     }
 
-    uniform1i(name, v0) {
+    uniform1i(name: string, v0: number): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform1i(location, v0);
     }
 
-    uniform1iv(name, value) {
+    uniform1iv(name: string, value: Int32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform1iv(location, value);
     }
 
-    uniform2f(name, v0, v1) {
+    uniform2f(name: string, v0: number, v1: number): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform2f(location, v0, v1);
     }
 
-    uniform2fv(name, value) {
+    uniform2fv(name: string, value: Float32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform2fv(location, value);
     }
 
-    uniform2i(name, v0, v1) {
+    uniform2i(name: string, v0: number, v1: number): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform2i(location, v0, v1);
     }
 
-    uniform2iv(name, value) {
+    uniform2iv(name: string, value: Int32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform2iv(location, value);
     }
 
-    uniform3f(name, v0, v1, v2) {
+    uniform3f(name: string, v0: number, v1: number, v2: number): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform3f(location, v0, v1, v2);
     }
 
-    uniform3fv(name, value) {
+    uniform3fv(name: string, value: Float32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform3fv(location, value);
     }
 
-    uniform3i(name, v0, v1, v2) {
+    uniform3i(name: string, v0: number, v1: number, v2: number): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform3i(location, v0, v1, v2);
     }
 
-    uniform3iv(name, value) {
+    uniform3iv(name: string, value: Int32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform3iv(location, value);
     }
 
-    uniform4f(name, v0, v1, v2, v3) {
+    uniform4f(name: string, v0: number, v1: number, v2: number, v3: number): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform4f(location, v0, v1, v2, v3);
     }
 
-    uniform4fv(name, value) {
+    uniform4fv(name: string, value: Float32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform4fv(location, value);
     }
 
-    uniform4i(name, v0, v1, v2, v3) {
+    uniform4i(name: string, v0: number, v1: number, v2: number, v3: number): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform4i(location, v0, v1, v2, v3);
     }
 
-    uniform4iv(name, value) {
+    uniform4iv(name: string, value: Int32List): void {
         const location = this._uniformLocations[name] || this.getUniformLocation(name);
         this._gl.uniform4iv(location, value);
     }
 
     // Utility functions
-    bindAttribs(polyListRenderer, { 
+    bindAttribs(polyListRenderer: PolyListRenderer, { 
         position, 
         normal = null, 
         tex0 = null, 
@@ -278,7 +342,15 @@ export default class ShaderProgram {
         tex2 = null, 
         color = null, 
         tangent = null
-    }) {
+    }: {
+        position: string;
+        normal?: string | null;
+        tex0?: string | null;
+        tex1?: string | null;
+        tex2?: string | null;
+        color?: string | null;
+        tangent?: string | null;
+    }): void {
         this.positionAttribPointer(polyListRenderer.positionAttribParams(position));
         if (normal) {
             this.normalAttribPointer(polyListRenderer.normalAttribParams(normal));
@@ -290,7 +362,7 @@ export default class ShaderProgram {
             this.texCoordAttribPointer(polyListRenderer.texCoord1AttribParams(tex1));
         }
         if (tex2) {
-            this.texCoordAttribPointer(polyListRenderer.texCoord2AttribParams(tex1));
+            this.texCoordAttribPointer(polyListRenderer.texCoord2AttribParams(tex2));
         }
         if (tangent) {
             this.tangentAttribPointer(polyListRenderer.tangentAttribParams(tangent));
@@ -300,7 +372,7 @@ export default class ShaderProgram {
         }
     }
 
-    bindMatrix(uniformName, matrix) {
+    bindMatrix(uniformName: string, matrix: Mat4 | Mat3): void {
         if (matrix instanceof Mat4) {
             this.uniformMatrix4fv(uniformName, false, matrix);
         }
@@ -309,7 +381,7 @@ export default class ShaderProgram {
         }
     }
 
-    bindVector(uniformName, vec) {
+    bindVector(uniformName: string, vec: Vec | number[]): void {
         switch (vec.length) {
         case 2:
             this.uniform2fv(uniformName, vec);
@@ -325,7 +397,7 @@ export default class ShaderProgram {
         }
     }
 
-    bindTexture(uniformName, textureRenderer, textureUnit) {
+    bindTexture(uniformName: string, textureRenderer: TextureRenderer, textureUnit: number): void {
         const gl = this._gl;
         const webglTexture = textureRenderer.getApiObject();
         
@@ -341,7 +413,9 @@ export default class ShaderProgram {
         this.uniform1i(uniformName, textureUnit);
     }
 
-    validate() {
+    validate(): void {
+        if (!this._program) return;
+        const gl = this._gl;
         gl.validateProgram(this._program);
         if (!gl.getProgramParameter(this._program, gl.VALIDATE_STATUS)) {
             throw new Error(`Error validating program:\n${gl.getProgramInfoLog(this._program)}`);

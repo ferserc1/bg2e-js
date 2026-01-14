@@ -1,42 +1,47 @@
+import type Renderer from "./Renderer";
+import type PolyList from "../base/PolyList";
 
 export default class PolyListRenderer {
-    constructor(renderer,polyList) {
-        if (polyList.renderer) {
+    protected _renderer: Renderer;
+    protected _polyList: PolyList;
+
+    constructor(renderer: Renderer, polyList: PolyList) {
+        if ((polyList as any).renderer) {
             throw new Error("Invalid initialization of polyList renderer: the polyList is already controlled by another polyList renderer.")
         }
         this._renderer = renderer;
         this._polyList = polyList;
-        this._polyList._renderer = this;
+        (this._polyList as any)._renderer = this;
     }
 
-    get polyList() {
+    get polyList(): PolyList {
         return this._polyList;
     }
 
-    get renderer() {
+    get renderer(): Renderer {
         return this._renderer;
     }
 
-    init() {
+    init(): void {
 
     }
 
     // Updates the internal state of the renderer. It is necessary to call this
     // function if the polyList has been modified, so that the internal objects
     // of the specific rendering API are updated.
-    refresh() {
+    refresh(): void {
 
     }
 
-    bindBuffers() {
+    bindBuffers(): void {
 
     }
 
-    draw() {
+    draw(): void {
 
     }
 
-    destroy() {
+    destroy(): void {
         
     }
 }

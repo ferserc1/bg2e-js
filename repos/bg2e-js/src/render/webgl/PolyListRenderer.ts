@@ -2,27 +2,61 @@
 import { DrawMode, PolyListCullFace, PolyListFrontFace } from "../../base/PolyList";
 import PolyListRenderer from "../PolyListRenderer";
 import VertexBuffer, { BufferTarget } from "./VertexBuffer";
+import type Renderer from "../Renderer";
+import WebGLRenderer from "./Renderer";
+import type PolyList from "../../base/PolyList";
+
+interface Offsets {
+    vertex: number;
+    normal: number;
+    texCoord0: number;
+    texCoord1: number;
+    texCoord2: number;
+    color: number;
+    tangent: number;
+}
 
 export default class WebGLPolyListRenderer extends PolyListRenderer {
-    constructor(renderer,polyList) {
-        super(renderer,polyList);
+    private _vertexBuffer: VertexBuffer | null = null;
+    private _indexBuffer: VertexBuffer | null = null;
+    private _indexArrayFormat: number | null = null;
+    private _stride: number = 0;
+    private _offsets: Offsets = { vertex: 0, normal: 0, texCoord0: 0, texCoord1: 0, texCoord2: 0, color: 0, tangent: 0 };
+
+    constructor(renderer: Renderer, polyList: PolyList) {
+        super(renderer, polyList);
     }
 
-    init() {
+    init(): void {
         this._vertexBuffer = null;
         this._indexBuffer = null;
         this._indexArrayFormat = null;
     }
 
-    get valid() {
+    get valid(): boolean {
         return this._vertexBuffer !== null && this._indexArrayFormat !== null && this._indexBuffer !== null;
     }
 
-    refresh() {
-        const getVector = (items, current, stride) => items.length && (stride === 3 ?
-            [items[current * stride], items[current * stride + 1], items[current * stride + 2]] :
-            stride === 2 ? [items[current * stride], items[current * stride + 1]] || null :
-            [items[current * stride], items[current * stride + 1], items[current * stride + 2], items[current * stride + 3]])
+    refresh(): void {
+        const gl = (this.renderer as WebGLRenderer)?.gl;
+        if (!gl) {
+            throw new Error("WebGLPolyListRenderer: refresh() called without a valid WebGL context");
+        }
+
+        const getVector = (items: number[] | null | undefined, current: number, stride: number): number[] | null => {
+            if (!items || items.length === 0) {
+                return null;
+            }
+            
+            const offset = current * stride;
+            if (stride === 2) {
+                return [items[offset], items[offset + 1]];
+            } else if (stride === 3) {
+                return [items[offset], items[offset + 1], items[offset + 2]];
+            } else {
+                return [items[offset], items[offset + 1], items[offset + 2], items[offset + 3]];
+            }
+        };
 
         const numElements = this.polyList.vertex.length / 3;
         const result = [];
@@ -33,9 +67,11 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
             const t1 = getVector(this.polyList.texCoord1, i, 2);
             const t2 = getVector(this.polyList.texCoord2, i, 2);
             const c = getVector(this.polyList.color, i, 4);
-            const t = getVector(this.polyList.tangent, i, 3);
+            const t = getVector(this.polyList.tangent , i, 3);
 
-            result.push(...v);
+            if (v) {
+                result.push(...v);
+            }
             if (n) {
                 result.push(...n);
             }
@@ -99,71 +135,71 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
         }
 
         this._offsets = { vertex, normal, texCoord0, texCoord1, texCoord2, color, tangent };
-        this._vertexBuffer = VertexBuffer.CreateArrayBuffer(this.renderer.gl, new Float32Array(result));
+        this._vertexBuffer = VertexBuffer.CreateArrayBuffer(gl, new Float32Array(result));
         const indexArray = this.polyList.index.length < 65535 ? new Uint16Array(this.polyList.index) : new Uint32Array(this.polyList.index);
-        this._indexBuffer = VertexBuffer.CreateElementArrayBuffer(this.renderer.gl, indexArray);
-        this._indexArrayFormat = indexArray instanceof Uint16Array ? this.renderer.gl.UNSIGNED_SHORT : this.renderer.gl.UNSIGNED_INT;
+        this._indexBuffer = VertexBuffer.CreateElementArrayBuffer(gl, indexArray);
+        this._indexArrayFormat = indexArray instanceof Uint16Array ? gl.UNSIGNED_SHORT : gl.UNSIGNED_INT;
     }
 
-    get hasNormal() {
+    get hasNormal(): boolean {
         return this._polyList.normal.length > 0;
     }
 
-    get hasTexCoord0() {
+    get hasTexCoord0(): boolean {
         return this._polyList.texCoord0.length > 0;
     }
 
-    get hasTexCoord1() {
+    get hasTexCoord1(): boolean {
         return this._polyList.texCoord1.length > 0;
     }
 
-    get hasTexCoord2() {
+    get hasTexCoord2(): boolean {
         return this._polyList.texCoord2.length > 0;
     }
 
-    get hasColor() {
+    get hasColor(): boolean {
         return this._polyList.color.length > 0;
     }
 
-    get hasTangent() {
-        return this._polyList.tangent.length > 0;
+    get hasTangent(): boolean {
+        return this._polyList.tangent && this._polyList.tangent?.length > 0 || false;
     }
 
-    positionAttribParams(name) {
+    positionAttribParams(name: string): { name: string; stride: number; size: number; offset: number; enable: boolean } {
         return { name, stride: this._stride, size: 3, offset: 0, enable: true }
     }
 
-    normalAttribParams(name) {
+    normalAttribParams(name: string): { name: string; stride: number; size: number; offset: number; enable: boolean } {
         return { name, stride: this._stride, size: 3, offset: this._offsets.normal, enable: true }
     }
 
-    texCoord0AttribParams(name) {
+    texCoord0AttribParams(name: string): { name: string; stride: number; size: number; offset: number; enable: boolean } {
         return { name, stride: this._stride, size: 2, offset: this._offsets.texCoord0, enable: true }
     }
 
-    texCoord1AttribParams(name) {
+    texCoord1AttribParams(name: string): { name: string; stride: number; size: number; offset: number; enable: boolean } {
         return { name, stride: this._stride, size: 2, offset: this._offsets.texCoord1, enable: true }
     }
 
-    texCoord2AttribParams(name) {
+    texCoord2AttribParams(name: string): { name: string; stride: number; size: number; offset: number; enable: boolean } {
         return { name, stride: this._stride, size: 2, offset: this._offsets.texCoord2, enable: true }
     }
     
-    colorAttribParams(name) {
+    colorAttribParams(name: string): { name: string; stride: number; size: number; offset: number; enable: boolean } {
         return { name, stride: this._stride, size: 4, offset: this._offsets.color, enable: true }
     }
 
-    tangentAttribParams(name) {
+    tangentAttribParams(name: string): { name: string; stride: number; size: number; offset: number; enable: boolean } {
         return { name, stride: this._stride, size: 3, offset: this._offsets.tangent, enable: true }
     }
 
-    bindBuffers() {
-        this._vertexBuffer.bind(BufferTarget.ARRAY_BUFFER);
-        this._indexBuffer.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);        
+    bindBuffers(): void {
+        this._vertexBuffer?.bind(BufferTarget.ARRAY_BUFFER);
+        this._indexBuffer?.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);        
     }
     
-    draw() {
-        const { gl, state } = this.renderer;
+    draw(): void {
+        const { gl, state } = this.renderer as WebGLRenderer;
 
         state.cullFaceEnabled = this.polyList.enableCullFace;
         
@@ -214,11 +250,11 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
 
         gl.lineWidth(this.polyList.lineWidth);
 
-        gl.drawElements(mode, this.polyList.index.length, this._indexArrayFormat, 0);
+        gl.drawElements(mode, this.polyList.index.length, this._indexArrayFormat || 0, 0);
     }
 
-    destroy() {
-        VertexBuffer.Delete(this._vertexBuffer);
-        VertexBuffer.Delete(this._indexBuffer);
+    destroy(): void {
+        if (this._vertexBuffer) VertexBuffer.Delete(this._vertexBuffer);
+        if (this._indexBuffer) VertexBuffer.Delete(this._indexBuffer);
     }
 }

@@ -10,18 +10,14 @@ import MaterialRenderer from "./MaterialRenderer";
 import TextureRenderer from "./TextureRenderer";
 import RenderBuffer from "./RenderBuffer";
 import PresentTextureShader from "../shaders/PresentTextureShader";
+import Vec from "../math/Vec";
 
-export const EngineFeatures = {
-    RENDER_TARGET_TEXTURES:         0x1 << 0,
-    RENDER_TARGET_FLOAT:            0x1 << 1,
-    RENDER_TARGET_DEPTH:            0x1 << 2
-};
-
-interface PresentTextureOptions {
-    clearBuffers?: boolean;
-    shader?: any;
-    viewport?: number[] | null;
+export enum EngineFeatures {
+    RENDER_TARGET_TEXTURES = 0x1 << 0,
+    RENDER_TARGET_FLOAT = 0x1 << 1,
+    RENDER_TARGET_DEPTH = 0x1 << 2
 }
+
 
 interface RendererFactory {
     polyList(plist: PolyList): PolyListRenderer;
@@ -70,11 +66,11 @@ export default class Renderer {
         throw new Error("Calling Renderer.frameBuffer base implementation.");
     }
 
-    set viewport(vp: number[]) {
+    set viewport(vp: Vec) {
         throw new Error("Calling Renderer.viewport setter base implementation.");
     }
 
-    get viewport(): number[] {
+    get viewport(): Vec {
         throw new Error("Calling Renderer.viewport getter base implementation.");
     }
 
@@ -220,7 +216,15 @@ export default class Renderer {
         }
     }
 
-    presentTexture(texture: Texture, { clearBuffers = true, shader = null, viewport = null }: PresentTextureOptions = {}): void {
+    presentTexture(texture: Texture, {
+        clearBuffers = true,
+        shader = null,
+        viewport = null
+    }: {
+        clearBuffers?: boolean;
+        shader?: any;
+        viewport?: number[] | null;
+    } = {}): void {
         
     }
 

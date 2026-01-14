@@ -1,38 +1,41 @@
 
 import Vec from "../../math/Vec";
 import ShaderProgram from "./ShaderProgram";
+import type Renderer from "./Renderer";
 
 export default class State {
 
-    get CW() { return this.gl.CW; }
-    get CCW() { return this.gl.CCW; }
-    get FRONT() { return this.gl.FRONT; }
-    get BACK() { return this.gl.BACK; }
-    get FRONT_AND_BACK() { return this.gl.FRONT_AND_BACK; }
+    private _renderer: Renderer;
 
-    constructor(renderer) {
+    get CW(): number { return this.gl.CW; }
+    get CCW(): number { return this.gl.CCW; }
+    get FRONT(): number { return this.gl.FRONT; }
+    get BACK(): number { return this.gl.BACK; }
+    get FRONT_AND_BACK(): number { return this.gl.FRONT_AND_BACK; }
+
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
 
         this.cullFaceEnabled = true;
     }
 
-    get renderer() {
+    get renderer(): Renderer {
         return this._renderer;
     }
 
-    get gl() {
+    get gl(): WebGLRenderingContext {
         return this._renderer.gl;
     }
 
-    get viewport() {
+    get viewport(): Vec {
         return new Vec(this.gl.getParameter(this.gl.VIEWPORT));
     }
 
-    get maxViewportDims() {
+    get maxViewportDims(): Vec {
         return new Vec(this.gl.getParameter(this.gl.MAX_VIEWPORT_DIMS));
     }
 
-    set viewport(vp) {
+    set viewport(vp: Vec | number[]) {
         if (vp.length === 2) {
             this.gl.viewport(0, 0, vp[0], vp[1]);
         }
@@ -44,7 +47,7 @@ export default class State {
         }
     }
 
-    set clearColor(c) {
+    set clearColor(c: Vec | number[]) {
         if (c.length<4) {
             throw new Error("Invalid parameter setting clear color");
         }
@@ -52,82 +55,82 @@ export default class State {
         this.gl.clearColor(c[0],c[1],c[2],c[3]);
     }
 
-    get clearColor() {
+    get clearColor(): Vec {
         return new Vec(this.gl.getParameter(this.gl.COLOR_CLEAR_VALUE));
     }
 
-    set clearDepth(d) {
+    set clearDepth(d: number) {
         this.gl.clearDepth(d);
     }
 
-    get clearDepth() {
-        return gl.getParameter(gl.DEPTH_CLEAR_VALUE);
+    get clearDepth(): number {
+        return this.gl.getParameter(this.gl.DEPTH_CLEAR_VALUE);
     }
 
-    set clearStencil(s) {
+    set clearStencil(s: number) {
         this.gl.clearStencil(s);
     }
 
-    get clearStencil() {
+    get clearStencil(): number {
         return this.gl.getParameter(this.gl.STENCIL_CLEAR_VALUE);
     }
 
-    get depthMask() {
+    get depthMask(): boolean {
         return this.gl.getParameter(this.gl.DEPTH_WRITEMASK);
     }
 
-    set depthMask(m) {
+    set depthMask(m: boolean) {
         this.gl.depthMask(m);
     }
 
-    set frontFace(ff) {
+    set frontFace(ff: number) {
         this.gl.frontFace(ff);
     }
 
-    get frontFace() {
+    get frontFace(): number {
         return this.gl.getParameter(this.gl.FRONT_FACE);
     }
 
-    set cullFace(cf) {
+    set cullFace(cf: number) {
         this.gl.cullFace(cf);
     }
 
-    get cullFace() {
+    get cullFace(): number {
         return this.gl.getParameter(this.gl.CULL_FACE_MODE);
     }
 
-    set depthTestEnabled(e) {
+    set depthTestEnabled(e: boolean) {
         e ? this.gl.enable(this.gl.DEPTH_TEST) :
             this.gl.disable(this.gl.DEPTH_TEST);
     }
 
-    get depthTestEnabled() {
+    get depthTestEnabled(): boolean {
         return this.gl.getParameter(this.gl.DEPTH_TEST);
     }
 
-    set cullFaceEnabled(e) {
+    set cullFaceEnabled(e: boolean) {
         e ? this.gl.enable(this.gl.CULL_FACE) :
             this.gl.disable(this.gl.CULL_FACE);
     }
 
-    get blendEnabled() {
+    get blendEnabled(): boolean {
         return this.gl.getParameter(this.gl.BLEND);
     }
 
-    set blendEnabled(b) {
+    set blendEnabled(b: boolean) {
         b ? this.gl.enable(this.gl.BLEND) :
             this.gl.disable(this.gl.BLEND);
     }
 
-    get cullFaceEnabled() {
+    get cullFaceEnabled(): boolean {
         return this.gl.getParameter(this.gl.CULL_FACE);
     }
 
-    set shaderProgram(program) {
+    set shaderProgram(program: ShaderProgram) {
         program.useProgram();
     }
 
-    get shaderProgram() {
+    get shaderProgram(): ShaderProgram | null {
         const glProgram = this.gl.getParameter(this.gl.CURRENT_PROGRAM);
         if (glProgram) {
             return ShaderProgram.GetShaderProgram(glProgram);
@@ -137,7 +140,7 @@ export default class State {
         }
     }
 
-    clear({ color = true, depth = true, stencil = false} = {}) {
+    clear({ color = true, depth = true, stencil = false}: { color?: boolean, depth?: boolean, stencil?: boolean } = {}): void {
         const clearValues = (color ? this.gl.COLOR_BUFFER_BIT : 0) |
                             (depth ? this.gl.DEPTH_BUFFER_BIT : 0) |
                             (stencil ? this.gl.STENCIL_BUFFER_BIT : 0);
