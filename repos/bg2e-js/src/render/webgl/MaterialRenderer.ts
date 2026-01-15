@@ -1,28 +1,39 @@
 import Texture, { TextureChannel, TextureTargetName } from "../../base/Texture";
+import Material from "../../base/Material";
 import MaterialRenderer from "../MaterialRenderer";
+import WebGLTextureRenderer from "./TextureRenderer";
+import TextureMerger from "../TextureMergerRenderer";
+import ShaderProgram from "./ShaderProgram";
+import Renderer from "../Renderer";
 import { whiteTexture, createWhiteTexture, blackTexture, createBlackTexture } from "../../tools/TextureResourceDatabase";
 
 export default class WebGLMaterialRenderer extends MaterialRenderer {
-    static async InitResources(renderer) {
+    protected _whiteTexture: WebGLTextureRenderer;
+    protected _blackTexture: WebGLTextureRenderer;
+    protected _textureMerger: TextureMerger;
+
+    static async InitResources(renderer: Renderer) {
         await createWhiteTexture(renderer);
         await createBlackTexture(renderer);
     }
 
-    constructor(renderer, material) {
+    constructor(renderer: Renderer, material: Material) {
         super(renderer, material);
         if (material.renderer) {
             throw new Error("Duplicate material renderer set to material. Please, use the Renderer factory to get material renderer instance.");
         }
-        material._renderer = this;
+        // Link this material renderer to the material. This property is internal but should be accessed from the renderer
+        // The use of 'as any' is to provide access to the internal property like a friend class in C++
+        (material as any)._renderer = this;
 
-        this._whiteTexture = renderer.factory.texture(whiteTexture(renderer));
-        this._blackTexture = renderer.factory.texture(blackTexture(renderer));
+        this._whiteTexture = renderer.factory.texture(whiteTexture(renderer)) as WebGLTextureRenderer;
+        this._blackTexture = renderer.factory.texture(blackTexture(renderer)) as WebGLTextureRenderer;
         this._textureMerger = renderer.factory.textureMerger();
     }
 
     mergeTextures() {
         if (this.material.dirty) {
-            const getTexture = (att, fallbackTexture = this._whiteTexture) => {
+            const getTexture = (att: keyof Material, fallbackTexture = this._whiteTexture) => {
                 if (this.material[att] instanceof Texture) {
                     return this.material[att];
                 }
@@ -47,26 +58,29 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
     destroy() {
         console.log("Destroy material renderer");
         if (this.material) {
-            this.material._renderer = null;
+            // The use of 'as any' is to provide access to the internal property like a friend class in C++
+            (this.material as any)._renderer = null;
         }
     }
 
     // Bind the metalness, roughness, height and ambient occlussion combined texture
-    bindMetalnessRoughnessHeightAOTexture(shaderProgram, uniformName, textureUnit) {
-        shaderProgram.bindTexture(uniformName, this.renderer.factory.texture(this.metalnessRoughnessHeightAOTexture), textureUnit);
+    bindMetalnessRoughnessHeightAOTexture(shaderProgram: ShaderProgram, uniformName: string, textureUnit: number): boolean {
+        const texRenderer = this.renderer.factory.texture(this.metalnessRoughnessHeightAOTexture) as WebGLTextureRenderer;
+        shaderProgram.bindTexture(uniformName, texRenderer, textureUnit);
         return true;
     }
 
     // Binds the property to the uniformName  uniform of the shader program, if the
     // material property ies a texture. If not, it binds the fallbackTexture. If the fallbackTexture
     // value is null, it binds a 2x2 px white texture
-    bindTexture(shaderProgram, property, uniformName, textureUnit, fallbackTexture = null) {
+    bindTexture(shaderProgram: ShaderProgram, property: keyof Material, uniformName: string, textureUnit: number, fallbackTexture: Texture | null = null) {
         if (this.material[property] instanceof Texture) {
-            shaderProgram.bindTexture(uniformName, this.getTextureRenderer(property), textureUnit);
+            shaderProgram.bindTexture(uniformName, this.getTextureRenderer(property) as WebGLTextureRenderer, textureUnit);
             return true;
         }
         else if (fallbackTexture instanceof Texture) {
-            shaderProgram.bindTexture(uniformName, this.renderer.factory.texture(fallbackTexture), textureUnit);
+            const texRenderer = this.renderer.factory.texture(fallbackTexture) as WebGLTextureRenderer;
+            shaderProgram.bindTexture(uniformName, texRenderer, textureUnit);
             return false;
         }
         else {
@@ -77,7 +91,7 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
 
     // Bind the property to the uniformName uniform of the shader program, if the
     // material property is a color. If not, it binds the fallbackColor vector
-    bindColor(shaderProgram, property, uniformName, fallbackColor = [1, 1, 1, 1]) {
+    bindColor(shaderProgram: ShaderProgram, property: keyof Material, uniformName: string, fallbackColor = [1, 1, 1, 1]) {
         if (this.material[property].length>=4) {
             shaderProgram.uniform4fv(uniformName, this.material[property]);
         }
@@ -88,7 +102,7 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
 
     // Bind the property to the uniformName uniform of the shader program, if the
     // material property is a number. If not, it binds the fallbackValue value
-    bindValue(shaderProgram, property, uniformName, fallbackValue = 1) {
+    bindValue(shaderProgram: ShaderProgram, property: keyof Material, uniformName: string, fallbackValue = 1) {
         if (typeof(this.material[property]) === "number") {
             shaderProgram.uniform1f(uniformName, this.material[property]);
         }
