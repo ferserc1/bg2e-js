@@ -2,29 +2,31 @@ import Texture, { TextureDataType, TextureTarget, TextureRenderTargetAttachmentN
 import Vec from "../math/Vec";
 import Mat4 from "../math/Mat4";
 
-export const RenderBufferType = {
-    UNINITIALIZED: 0,
-    TEXTURE: 1,
-    CUBE_MAP: 2
-};
-
-export const RenderBufferTypeName = {
-    0: 'UNINITIALIZED',
-    1: 'TEXTURE',
-    2: 'CUBE_MAP'
-};
-
-export const CubeMapFace = {
-    NONE: 0,
-    POSITIVE_X: 1,
-    NEGATIVE_X: 2,
-    POSITIVE_Y: 3,
-    NEGATIVE_Y: 4,
-    POSITIVE_Z: 5,
-    NEGATIVE_Z: 6
+export enum RenderBufferType {
+    UNINITIALIZED = 0,
+    TEXTURE = 1,
+    CUBE_MAP = 2
 }
 
-function getTargetType(texture) {
+export const RenderBufferTypeName: Record<RenderBufferType, string> = {
+    [RenderBufferType.UNINITIALIZED]: 'UNINITIALIZED',
+    [RenderBufferType.TEXTURE]: 'TEXTURE',
+    [RenderBufferType.CUBE_MAP]: 'CUBE_MAP'
+};
+
+export enum CubeMapFace {
+    NONE = 0,
+    POSITIVE_X = 1,
+    NEGATIVE_X = 2,
+    POSITIVE_Y = 3,
+    NEGATIVE_Y = 4,
+    POSITIVE_Z = 5,
+    NEGATIVE_Z = 6
+}
+
+export type DrawFunc = (face?: CubeMapFace, viewMatrix?: Mat4, projectionMatrix?: Mat4) => void;
+
+function getTargetType(texture: Texture): RenderBufferType | undefined {
     if (texture.target === TextureTarget.TEXTURE_2D) {
         return RenderBufferType.TEXTURE;
     }
@@ -33,13 +35,19 @@ function getTargetType(texture) {
     }
 }
 
-function getRenderBufferTypeName(type) {
+function getRenderBufferTypeName(type: RenderBufferType): string {
     return RenderBufferTypeName[type];
 }
 
 
 export default class RenderBuffer {
-    constructor(renderer, size = new Vec([512,512])) {
+    protected _renderer: any;
+    protected _attachments: Record<string, any>;
+    protected _size: Vec;
+    protected _dirty: boolean;
+    protected _type: RenderBufferType;
+
+    constructor(renderer: any, size: Vec = new Vec([512,512])) {
         this._renderer = renderer;
         this._attachments = {};
         this._size = size;
@@ -47,13 +55,13 @@ export default class RenderBuffer {
         this._type = RenderBufferType.UNINITIALIZED;
     }
 
-    get renderer() { return this._renderer; }
+    get renderer(): any { return this._renderer; }
 
-    get type() { return this._type; }
+    get type(): RenderBufferType { return this._type; }
 
-    get size() { return this._size; }
+    get size(): Vec { return this._size; }
 
-    set size(s) {
+    set size(s: Vec | number[]) {
         this._size = new Vec(s); 
         for (const att in this.attachments) {
             const textureRenderer = this.attachments[att];
@@ -66,21 +74,21 @@ export default class RenderBuffer {
     }
 
     // This is an object of type { TextureRenderTargetAttachmentName: TextureRenderer }
-    get attachments() { return this._attachments; }
+    get attachments(): Record<string, any> { return this._attachments; }
 
-    getTextureRenderer(attachment) {
+    getTextureRenderer(attachment: string): any {
         return this._attachments[attachment];
     }
 
-    getTexture(attachment) {
-        return this.getAttachment(attachment)?.texture;
+    getTexture(attachment: string): Texture | undefined {
+        return this.getTextureRenderer(attachment)?.texture;
     }
 
-    get dirty() { return this._dirty; }
+    get dirty(): boolean { return this._dirty; }
 
-    setUpdated(updated = true) { this._dirty = !updated; }
+    setUpdated(updated: boolean = true): void { this._dirty = !updated; }
 
-    async attachTexture(texture) {
+    async attachTexture(texture: Texture): Promise<void> {
         if (this._attachments[texture.renderTargetAttachment]) {
             throw new Error(`RenderBuffer.attachTexture(): The attachment is occupied by another texture ${TextureRenderTargetAttachmentNames[texture.renderTargetAttachment]}`);
         }
@@ -88,11 +96,11 @@ export default class RenderBuffer {
         if (this.type !== RenderBufferType.UNINITIALIZED) {
             const type = getTargetType(texture);
             if (this.type !== type) {
-                throw new Error(`Invalid texture attachment. RenderBuffer is ${ getRenderBufferTypeName(this.type) }, but the new attachment is ${ getRenderBufferTypeName(type) }`);
+                throw new Error(`Invalid texture attachment. RenderBuffer is ${ getRenderBufferTypeName(this.type) }, but the new attachment is ${ getRenderBufferTypeName(type || RenderBufferType.UNINITIALIZED) }`);
             }
         }
         else {
-            this._type = getTargetType(texture);
+            this._type = getTargetType(texture) || RenderBufferType.UNINITIALIZED;
         }
 
         texture.dataType = TextureDataType.RENDER_TARGET;
@@ -102,7 +110,7 @@ export default class RenderBuffer {
         this._attachments[texture.renderTargetAttachment] = textureRenderer;
     }
 
-    detachTexture(texture) {
+    detachTexture(texture: Texture): void {
         const textureRenderer = this._attachments[texture.renderTargetAttachment];
         if (!textureRenderer) {
             throw new Error(`RenderBuffer.detachTexture(): no texture attached to ${TextureRenderTargetAttachmentNames[texture.renderTargetAttachment]}`);
@@ -117,32 +125,32 @@ export default class RenderBuffer {
         this._dirty = true;
     }
 
-    beginUpdate(textureFace = CubeMapFace.NONE) {
+    beginUpdate(textureFace: CubeMapFace = CubeMapFace.NONE): void {
         throw new Error("RenderBuffer.beginUpdate(): calling base implementation.");
     }
 
-    endUpdate(textureFace = CubeMapFace.NONE) {
+    endUpdate(textureFace: CubeMapFace = CubeMapFace.NONE): void {
         throw new Error("RenderBuffer.endUpdate(): calling base implementation.");
     }
 
-    destroy() {
+    destroy(): void {
         throw new Error("RenderBuffer.destory(): calling base implementation.");
     }
 
-    get frameBuffer() {
+    get frameBuffer(): any {
         throw new Error("RenderBuffer.frameBuffer: calling base implementation");
     }
 
     // Save and restore buffer states must save the currently binded array buffer and restore it
-    saveVertexBufferState() {
+    saveVertexBufferState(): void {
         throw new Error("RenderBuffer.saveVertexBufferState: callig base implementation");
     }
 
-    restoreVertexBufferState() {
+    restoreVertexBufferState(): void {
         throw new Error("RenderBuffer.restoreVertexBufferState: calling base implementation");
     }
 
-    update(drawFunc) {
+    update(drawFunc: DrawFunc): void {
         this.saveVertexBufferState();
         if (this.type === RenderBufferType.TEXTURE) {
             this.beginUpdate();
@@ -156,22 +164,22 @@ export default class RenderBuffer {
                 const face = CubeMapFace.POSITIVE_X + i;
                 switch (face) {
                 case CubeMapFace.POSITIVE_X:
-                    viewMatrix.lookAt([-1, 0, 0], [0, 0, 0], [0,-1, 0]);
+                    viewMatrix.lookAt(new Vec([-1, 0, 0]), new Vec([0, 0, 0]), new Vec([0,-1, 0]));
                     break;
                 case CubeMapFace.NEGATIVE_X:
-                    viewMatrix.lookAt([ 1, 0, 0], [0, 0, 0], [0,-1, 0]);
+                    viewMatrix.lookAt(new Vec([ 1, 0, 0]), new Vec([0, 0, 0]), new Vec([0,-1, 0]));
                     break;
                 case CubeMapFace.POSITIVE_Y:
-                    viewMatrix.lookAt([ 0,-1, 0], [0, 0, 0], [0, 0, 1]);
+                    viewMatrix.lookAt(new Vec([ 0,-1, 0]), new Vec([0, 0, 0]), new Vec([0, 0, 1]));
                     break;
                 case CubeMapFace.NEGATIVE_Y:
-                    viewMatrix.lookAt([ 0, 1, 0], [0, 0, 0], [0, 0,-1]);
+                    viewMatrix.lookAt(new Vec([ 0, 1, 0]), new Vec([0, 0, 0]), new Vec([0, 0,-1]));
                     break;
                 case CubeMapFace.POSITIVE_Z:
-                    viewMatrix.lookAt([ 0, 0,-1], [0, 0, 0], [0,-1, 0]);
+                    viewMatrix.lookAt(new Vec([ 0, 0,-1]), new Vec([0, 0, 0]), new Vec([0,-1, 0]));
                     break;
                 case CubeMapFace.NEGATIVE_Z:
-                    viewMatrix.lookAt([ 0, 0, 1], [0, 0, 0], [0,-1, 0]);
+                    viewMatrix.lookAt(new Vec([ 0, 0, 1]), new Vec([0, 0, 0]), new Vec([0,-1, 0]));
                     break;
                 }
                 
@@ -183,7 +191,7 @@ export default class RenderBuffer {
         this.restoreVertexBufferState();
     }
 
-    readPixels(x, y, width, height, format, type) {
+    readPixels(x: number, y: number, width: number, height: number, format: any, type: any): void {
         
     }
  }
