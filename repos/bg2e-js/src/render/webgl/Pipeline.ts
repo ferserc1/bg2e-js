@@ -1,19 +1,19 @@
 
 import Pipeline, { BlendEquation, BlendFunction } from "../Pipeline";
 
-const getBlendEquation = (gl, blendEquation) => {
+const getBlendEquation = (gl: WebGLRenderingContext, blendEquation: BlendEquation): number => {
     switch (blendEquation) {
     case BlendEquation.ADD:
         return gl.FUNC_ADD; 
-    case BlendEquation.FUNC_SUBTRACT:
-        return gl.SUBTRACT; 
+    case BlendEquation.SUBTRACT:
+        return gl.FUNC_SUBTRACT; 
     case BlendEquation.REVERSE_SUBTRACT:
         return gl.FUNC_REVERSE_SUBTRACT; 
     }
     throw new Error(`Invalid blend equation specified in WebGLPipeline: ${ blendEquation }`);
 }
 
-const getBlendFunc = (gl, blendFunc) => {
+const getBlendFunc = (gl: WebGLRenderingContext, blendFunc: BlendFunction): number | null => {
     switch (blendFunc) {
     case BlendFunction.NULL:
         return null;
@@ -42,7 +42,14 @@ const getBlendFunc = (gl, blendFunc) => {
 }
 
 export default class WebGLPipeline extends Pipeline {
-    create() {
+    private _blendEquation!: number;
+    private _blendFuncSrcColor!: number | null;
+    private _blendFuncSrcAlpha!: number | null;
+    private _blendFuncDstColor!: number | null;
+    private _blendFuncDstAlpha!: number | null;
+    private _blendFunc!: (a: number | null, b: number | null, c?: number | null, d?: number | null) => void;
+
+    create(): void {
         const { gl } = this.renderer;
 
         // Set the webgl equivalent values
@@ -59,7 +66,7 @@ export default class WebGLPipeline extends Pipeline {
         this._blendFunc = this._blendFuncDstAlpha !== null ? (a,b) => gl.blendFunc(a,b) : (a,b,c,d) => gl.blendFuncSeparate(a,b,c,d);
     }
 
-    activate() {
+    activate(): void {
         const { gl, state } = this.renderer;
         this.blendState.enabled ? gl.enable(gl.BLEND) : gl.disable(gl.BLEND);
         gl.blendEquation(this._blendEquation);
