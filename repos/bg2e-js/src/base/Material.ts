@@ -401,7 +401,7 @@ export default class Material {
     }
     get albedoTexture(): Texture | null { return this._albedoTexture; }
     set albedoTexture(v: Texture | null) {
-        assertTexture(v, "albedoTexture");
+        v && assertTexture(v, "albedoTexture");
         if (this._albedoTexture instanceof Texture) {
             this._albedoTexture.decReferences();
         }
@@ -423,7 +423,7 @@ export default class Material {
 
     get normalTexture(): Texture | null { return this._normalTexture; }
     set normalTexture(v: Texture | null) {
-        assertTexture(v, "normalTexture");
+        v && assertTexture(v, "normalTexture");
         if (this._normalTexture instanceof Texture) {
             this._normalTexture.decReferences();
         }
@@ -449,7 +449,7 @@ export default class Material {
 
     get metalnessTexture(): Texture | null { return this._metalnessTexture; }
     set metalnessTexture(v: Texture | null) {
-        assertTexture(v, "metalness");
+        v && assertTexture(v, "metalness");
         if (this._metalnessTexture instanceof Texture) {
             this._metalnessTexture.decReferences();
         }
@@ -475,7 +475,7 @@ export default class Material {
     
     get roughnessTexture(): Texture | null { return this._roughnessTexture; }
     set roughnessTexture (v: Texture | null) {
-        assertTexture(v, "roughness");
+        v && assertTexture(v, "roughness");
         if (this._roughnessTexture instanceof Texture) {
             this._roughnessTexture.decReferences();
         }
@@ -509,7 +509,7 @@ export default class Material {
     }
     get lightEmissionTexture(): Texture | null { return this._lightEmissionTexture; }
     set lightEmissionTexture(v: Texture | null) {
-        assertTexture(v, 'lightEmissionTexture');
+        v && assertTexture(v, 'lightEmissionTexture');
         if (this._lightEmissionTexture instanceof Texture) {
             this._lightEmissionTexture.decReferences();
         }
@@ -529,10 +529,7 @@ export default class Material {
 
     get ambientOcclussion(): Texture | null { return this._ambientOcclussion; }
     set ambientOcclussion(v: Texture | null) {
-        if (typeof v !== "number") {
-            assertTexture(v, "ambientOcclussion");
-        }
-
+        v && assertTexture(v, "ambientOcclussion");
         if (this._ambientOcclussion instanceof Texture) {
             this._ambientOcclussion.decReferences();
         }
