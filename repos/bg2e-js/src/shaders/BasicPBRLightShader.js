@@ -211,7 +211,7 @@ export default class BasicPBRLightShader extends Shader {
         materialRenderer.bindValue(this._program, 'roughness', 'uRoughness');
         
         
-        this._program.bindVector("uAlbedoScale", material.diffuseScale);
+        this._program.bindVector("uAlbedoScale", material.albedoScale);
         this._program.bindVector("uNormalScale", material.normalScale);
         this._program.bindVector("uMetallicScale", material.metalnessScale);
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
