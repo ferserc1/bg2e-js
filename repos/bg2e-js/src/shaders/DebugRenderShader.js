@@ -65,13 +65,8 @@ export default class DebugRenderShader extends Shader {
         this._program.bindMatrix("uViewMatrix", viewMatrix);
         this._program.bindMatrix("uProjMatrix", projMatrix);
 
-        if (material.diffuse instanceof Vec) {
-            this._program.bindVector("uColor", material.diffuse);
-        }
-        else {
-            console.warning("DebugRenderShader: material.diffuse is a Texture. This shader only supports as diffuse color.");
-        }
-
+        this._program.bindVector("uColor", material.albedo);
+        
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));
         this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("texCoord"));
         

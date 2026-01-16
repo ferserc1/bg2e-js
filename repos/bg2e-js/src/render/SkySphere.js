@@ -31,7 +31,7 @@ export default class SkySphere {
         await this._texture.loadImageData();
 
         this._material = new Material();
-        this._material.diffuse = this._texture;
+        this._material.albedoTexture = this._texture;
 
         this._shader = Shader ? new Shader(this.renderer) : new SkySphereShader(this.renderer);
         await this._shader.load();
@@ -44,7 +44,7 @@ export default class SkySphere {
         this._texture.fileName = equirectangularTextureUrl;
         await this._texture.loadImageData();
 
-        this._material.diffuse = this._texture;
+        this._material.albedoTexture = this._texture;
     }
 
     updateRenderState({ viewMatrix, projectionMatrix = null }) {

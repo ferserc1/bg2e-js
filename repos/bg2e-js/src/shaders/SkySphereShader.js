@@ -60,11 +60,9 @@ export default class SkySphereShader extends Shader {
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uTexture', 0);
-        if (material.diffuse instanceof Vec) {
-            throw new Error("Invalid material configuration in SkySphereShader: diffuse component must be a texture");
-        }
-        const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
-        const target = TextureTargetName[material.diffuse.target];
+
+        const webglTexture = materialRenderer.getTextureRenderer('albedoTexture')?.getApiObject();
+        const target = TextureTargetName[material.albedoTexture.target];
         gl.bindTexture(gl[target], webglTexture);
         
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));

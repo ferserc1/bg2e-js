@@ -70,14 +70,9 @@ export default class BasicDiffuseColorShader extends Shader {
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
 
         this._program.uniform1i('uTexture', 0);
-        let texRenderer = this._whiteTextureRenderer;
-        if (material.diffuse instanceof Vec) {
-            this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
-        }
-        else {
-            texRenderer = materialRenderer.getTextureRenderer('diffuse');
-            this._program.uniform3fv('uFixedColor', new Vec(1,1,1));
-        }
+        let texRenderer = materialRenderer.getTextureRenderer('albedoTexture') || this._whiteTextureRenderer;
+        this._program.uniform3fv('uFixedColor', material.albedo.rgb);
+        
         texRenderer.activeTexture(0);
         texRenderer.bindTexture();
 

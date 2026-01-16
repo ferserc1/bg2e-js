@@ -104,14 +104,8 @@ class MyWebGLShader extends Shader {
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
 
-        let texRenderer = this._whiteTextureRenderer;
-        if (material.diffuse instanceof Vec) {
-            this._program.uniform3fv('uFixedColor', material.diffuse.rgb);
-        }
-        else {
-            texRenderer = materialRenderer.getTextureRenderer('diffuse');
-            this._program.uniform3fv('uFixedColor', new Vec(1,1,1));
-        }
+        let texRenderer = materialRenderer.getTextureRenderer('albedoTexture') || this._whiteTextureRenderer;
+        this._program.uniform3fv('uFixedColor', material.albedo.rgb);
 
         this._program.uniform1i('uTexture', 0);
         texRenderer.activeTexture(0);
@@ -246,7 +240,7 @@ class MyAppController extends AppController {
         this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
             const plist = plistRenderer.polyList;
             const mat = materialRenderer.material;
-            console.log(`Add object to render queue: '${plist.name}'. Diffuse: ${mat.diffuse instanceof Texture ? mat.diffuse.fileName : mat.diffuse }`);
+            console.log(`Add object to render queue: '${plist.name}'. Albedo texture: ${mat.albedoTexture || "none"}`);
             this._renderStates.push(new RenderState({
                 shader: this._shader,
                 materialRenderer: materialRenderer,

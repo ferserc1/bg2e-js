@@ -74,14 +74,13 @@ export default class PresentDebugFramebufferShader extends Shader {
         this._program.uniform1i('uTexture', 0);
 
         const material = materialRenderer.material;
-        if (material.diffuse instanceof Texture) {
-            const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
-            const target = TextureTargetName[material.diffuse.target];
+        const webglTexture = materialRenderer.getTextureRenderer('albedoTexture')?.getApiObject();
+        if (webglTexture) {
+            const target = TextureTargetName[material.albedoTexture.target];
             gl.bindTexture(gl[target], webglTexture);
-
         }
         else {
-            throw new Error("PresentDebugFramebufferShader: invalid material setup. The diffuse material attribute must to be a texture");
+            throw new Error("PresentDebugFramebufferShader: invalid material setup. The albedoTexture material attribute must to be a texture");
         }
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));

@@ -82,14 +82,13 @@ export default class SelectionHighlightShader extends Shader {
         this._program.uniform1fv('uConvMatrix', this._convMatrix, 4);
 
         const material = materialRenderer.material;
-        if (material.diffuse instanceof Texture) {
-            const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
-            const target = TextureTargetName[material.diffuse.target];
+        const webglTexture = materialRenderer.getTextureRenderer('albedoTexture')?.getApiObject();
+        if (webglTexture) {
+            const target = TextureTargetName[material.albedoTexture.target];
             gl.bindTexture(gl[target], webglTexture);
-
         }
         else {
-            throw new Error("PresentTextureShader: invalid material setup. The diffuse material attribute must to be a texture");
+            throw new Error("SelectionHighlightShader: invalid material setup. The albedoTexture material attribute must to be a texture");
         }
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));

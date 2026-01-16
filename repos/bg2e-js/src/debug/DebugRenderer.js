@@ -111,7 +111,7 @@ export default class DebugRenderer {
             this._objects.forEach(object => {
                 const scale = Mat4.MakeScale(object.scale, object.scale, object.scale);
                 const matrix = scale.mult(object.transformMatrix);
-                this._materialRenderer.material.diffuse = object.color;
+                this._materialRenderer.material.albedo = object.color;
     
                 object.renderer.bindBuffers();
                 this._shader.setup(

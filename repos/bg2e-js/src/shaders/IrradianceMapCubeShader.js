@@ -83,10 +83,8 @@ export default class IrradianceMapCubeShader extends Shader {
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
-        if (material.diffuse instanceof Vec) {
-            throw new Error("Invalid material configuration in IrradianceMapCubeShader: diffuse component must be a cube map texture");
-        }
-        const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
+        
+        const webglTexture = materialRenderer.getTextureRenderer('albedoTexture').getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));

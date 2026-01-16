@@ -130,10 +130,7 @@ export default class SpecularMapCubeShader extends Shader {
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
-        if (material.diffuse instanceof Vec) {
-            throw new Error('Invalid material configuration in SpecularMapCubeShader: diffuse component must be a cube map')
-        }
-        const webglTexture = materialRenderer.getTextureRenderer('diffuse').getApiObject();
+        const webglTexture = materialRenderer.getTextureRenderer('albedoTexture')?.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
 
         this._program.positionAttribPointer(plistRenderer.positionAttribParams('vertPosition'));

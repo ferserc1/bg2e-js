@@ -215,7 +215,7 @@ export default class WebGLRenderer extends Renderer {
             this.state.viewport = viewport;
         }
 
-        this.presentTextureMaterialRenderer.material.diffuse = texture;
+        this.presentTextureMaterialRenderer.material.albedoTexture = texture;
         this.presentTextureSurfaceRenderer.bindBuffers();
         shader.setup(this.presentTextureSurfaceRenderer,this.presentTextureMaterialRenderer);
         this.presentTextureSurfaceRenderer.draw();
