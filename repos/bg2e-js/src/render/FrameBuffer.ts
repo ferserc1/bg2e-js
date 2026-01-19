@@ -1,26 +1,35 @@
+import type Renderer from "./Renderer";
+
+export interface ClearOptions {
+    color?: boolean;
+    depth?: boolean;
+    stencil?: boolean;
+}
 
 export default class FrameBuffer {
-    constructor(renderer) {
+    protected _renderer: Renderer;
+
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
     }
 
-    get renderer() {
+    get renderer(): Renderer {
         return this._renderer;
     }
 
-    clearColor() {
+    clearColor(): void {
         this.clear({ color: true, depth: false, stencil: false });
     }
 
-    clearDepth() {
+    clearDepth(): void {
         this.clear({ color: true, depth: true, stencil: false });
     }
 
-    clearStencil() {
+    clearStencil(): void {
         this.clear({color: false, depth: false, stencil: true });
     }
 
-    clear({ color = true, depth = true, stencil = false } = {}) {
+    clear({ color = true, depth = true, stencil = false }: ClearOptions = {}): void {
         throw new Error("FrameBuffer: calling base implementation of clear()");
     }
 }
