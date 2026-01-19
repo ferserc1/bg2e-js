@@ -3,9 +3,48 @@ import { getLayers, RenderLayer } from "../base/PolyList";
 import Mat4 from "../math/Mat4";
 import { BlendFunction } from "./Pipeline";
 import RenderState from "./RenderState";
+import type Renderer from "./Renderer";
+import type Shader from "./Shader";
+import type PolyListRenderer from "./PolyListRenderer";
+import type MaterialRenderer from "./MaterialRenderer";
+import type Pipeline from "./Pipeline";
+import type Light from "../base/Light";
+import type Mat3 from "../math/Mat3";
+
+export interface QueuePipelines {
+    cullBackFace: Pipeline;
+    cullFaceDisabled: Pipeline;
+}
+
+export interface QueueItem {
+    layer: RenderLayer;
+    shader: Shader;
+    beginOperation: ((layer: RenderLayer) => void) | null;
+    endOperation: ((layer: RenderLayer) => void) | null;
+    enabled: boolean;
+    pipelines: QueuePipelines;
+    queue: RenderState[];
+}
+
+export interface LightData {
+    light: Light;
+    transform: Mat4;
+}
+
+export interface EnableQueueOptions {
+    beginOperation?: ((layer: RenderLayer) => void) | null;
+    endOperation?: ((layer: RenderLayer) => void) | null;
+    enabled?: boolean;
+}
 
 export default class RenderQueue {
-    constructor(renderer) {
+    protected _renderer: Renderer;
+    protected _queues: QueueItem[];
+    protected _viewMatrix: Mat4;
+    protected _projectionMatrix: Mat4;
+    protected _lights: LightData[];
+
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
 
         this._queues = [];
@@ -16,39 +55,39 @@ export default class RenderQueue {
         this._lights = [];
     }
 
-    get renderer() {
+    get renderer(): Renderer {
         return this._renderer;
     }
 
-    get queues() {
+    get queues(): QueueItem[] {
         return this._queues;
     }
 
-    get viewMatrix() {
+    get viewMatrix(): Mat4 {
         return this._viewMatrix;
     }
 
-    set viewMatrix(m) {
+    set viewMatrix(m: Mat4) {
         this._viewMatrix.assign(m);
     }
 
-    get projectionMatrix() {
+    get projectionMatrix(): Mat4 {
         return this._projectionMatrix;
     }
 
-    set projectionMatrix(m) {
+    set projectionMatrix(m: Mat4) {
         this._projectionMatrix.assign(m);
     }
 
-    get lights() {
+    get lights(): LightData[] {
         return this._lights;
     }
 
-    getQueue(layer) {
+    getQueue(layer: RenderLayer): QueueItem | undefined {
         return this._queues.find(l => l.layer === layer);
     }
 
-    enableQueue(layer, shader, { beginOperation = null, endOperation = null, enabled = true } = {}) {
+    enableQueue(layer: RenderLayer, shader: Shader, { beginOperation = null, endOperation = null, enabled = true }: EnableQueueOptions = {}): void {
         // TODO: Create pipelines for different render states (cull face, front face etc.)
         const cullBackFace = this.renderer.factory.pipeline();
         const cullFaceDisabled = this.renderer.factory.pipeline();
@@ -90,23 +129,23 @@ export default class RenderQueue {
         }
     }
 
-    disableQueue(layer) {
+    disableQueue(layer: RenderLayer): void {
         const queue = this.getQueue(layer);
         if (queue) {
             queue.enabled = true;
         }
     }
 
-    isQueueEnabled(layer) {
+    isQueueEnabled(layer: RenderLayer): boolean {
         return this.getQueue(layer)?.enabled || false;
     }
 
-    newFrame() {
+    newFrame(): void {
         this._queues.forEach(q => q.queue = []);
         this._lights = [];
     }
 
-    addPolyList(polyListRenderer, materialRenderer, modelMatrix) {
+    addPolyList(polyListRenderer: PolyListRenderer, materialRenderer: MaterialRenderer, modelMatrix: Mat4): void {
         const plistLayers = getLayers(polyListRenderer.polyList, materialRenderer.material);
         this._queues.forEach(({ layer, shader, queue, pipelines }) => {
             if (plistLayers & layer) {
@@ -132,14 +171,14 @@ export default class RenderQueue {
         });
     }
 
-    addLight(light, transform) {
+    addLight(light: Light, transform: Mat4): void {
         // Clear the depth texture, because this parameter
         // is set each frame by the ShadowRenderer
         light.depthTexture = null;
         this._lights.push({ light, transform });
     }
 
-    draw(layer) {
+    draw(layer: RenderLayer): void {
         const queue = this.getQueue(layer);
         if (queue) {
             if (typeof(queue.beginOperation) === "function") {
