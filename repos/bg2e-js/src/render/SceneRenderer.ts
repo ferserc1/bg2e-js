@@ -9,9 +9,24 @@ import FindNodeVisitor from "../scene/FindNodeVisitor";
 import Transform from "../scene/Transform";
 import { bindRenderer, init } from "../scene/Node";
 import LightComponent from "../scene/LightComponent";
+import Renderer from "./Renderer";
+import Node from "../scene/Node";
+import type Pipeline from "./Pipeline";
+import type SkyCube from "./SkyCube";
+import type ShadowRenderer from "./ShadowRenderer";
+import type Environment from "../render/Environment";
+import type EnvironmentComponent from "../scene/EnvironmentComponent";
+import KeyboardEvent from "../app/KeyboardEvent"
+import MouseEvent from "../app/MouseEvent"
+import TouchEvent from "../app/TouchEvent";
 
 export class FrameVisitor extends NodeVisitor {
-    constructor(renderQueue) {
+    _renderQueue: RenderQueue;
+    _delta: number;
+    _modelMatrix: Mat4;
+    _matrixStack: Mat4[];
+
+    constructor(renderQueue: RenderQueue) {
         super();
         this._renderQueue = renderQueue;
         this._delta = 0;
@@ -19,29 +34,31 @@ export class FrameVisitor extends NodeVisitor {
         this._matrixStack = [];
     }
 
-    get delta() { return this._delta; }
-    set delta(d) { this._delta = d; }
+    get delta(): number { return this._delta; }
+    set delta(d: number) { this._delta = d; }
 
-    get modelMatrix() { return this._modelMatrix; }
+    get modelMatrix(): Mat4 { return this._modelMatrix; }
     
-    visit(node) {
+    visit(node: Node): void {
         this._matrixStack.push(new Mat4(this._modelMatrix));
         node.frame(this._delta, this._modelMatrix, this._renderQueue);
     }
 
-    didVisit(node) {
+    didVisit(node: Node): void {
         this._modelMatrix = this._matrixStack[this._matrixStack.length - 1] || Mat4.MakeIdentity();
         this._matrixStack.pop();
     }
 }
 
 export class BindRendererVisitor extends NodeVisitor {
-    constructor(renderer) {
-        super(renderer);
+    _renderer: Renderer;
+
+    constructor(renderer: Renderer) {
+        super();
         this._renderer = renderer;
     }
 
-    visit(node) {
+    visit(node: Node): void {
         bindRenderer(node, this._renderer);
     }
 }
@@ -51,33 +68,63 @@ export class InitVisitor extends NodeVisitor {
         super();
     }
 
-    async asyncVisit(node) {
+    async asyncVisit(node: Node): Promise<void> {
         await init(node);
     }
 }
 
 export class EventCallbackVisitor extends NodeVisitor {
-    constructor(callbackName)  {
+    _callbackName: string;
+    _event: KeyboardEvent | MouseEvent | TouchEvent | null;
+
+    constructor(callbackName: string)  {
         super();
         this._callbackName = callbackName;
         this._event = null;
     }
 
-    set event(evt) {
+    set event(evt: KeyboardEvent | MouseEvent | TouchEvent | null) {
         this._event = evt;
     }
 
-    get event() {
+    get event(): KeyboardEvent | MouseEvent | TouchEvent | null {
         return this._event;
     }
 
-    visit(node) {
-        node[this._callbackName](this._event);
+    visit(node: Node): void {
+        (node as any)[this._callbackName](this._event);
     }
 }
 
 export default class SceneRenderer {
-    constructor(renderer) {
+    _renderer: Renderer;
+    _keyDownVisitor: EventCallbackVisitor;
+    _keyUpVisitor: EventCallbackVisitor;
+    _mouseUpVisitor: EventCallbackVisitor;
+    _mouseDownVisitor: EventCallbackVisitor;
+    _mouseMoveVisitor: EventCallbackVisitor;
+    _mouseOutVisitor: EventCallbackVisitor;
+    _mouseDragVisitor: EventCallbackVisitor;
+    _mouseWheelVisitor: EventCallbackVisitor;
+    _touchStartVisitor: EventCallbackVisitor;
+    _touchMoveVisitor: EventCallbackVisitor;
+    _touchEndVisitor: EventCallbackVisitor;
+    _sceneEnvironment: EnvironmentComponent | null;
+    _shadowMapSize: Vec | null = null;
+    _mainDirectionalLight: LightComponent | null = null;
+    _opaquePipeline: Pipeline | null = null;
+    _transparentPipeline: Pipeline | null = null;
+    _renderQueue: RenderQueue | null = null;
+    _initVisitor: InitVisitor | null = null;
+    _frameVisitor: FrameVisitor | null = null;
+    _skyCube: SkyCube | null = null;
+    _shadowRenderer: ShadowRenderer | null = null;
+    _environment: Environment | null = null;
+    _defaultViewMatrix: Mat4 = Mat4.MakeIdentity();
+    _defaultProjectionMatrix: Mat4 = Mat4.MakeIdentity();
+    _sceneRoot: Node | null = null;
+
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
         this._keyDownVisitor = new EventCallbackVisitor('keyDown');
         this._keyUpVisitor = new EventCallbackVisitor('keyUp');
@@ -96,20 +143,20 @@ export default class SceneRenderer {
     }
 
     // Implement in subclasses
-    get brightness() { return 0; }
-    set brightness(_value) { }
-    get contrast() { return 0; }
-    set contrast(value) { }
+    get brightness(): number { return 0; }
+    set brightness(_value: number) { }
+    get contrast(): number { return 0; }
+    set contrast(value: number) { }
 
-    get renderer() {
+    get renderer(): Renderer {
         return this._renderer;
     }
 
-    get renderQueue() {
+    get renderQueue(): RenderQueue | null {
         return this._renderQueue;
     }
 
-    async init({ shadowMapSize = new Vec(1024, 1024) } = {}) {
+    async init({ shadowMapSize = new Vec(1024, 1024) }: { shadowMapSize?: Vec | number } = {}): Promise<void> {
         if (typeof(shadowMapSize) === "number") {
             shadowMapSize = new Vec(shadowMapSize, shadowMapSize);
         }
@@ -120,18 +167,18 @@ export default class SceneRenderer {
         this._mainDirectionalLight = null;
 
         this._opaquePipeline = this.renderer.factory.pipeline();
-        this._opaquePipeline.setBlendState({ enabled: false });
-        this._opaquePipeline.create();
+        this._opaquePipeline?.setBlendState({ enabled: false });
+        this._opaquePipeline?.create();
 
         this._transparentPipeline = this.renderer.factory.pipeline();
-        this._transparentPipeline.setBlendState({
+        this._transparentPipeline?.setBlendState({
             enabled: true,
             blendFuncSrc: BlendFunction.SRC_ALPHA,
             blendFuncDst: BlendFunction.ONE_MINUS_SRC_ALPHA,
             blendFuncSrcAlpha: BlendFunction.ONE,
             blendFuncDstAlpha: BlendFunction.ONE_MINUS_SRC_ALPHA
         });
-        this._transparentPipeline.create();
+        this._transparentPipeline?.create();
 
         this._renderQueue = new RenderQueue(this.renderer);
         this._initVisitor = new InitVisitor();
@@ -140,35 +187,35 @@ export default class SceneRenderer {
         this._skyCube = this.renderer.factory.skyCube();
 
         this._shadowRenderer = this.renderer.factory.shadowRenderer();
-        await this._shadowRenderer.create(this._shadowMapSize);
+        await this._shadowRenderer?.create(this._shadowMapSize);
     }
 
-    async setEnvironment(env) {
+    async setEnvironment(env: Environment): Promise<void> {
         this._environment = env;
-        this._skyCube.load(this._environment.environmentMap);
+        this._skyCube?.load(this._environment?.environmentMap);
     }
 
-    get environment() {
+    get environment(): Environment | null {
         return this._environment;
     }
 
-    get defaultViewMatrix() {
+    get defaultViewMatrix(): Mat4 {
         return this._defaultViewMatrix || Mat4.MakeIdentity();
     }
 
-    set defaultViewMatrix(mat) {
+    set defaultViewMatrix(mat: Mat4) {
         this._defaultViewMatrix = mat;
     }
 
-    get defaultProjectionMatrix() {
+    get defaultProjectionMatrix(): Mat4 {
         return this._defaultProjectionMatrix || Mat4.MakePerspective(55,this.renderer.viewport.aspectRatio, 0.2, 100.0);
     }
 
-    set defaultProjectionMatrix(mat) {
+    set defaultProjectionMatrix(mat: Mat4) {
         this._defaultProjectionMatrix = mat;
     }
     
-    async bindRenderer(sceneRoot) {
+    async bindRenderer(sceneRoot: Node): Promise<void> {
         const bindRendererVisitor = new BindRendererVisitor(this.renderer);
         sceneRoot.accept(bindRendererVisitor);
 
@@ -178,13 +225,13 @@ export default class SceneRenderer {
         findVisitor.hasComponents("Environment");
         sceneRoot.accept(findVisitor);
         if (findVisitor.result.length) {
-            const comp = findVisitor.result[0].component("Environment");
-            this.setEnvironment(comp.environment);
+            const comp = findVisitor.result[0].component("Environment") as EnvironmentComponent;
+            comp && this.setEnvironment(comp.environment);
             this._sceneEnvironment = comp;
         }
     }
 
-    resize(sceneRoot, width,height) {
+    resize(sceneRoot: Node, width: number, height: number): void {
         this.renderer.viewport = new Vec([0, 0, width, height]);
         this.renderer.canvas.updateViewportSize();
         const mainCamera = Camera.GetMain(sceneRoot);
@@ -193,13 +240,17 @@ export default class SceneRenderer {
         }
     }
 
-    async frame(sceneRoot,delta) {
+    async frame(sceneRoot: Node, delta: number): Promise<void> {
+        if (!this._frameVisitor || !this._renderQueue || !this._initVisitor) {
+            throw new Error("SceneRenderer.frame(): SceneRenderer not initialized. Call SceneRenderer.init() first.");
+        }
+
         if (sceneRoot.sceneChanged) {
             await sceneRoot.asyncAccept(this._initVisitor);
         }
         this._sceneRoot = sceneRoot;
 
-        this._renderQueue.newFrame();
+        this._renderQueue?.newFrame();
         this._frameVisitor.delta = delta;
         this._frameVisitor.modelMatrix.identity();
 
@@ -217,13 +268,17 @@ export default class SceneRenderer {
 
         sceneRoot.accept(this._frameVisitor);
 
-        this._skyCube.updateRenderState({
+        this._skyCube?.updateRenderState({
             viewMatrix: viewMatrix,
             projectionMatrix: projectionMatrix
         });
     }
 
-    draw({ clearBuffers = true, drawSky = true } = {}) {
+    draw({ clearBuffers = true, drawSky = true }: { clearBuffers?: boolean; drawSky?: boolean } = {}): void {
+        if (!this._renderQueue || !this._shadowRenderer || !this._sceneRoot) {
+            throw new Error("SceneRenderer.draw(): SceneRenderer not initialized. Call SceneRenderer.init() first.");
+        }
+
         const mainLight = LightComponent.GetMainDirectionalLight(this._sceneRoot);
         const camera = Camera.GetMain(this._sceneRoot);
 
@@ -234,7 +289,7 @@ export default class SceneRenderer {
             const lightProjection = Mat4.MakeOrtho(-focus,focus,-focus,focus,0.1,500.0);
             mainLight.light.projection = lightProjection;
         }
-        if (mainLight) {
+        if (mainLight && camera) {
             this._shadowRenderer.update(camera, mainLight, this._renderQueue);
         }
         
@@ -247,68 +302,68 @@ export default class SceneRenderer {
         }
 
         if (drawSky && (!this._sceneEnvironment || this._sceneEnvironment.showSkybox)) {
-            this._skyCube.draw();
+            this._skyCube?.draw();
         }
 
         this._renderQueue.draw(RenderLayer.OPAQUE_DEFAULT);
         this._renderQueue.draw(RenderLayer.TRANSPARENT_DEFAULT);
     }
 
-    destroy() {
+    destroy(): void {
 
     }
 
-    keyDown(sceneRoot, evt) {
+    keyDown(sceneRoot: Node, evt: KeyboardEvent): void {
         this._keyDownVisitor.event = evt;
         sceneRoot.accept(this._keyDownVisitor);
     }
 
-    keyUp(sceneRoot, evt) {
+    keyUp(sceneRoot: Node, evt: KeyboardEvent): void {
         this._keyUpVisitor.event = evt;
         sceneRoot.accept(this._keyUpVisitor);
     }
 
-    mouseUp(sceneRoot, evt) {
+    mouseUp(sceneRoot: Node, evt: MouseEvent): void {
         this._mouseUpVisitor.event = evt;
         sceneRoot.accept(this._mouseUpVisitor);
     }
 
-    mouseDown(sceneRoot, evt) {
+    mouseDown(sceneRoot: Node, evt: MouseEvent): void {
         this._mouseDownVisitor.event = evt;
         sceneRoot.accept(this._mouseDownVisitor);
     }
 
-    mouseMove(sceneRoot, evt) {
+    mouseMove(sceneRoot: Node, evt: MouseEvent): void {
         this._mouseMoveVisitor.event = evt;
         sceneRoot.accept(this._mouseMoveVisitor);
     }
 
-    mouseOut(sceneRoot, evt) {
+    mouseOut(sceneRoot: Node, evt: MouseEvent): void {
         this._mouseOutVisitor.event = evt;
         sceneRoot.accept(this._mouseOutVisitor);
     }
 
-    mouseDrag(sceneRoot, evt) {
+    mouseDrag(sceneRoot: Node, evt: MouseEvent): void {
         this._mouseDragVisitor.event = evt;
         sceneRoot.accept(this._mouseDragVisitor);
     }
 
-    mouseWheel(sceneRoot, evt) {
+    mouseWheel(sceneRoot: Node, evt: MouseEvent): void {
         this._mouseWheelVisitor.event = evt;
         sceneRoot.accept(this._mouseWheelVisitor);
     }
 
-    touchStart(sceneRoot, evt) {
+    touchStart(sceneRoot: Node, evt: TouchEvent): void {
         this._touchStartVisitor.event = evt;
         sceneRoot.accept(this._touchStartVisitor);
     }
 
-    touchMove(sceneRoot, evt) {
+    touchMove(sceneRoot: Node, evt: TouchEvent): void {
         this._touchMoveVisitor.event = evt;
         sceneRoot.accept(this._touchMoveVisitor);
     }
 
-    touchEnd(sceneRoot, evt) {
+    touchEnd(sceneRoot: Node, evt: TouchEvent): void {
         this._touchEndVisitor.event = evt;
         sceneRoot.accept(this._touchEndVisitor);
     }
