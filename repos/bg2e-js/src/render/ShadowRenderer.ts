@@ -12,44 +12,56 @@ import LightComponent from "../scene/LightComponent";
 import Transform from "../scene/Transform";
 import DebugRenderer from "../debug/DebugRenderer";
 import DepthRenderShader from "../shaders/DepthRenderShader";
-
+import Renderer from "./Renderer";
+import Node from "../scene/Node";
+import type RenderBuffer from "./RenderBuffer";
+import type RenderQueue from "./RenderQueue";
 
 export default class ShadowRenderer {
-    constructor(renderer) {
+    _renderer: Renderer;
+    _size: Vec | null = null;
+    _texture: Texture | null = null;
+    _renderBuffer: RenderBuffer | null = null;
+    _depthTexture: Texture | null = null;
+    _shader: DepthRenderShader | null = null;
+    _shadowMapRenderDistance: number;
+    _debug: boolean;
+
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
         this._shadowMapRenderDistance = 100;
         this._debug = false;
     }
 
-    get renderer() { return this._renderer; }
+    get renderer(): Renderer { return this._renderer; }
 
-    get size() {
-        return this._size;
+    get size(): Vec {
+        return this._size || new Vec(0, 0);
     }
 
-    get shadowMapRenderDistance() {
+    get shadowMapRenderDistance(): number {
         return this._shadowMapRenderDistance;
     }
 
-    get debug() {
+    get debug(): boolean {
         return this._debug;
     }
 
-    set debug(d) {
+    set debug(d: boolean) {
         this._debug = d;
     }
 
-    set shadowMapRenderDistance(d) {
+    set shadowMapRenderDistance(d: number) {
         this._shadowMapRenderDistance = d;
     }
 
     // TODO: set size. Update the shadow map size
 
-    get depthTexture() {
+    get depthTexture(): Texture | null {
         return this._depthTexture;
     }
 
-    async create(size = new Vec(1024, 1024)) {
+    async create(size: Vec = new Vec(1024, 1024)): Promise<void> {
         this._size = size;
 
         this._texture = new Texture();
@@ -75,35 +87,40 @@ export default class ShadowRenderer {
         await this._shader.load();
     }
 
-    getLightTransform(camera, light) {
-        let cameraNode = null;
+    getLightTransform(camera: Camera | Node, light: LightComponent | Node): Mat4 {
+        let cameraNode: Node | null = null;
+        let cameraComponent: Camera | null = null;
+        let lightComponent: LightComponent | null = null;
+        
         if (camera instanceof Camera) {
             cameraNode = camera.node;
+            cameraComponent = camera;
         }
         else if (camera instanceof Node) {
             cameraNode = camera;
-            camera = cameraNode.camera;
+            cameraComponent = cameraNode.camera ?? null;
         }
 
-        if (!cameraNode || !camera) {
+        if (!cameraNode || !cameraComponent) {
             throw Error(`ShadowRenderer.getLightPosition(): invalid camera parameter. Camera must be a Node or a Camera component, and the camera must be added to the scene.`);
         }
 
-        let lightNode = null;
+        let lightNode: Node | null = null;
         if (light instanceof LightComponent) {
             lightNode = light.node;
+            lightComponent = light;
         }
         else if (light instanceof Node) {
             lightNode = light;
-            light = light.lightComponent;
+            lightComponent = light.lightComponent || null;
         }
 
-        if (!lightNode || !light) {
+        if (!lightNode || !lightComponent) {
             throw Error(`ShadowRenderer.getLightPosition(): invalid light. Light must be a Node or a LightComponent`);
         }
 
         // Get the camera focus point
-        const focus = camera.focusDistance;
+        const focus = cameraComponent!.focusDistance;
         const cameraTransform = Transform.GetWorldMatrix(cameraNode);
         const cameraPos = Vec.Add(Mat4.GetPosition(cameraTransform), Vec.Mult(cameraTransform.forwardVector, -focus)); 
 
@@ -127,12 +144,12 @@ export default class ShadowRenderer {
         return lightTransform;
     }
 
-    update(camera, lightComponent, renderQueue) {  
-        const viewMatrix = Mat4.GetInverted(this.getLightTransform(camera, lightComponent));
+    update(camera: Camera | Node, lightComponent: LightComponent, renderQueue: RenderQueue): void {  
+        const viewMatrix: Mat4 = Mat4.GetInverted(this.getLightTransform(camera, lightComponent));
         
-        this._renderBuffer.update(() => {
-            this._renderBuffer.renderer.state.clear();
-            const layer = RenderLayer.OPAQUE_DEFAULT;
+        this._renderBuffer?.update(() => {
+            this._renderBuffer!.renderer.state.clear();
+            const layer: RenderLayer = RenderLayer.OPAQUE_DEFAULT;
             const queue = renderQueue.getQueue(layer);
             if (queue) {
 
