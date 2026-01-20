@@ -1,7 +1,7 @@
 import type Renderer from "./Renderer";
 import type PolyListRenderer from "./PolyListRenderer";
 import type MaterialRenderer from "./MaterialRenderer";
-import type Mat4 from "../math/Mat4";
+import Mat4 from "../math/Mat4";
 
 export default class Shader {
     protected _renderer: Renderer;
@@ -16,7 +16,13 @@ export default class Shader {
 
     }
     
-    setup(plistRenderer: PolyListRenderer, materialRenderer: MaterialRenderer, modelMatrix: Mat4, viewMatrix: Mat4, projectionMatrix: Mat4): void {
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4 = Mat4.MakeIdentity(),
+        viewMatrix: Mat4 = Mat4.MakeIdentity(),
+        projectionMatrix: Mat4 = Mat4.MakeIdentity()
+    ): void {
         throw new Error("Error: using an abstract implementation of render.Shader.");
     }
 

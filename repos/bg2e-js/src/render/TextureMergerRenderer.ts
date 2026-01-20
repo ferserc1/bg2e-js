@@ -1,8 +1,16 @@
-
 import Texture, { TextureChannel, TextureComponentFormat, TextureRenderTargetAttachment, TextureWrap } from "../base/Texture";
 import TextureMergerShader from "../shaders/TextureMergerShader";
+import Renderer from "./Renderer";
+import type RenderBuffer from "./RenderBuffer";
+
 export default class TextureMergerRenderer {
-    constructor(renderer) {
+    _renderer: Renderer;
+    _shader: TextureMergerShader;
+    _dirty: boolean;
+    _mergedTexture: Texture;
+    _renderBuffer: RenderBuffer;
+
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
 
         this._shader = TextureMergerShader.GetUnique(this.renderer);
@@ -20,36 +28,36 @@ export default class TextureMergerRenderer {
         this._shader.load();
     }
 
-    get renderer() {
+    get renderer(): Renderer {
         return this._renderer;
     }
 
-    get dirty() {
+    get dirty(): boolean {
         return this._dirty;
     }
 
-    set dirty(d) {
+    set dirty(d: boolean) {
         this._dirty = d;
     }
 
-    setTexture(tex,channel,dstChannel = TextureChannel.R) {
+    setTexture(tex: Texture | null, channel: TextureChannel, dstChannel: TextureChannel = TextureChannel.R): void {
         this._shader.setTexture(tex,channel,dstChannel);
         this._dirty = true;
     }
 
-    get mergedTexture() {
+    get mergedTexture(): Texture {
         return this._mergedTexture;
     }
 
-    get isComplete() {
+    get isComplete(): boolean {
         return this._shader.isComplete;
     }
 
-    update() {
+    update(): void {
         if (this._dirty) {
             this._renderBuffer.update(() => {
                 // DEBUG: check why it's neccesary to present texture twice
-                this.renderer.presentTexture(null, { clear: true, shader: this._shader });
+                this.renderer.presentTexture(null, { clearBuffers: true, shader: this._shader });
                 this.renderer.presentTexture(null, { shader: this._shader });
             });
             this._dirty = false;

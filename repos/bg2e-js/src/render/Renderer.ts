@@ -216,7 +216,7 @@ export default class Renderer {
         }
     }
 
-    presentTexture(texture: Texture, {
+    presentTexture(texture: Texture | null, {
         clearBuffers = true,
         shader = null,
         viewport = null

@@ -201,7 +201,7 @@ export default class WebGLRenderer extends Renderer {
         this.state.clearColor = c;
     }
     
-    presentTexture(texture: Texture, { clearBuffers = true, shader = null, viewport = null }: { clearBuffers?: boolean; shader?: Shader | null; viewport?: Vec | number[] | null } = {}): void {
+    presentTexture(texture: Texture | null, { clearBuffers = true, shader = null, viewport = null }: { clearBuffers?: boolean; shader?: Shader | null; viewport?: Vec | number[] | null } = {}): void {
         if (clearBuffers) {
             this.state.clear();
         }
