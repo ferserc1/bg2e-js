@@ -1,10 +1,15 @@
 
 import WebGLRenderer from '../render/webgl/Renderer';
+import type Texture from '../base/Texture';
 
 export default class WebGLTextureViewer {
+    private _renderer: WebGLRenderer;
+    private _size: [number, number];
+    private _canvas: HTMLCanvasElement;
+    private _context: CanvasRenderingContext2D | null;
 
-    constructor(renderer) {
-        if (!renderer instanceof WebGLRenderer) {
+    constructor(renderer: WebGLRenderer) {
+        if (!(renderer instanceof WebGLRenderer)) {
             throw new Error("WebGLTextureViewer works only with WebGL Renderer");
         }
 
@@ -18,17 +23,18 @@ export default class WebGLTextureViewer {
         this._context = this._canvas.getContext('2d');
     }
 
-    get canvas() { return this._canvas; }
-    get context() { return this._context; }
+    get canvas(): HTMLCanvasElement { return this._canvas; }
+    get context(): CanvasRenderingContext2D | null { return this._context; }
 
-    attachToElement(element) {
+    attachToElement(element: HTMLElement): void {
         element.appendChild(this._canvas);
     }
 
-    drawTexture(texture) {
+    drawTexture(texture: Texture): void {
         const { gl } = this._renderer;
+        const textureWithApi = texture as any;
 
-        if (!texture._apiObject) {
+        if (!textureWithApi._apiObject) {
             throw new Error("Error drawing WebGL texture: WebGL texture not initialized");
         }
 
@@ -40,12 +46,12 @@ export default class WebGLTextureViewer {
         const currentFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
         // Draw texture to canvas
-        gl.bindTexture(gl.TEXTURE_2D, texture._apiObject);
+        gl.bindTexture(gl.TEXTURE_2D, textureWithApi._apiObject);
         
         // Create a framebuffer to read the texture data
         const framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture._apiObject, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textureWithApi._apiObject, 0);
         
         // Read texture data
         let data = new Uint8Array(texture.size.width * texture.size.height * 4);
@@ -58,7 +64,9 @@ export default class WebGLTextureViewer {
         Array.from({length: h}, (val, i) => data.slice(i * w * 4, (i + 1) * w * 4))
                 .forEach((val, i) => flipped.set(val, (h - i - 1) * w * 4));
         const ctx = this._context;
-        ctx.putImageData(imageData, 0, 0);
+        if (ctx) {
+            ctx.putImageData(imageData, 0, 0);
+        }
 
         // Restore previous state
         gl.bindTexture(gl.TEXTURE_2D, currentTexture);

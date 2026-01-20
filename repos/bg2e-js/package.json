@@ -5,13 +5,18 @@
   "main": "./dist/bg2e-js.js",
   "files": [
     "dist/bg2e-js.js",
-    "dist/bg2e-js.js.map"
+    "dist/bg2e-js.js.map",
+    "dist/bg2e-js.d.ts"
   ],
   "module": "./dist/bg2e-js.js",
+  "types": "./dist/bg2e-js.d.ts",
   "type": "module",
   "scripts": {
     "dev": "vite build --watch --emptyOutDir",
-    "build": "vite build --emptyOutDir"
+    "build": "vite build --emptyOutDir",
+    "build_": "vite build --emptyOutDir && npm run bundle:types",
+    "bundle:types": "dts-bundle-generator -o dist/bg2e-js.d.ts dist/src/index.d.ts --no-check",
+    "types": "tsc -p tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -30,9 +35,12 @@
   },
   "homepage": "https://github.com/ferserc1/bg2e-js#readme",
   "dependencies": {
-    "bg2io": "^1.0.7"
+    "bg2io": "^1.0.7",
+    "vite-plugin-dts": "^4.5.4"
   },
   "devDependencies": {
+    "dts-bundle-generator": "^9.5.1",
+    "typescript": "^5.9.3",
     "vite": "^7.1.5"
   }
 }

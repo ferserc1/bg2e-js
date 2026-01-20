@@ -12,10 +12,23 @@ import Texture, {
 } from "../base/Texture";
 import DebugRenderShader from "../shaders/DebugRenderShader";
 import PresentDebugFramebufferShader from "../shaders/PresentDebugFramebufferShader";
+import type Renderer from "../render/Renderer";
+import type PolyListRenderer from "../render/PolyListRenderer";
+import type MaterialRenderer from "../render/MaterialRenderer";
+import type RenderBuffer from "../render/RenderBuffer";
+import type Camera from "../scene/Camera";
+import type PolyList from "../base/PolyList";
 
-const g_renderers = {};
+interface DebugObject {
+    renderer: PolyListRenderer;
+    scale: number;
+    color: Color;
+    transformMatrix: Mat4;
+}
 
-const getMatrix = (transformMatrix, position) => {
+const g_renderers: Record<string, DebugRenderer> = {};
+
+const getMatrix = (transformMatrix: Mat4 | null, position: Vec | null): Mat4 => {
     if (!transformMatrix && position) {
         transformMatrix = Mat4.MakeTranslation(position);
     }
@@ -26,15 +39,27 @@ const getMatrix = (transformMatrix, position) => {
 }
 
 export default class DebugRenderer {
+    private _renderer: Renderer;
+    private _objects: DebugObject[];
+    private _sphere: PolyList;
+    private _sphereRenderer: PolyListRenderer;
+    private _arrow: PolyList;
+    private _arrowRenderer: PolyListRenderer;
+    private _baseMaterial: Material;
+    private _materialRenderer: MaterialRenderer;
+    private _shader!: DebugRenderShader;
+    private _presentShader!: PresentDebugFramebufferShader;
+    private _targetTexture!: Texture;
+    private _renderBuffer!: RenderBuffer;
 
-    static Get(renderer) {
+    static Get(renderer: Renderer): DebugRenderer {
         if (!g_renderers[renderer.uniqueId]) {
             g_renderers[renderer.uniqueId] = new DebugRenderer(renderer);
         }
         return g_renderers[renderer.uniqueId];
     }
 
-    constructor(renderer) {
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
 
         this._objects = [];
@@ -50,9 +75,9 @@ export default class DebugRenderer {
         this._materialRenderer = this.renderer.factory.material(this._baseMaterial);
     }
 
-    get renderer() { return this._renderer; }
+    get renderer(): Renderer { return this._renderer; }
 
-    async init() {
+    async init(): Promise<void> {
         const renderer = this._renderer;
         
         this._shader = new DebugRenderShader(renderer);
@@ -71,11 +96,16 @@ export default class DebugRenderer {
         await this._renderBuffer.attachTexture(this._targetTexture);
     }
 
-    beginFrame() {
+    beginFrame(): void {
         this._objects = [];
     }
 
-    drawSphere({ radius = 1, color = Color.White(), transformMatrix = null, position = null } = {}) {
+    drawSphere({ radius = 1, color = Color.White(), transformMatrix = null, position = null }: {
+        radius?: number;
+        color?: Color;
+        transformMatrix?: Mat4 | null;
+        position?: Vec | null;
+    } = {}): void {
         transformMatrix = getMatrix(transformMatrix, position);
 
         this._objects.push({
@@ -86,7 +116,12 @@ export default class DebugRenderer {
         });
     }
 
-    drawArrow({ length = 1, color = Color.White(), transformMatrix = null, position = null } = {}) {
+    drawArrow({ length = 1, color = Color.White(), transformMatrix = null, position = null }: {
+        length?: number;
+        color?: Color;
+        transformMatrix?: Mat4 | null;
+        position?: Vec | null;
+    } = {}): void {
         transformMatrix = getMatrix(transformMatrix, position);
 
         this._objects.push({
@@ -97,18 +132,18 @@ export default class DebugRenderer {
         });
     }
 
-    setViewportSize(width, height) {
+    setViewportSize(width: number, height: number): void {
         this._renderBuffer.size = new Vec(width, height);
     }
 
-    draw(camera) {
+    draw(camera: Camera): void {
         const cameraView = Mat4.GetInverted(Transform.GetWorldMatrix(camera.node));
         const viewMatrix = cameraView;
         const projectionMatrix = camera.projectionMatrix;
         this._renderBuffer.update(() => {
             this._renderBuffer.frameBuffer.clear();
 
-            this._objects.forEach(object => {
+            this._objects.forEach((object: DebugObject) => {
                 const scale = Mat4.MakeScale(object.scale, object.scale, object.scale);
                 const matrix = scale.mult(object.transformMatrix);
                 this._materialRenderer.material.albedo = object.color;
@@ -129,10 +164,10 @@ export default class DebugRenderer {
         this._renderer.presentTexture(this._targetTexture, { clearBuffers: false, shader });
     }
 
-    destoy() {
+    destroy(): void {
         this._renderBuffer.destroy();
         this._targetTexture.destroy();
-        this._renderBuffer = null;
-        this._targetTexture = null;
+        this._renderBuffer = null as any;
+        this._targetTexture = null as any;
     }
 }

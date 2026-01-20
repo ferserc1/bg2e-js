@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
 
 export default defineConfig({
     root: './src',
@@ -6,7 +7,8 @@ export default defineConfig({
         outDir: '../dist',
         lib: {
             entry: './index.js',
-            formats: ['es']
+            formats: ['es'],
+            fileName: 'bg2e-js'
         },
         rollupOptions: {
             output: {
@@ -15,6 +17,13 @@ export default defineConfig({
         },
         sourcemap: true
     },
-    assetsInclude: ["**/*.glsl"]
+    assetsInclude: ["**/*.glsl"],
+    plugins: [
+        dts({
+            entryRoot: '',
+            outDir: '../dist',
+            include: ['**/*.ts']
+        })
+    ]
 })
 

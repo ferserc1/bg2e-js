@@ -143,7 +143,9 @@ export default class SceneAppController extends AppController {
         this.sceneRenderer.draw();
         const camera = Camera.GetMain(this.sceneRoot);
         this.selectionHighlight && this.selectionHighlight.draw(this.sceneRoot, camera);
-        this._debugRenderer?.draw(camera);
+        if (camera) {
+            this._debugRenderer?.draw(camera);
+        }
     }
 
     destroy(): void {

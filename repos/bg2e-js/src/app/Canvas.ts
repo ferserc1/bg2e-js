@@ -31,7 +31,10 @@ export default class Canvas {
     private _domElement: HTMLCanvasElement;
     _mainLoop: any;
 
-    static FirstCanvas(): Canvas | null {
+    static FirstCanvas(): Canvas {
+        if (!g_firstCanvas) {
+            throw new Error("No Canvas instance has been created yet.");
+        }
         return g_firstCanvas;
     }
 

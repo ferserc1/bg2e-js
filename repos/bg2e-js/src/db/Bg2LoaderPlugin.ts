@@ -67,11 +67,11 @@ const createNode = async (jsonData: any, filePath: string, loader: Loader): Prom
     const name = removeExtension(getFileName(filePath));
     const drawable = await createDrawable(jsonData,filePath,loader);
     const node = new Node(name);
-    node.addChild(drawable);
+    node.addComponent(drawable);
     for (const compData of jsonData.components) {
         try {
             const comp = await deserializeComponent(compData,loader);
-            node.addComponent(comp);
+            comp && node.addComponent(comp);
         }
         catch (err: any) {
             console.warn(err.message);
