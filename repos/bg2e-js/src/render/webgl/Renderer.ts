@@ -131,6 +131,10 @@ export default class WebGLRenderer extends Renderer {
         return this._state;
     }
 
+    clearBuffer(): void {
+        this.state.clear();
+    }
+
     postReshape(width: number, height: number): void {
 
     }

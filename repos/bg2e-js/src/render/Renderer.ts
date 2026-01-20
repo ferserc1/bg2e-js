@@ -11,6 +11,8 @@ import TextureRenderer from "./TextureRenderer";
 import RenderBuffer from "./RenderBuffer";
 import PresentTextureShader from "../shaders/PresentTextureShader";
 import Vec from "../math/Vec";
+import SkySphere from "./SkySphere";
+import SkyCube from "./SkyCube";
 
 export enum EngineFeatures {
     RENDER_TARGET_TEXTURES = 0x1 << 0,
@@ -141,11 +143,11 @@ export default class Renderer {
         throw new Error("Calling base implementation of Renderer.renderBufferFactory()");
     }
 
-    skySphereFactory(): any {
+    skySphereFactory(): SkySphere {
         throw new Error("Calling base implementation of Renderer.skySphereFactory()");
     }
     
-    skyCubeFactory(): any {
+    skyCubeFactory(): SkyCube {
         throw new Error("Calling base implementation of Renderer.skyCubeFactory()");
     }
 
@@ -175,6 +177,10 @@ export default class Renderer {
 
     set clearColor(c: Color) {
         throw new Error("Calling base implementation of Renderer.clearColor setter.");
+    }
+
+    clearBuffer(): void {
+        throw new Error("Calling base implementation of Renderer.clearBuffer()");
     }
 
     get factory(): RendererFactory {

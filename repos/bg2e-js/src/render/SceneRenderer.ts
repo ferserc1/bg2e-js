@@ -14,7 +14,7 @@ import Node from "../scene/Node";
 import type Pipeline from "./Pipeline";
 import type SkyCube from "./SkyCube";
 import type ShadowRenderer from "./ShadowRenderer";
-import type Environment from "../render/Environment";
+import type EnvironmentRenderer from "../render/Environment";
 import type EnvironmentComponent from "../scene/EnvironmentComponent";
 import KeyboardEvent from "../app/KeyboardEvent"
 import MouseEvent from "../app/MouseEvent"
@@ -119,7 +119,7 @@ export default class SceneRenderer {
     _frameVisitor: FrameVisitor | null = null;
     _skyCube: SkyCube | null = null;
     _shadowRenderer: ShadowRenderer | null = null;
-    _environment: Environment | null = null;
+    _environment: EnvironmentRenderer | null = null;
     _defaultViewMatrix: Mat4 = Mat4.MakeIdentity();
     _defaultProjectionMatrix: Mat4 = Mat4.MakeIdentity();
     _sceneRoot: Node | null = null;
@@ -190,12 +190,14 @@ export default class SceneRenderer {
         await this._shadowRenderer?.create(this._shadowMapSize);
     }
 
-    async setEnvironment(env: Environment): Promise<void> {
+    async setEnvironment(env: EnvironmentRenderer): Promise<void> {
         this._environment = env;
-        this._skyCube?.load(this._environment?.environmentMap);
+        if (this._environment?.environmentMap) {
+            this._skyCube?.load(this._environment?.environmentMap);
+        }
     }
 
-    get environment(): Environment | null {
+    get environment(): EnvironmentRenderer | null {
         return this._environment;
     }
 

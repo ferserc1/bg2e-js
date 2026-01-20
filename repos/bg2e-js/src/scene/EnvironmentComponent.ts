@@ -1,5 +1,6 @@
 import { jointUrl } from "../tools/Resource";
 import Component from "./Component";
+import EnvironmentRenderer from "../render/Environment";
 
 export default class EnvironmentComponent extends Component {
     private _equirectangularTexture: string;
@@ -9,7 +10,7 @@ export default class EnvironmentComponent extends Component {
     private _irradianceMapSize: number;
     private _specularMapSize: number;
     private _specularMapL2Size: number;
-    private _environment: any;
+    private _environment: EnvironmentRenderer | null;
 
     constructor() {
         super("Environment");
@@ -121,12 +122,17 @@ export default class EnvironmentComponent extends Component {
     }
 
     async init(): Promise<void> {
-        this._environment = this.renderer?.factory.environment();
+        this._environment = this.renderer?.factory.environment()!;
         if (!this._environment) {
             throw new Error("EnvironmentComponent.init(): unexpected error. Unable to create environment object from renderer factory");
         }
 
+        if (!this.equirectangularTexture) {
+            return;
+        }
+
         await this._environment.load({
+            // @ts-ignore TODO: convert render/Environment.js to TS
             textureUrl: this.equirectangularTexture,
             environmentMapSize: [ this.cubemapSize, this.cubemapSize ],
             specularMapSize: [ this.specularMapSize, this.specularMapSize ],
