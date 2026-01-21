@@ -1,10 +1,21 @@
-const isRequired = (candidateFunction,includedFunctions) => {
+interface FunctionLike {
+    name: string;
+}
+
+type DependencyItem = string | ShaderFunction;
+
+interface ConstantDefinition {
+    name: string;
+    value: string;
+}
+
+const isRequired = (candidateFunction: FunctionLike, includedFunctions: FunctionLike[]): boolean => {
     return !includedFunctions.find(includedFunc => includedFunc.name === candidateFunction.name);
 }
 
-const getAllDependencies = (fn, result = []) => {
+const getAllDependencies = (fn: ShaderFunction, result: ShaderFunction[] = []): void => {
     fn.dependencies
-        .filter(depFn => typeof depFn !== 'string')
+        .filter((depFn): depFn is ShaderFunction => typeof depFn !== 'string')
         .forEach(depFn => {
             getAllDependencies(depFn, result);
             result.push(depFn);
@@ -12,10 +23,10 @@ const getAllDependencies = (fn, result = []) => {
     result.push(fn);
 }
 
-const getDependencies = (fn) => {
-    const allFunctions = [];
+const getDependencies = (fn: ShaderFunction): ShaderFunction[] => {
+    const allFunctions: ShaderFunction[] = [];
     getAllDependencies(fn, allFunctions);
-    const includedFunctions = [];
+    const includedFunctions: string[] = [];
     return allFunctions.filter(candidateFn => {
         if (includedFunctions.indexOf(candidateFn.name) === -1) {
             includedFunctions.push(candidateFn.name);
@@ -24,9 +35,9 @@ const getDependencies = (fn) => {
     });
 }
 
-const getDefinitions = (requiredFunctions) => {
-    const includedDefinitions = [];
-    requiredFunctions.flatMap(req => req.dependencies).forEach(req => {
+const getDefinitions = (requiredFunctions: (string | ShaderFunction)[]): string => {
+    const includedDefinitions: string[] = [];
+    requiredFunctions.flatMap(req => typeof req === 'string' ? [] : req.dependencies).forEach(req => {
         if (typeof req === 'string') {
             includedDefinitions.push(req);
         }
@@ -34,7 +45,13 @@ const getDefinitions = (requiredFunctions) => {
     return Array.from(new Set(includedDefinitions)).join('\n\n');
 }
 export default class ShaderFunction {
-    constructor(returnType, name, params, body, deps = []) {
+    private _returnType: string;
+    private _name: string;
+    private _params: string;
+    private _body: string;
+    private _deps: DependencyItem[];
+
+    constructor(returnType: string, name: string, params: string, body: string, deps: DependencyItem[] = []) {
         this._returnType = returnType;
         this._name = name;
         this._params = params;
@@ -42,32 +59,32 @@ export default class ShaderFunction {
         this._deps = deps;
     }
 
-    get returnType() {
+    get returnType(): string {
         return this._returnType;
     }
 
-    get name() {
+    get name(): string {
         return this._name;
     }
 
-    get params() {
+    get params(): string {
         return this._params;
     }
 
-    get body() {
+    get body(): string {
         return this._body;
     }
 
-    get dependencies() {
+    get dependencies(): DependencyItem[] {
         return this._deps;
     }
 
-    getFunctionText() {
+    getFunctionText(): string {
         return `${this.returnType} ${this.name}(${this.params}) ${this.body}`;
     }
 
-    static GetShaderCode(header, requiredFunctions) {
-        let allFunctions = [];
+    static GetShaderCode(header: string, requiredFunctions: (string | ShaderFunction)[]): string {
+        let allFunctions: ShaderFunction[] = [];
         let rawCode = '';
         let definitions = getDefinitions(requiredFunctions);
         requiredFunctions.forEach(req => {
@@ -76,7 +93,7 @@ export default class ShaderFunction {
                 rawCode += req + '\n\n';
             }
             else {
-                allFunctions = [...allFunctions, ...getDependencies(req, allFunctions)];
+                allFunctions = [...allFunctions, ...getDependencies(req)];
             }
         });
         let code = header + '\n\n' + definitions + '\n\n' + rawCode + '\n\n';
@@ -89,7 +106,7 @@ export default class ShaderFunction {
 }
 
 // This utility function generate an array of ShaderFunction objects from a block of GLSL code
-export function generateShaderLibrary(glslCode) {
+export function generateShaderLibrary(glslCode: string): (string | ShaderFunction)[] {
     return [
         ...splitStructs(glslCode),
         ...splitFunctions(glslCode)
@@ -98,8 +115,8 @@ export function generateShaderLibrary(glslCode) {
 }
 
 // Extracts #define constants from a block of GLSL code
-export function extractConstants(glslCode) {
-    const constants = [];
+export function extractConstants(glslCode: string): ConstantDefinition[] {
+    const constants: ConstantDefinition[] = [];
     const lines = glslCode.split('\n');
     
     for (let line of lines) {
@@ -126,8 +143,8 @@ export function extractConstants(glslCode) {
     return constants;
 }
 
-export function splitStructs(glslCode) {
-    const structs = [];
+export function splitStructs(glslCode: string): string[] {
+    const structs: string[] = [];
     const lines = glslCode.split('\n');
     let currentStruct = '';
     let braceCount = 0;
@@ -178,7 +195,7 @@ export function splitStructs(glslCode) {
 }
 
 // Replace the constants in the GLSL code with their values
-export function processConstants(glslCode, constants) {
+export function processConstants(glslCode: string, constants: ConstantDefinition[]): string {
     let processedCode = glslCode;
     
     // Sort constants by name length (descending) to avoid partial replacements
@@ -198,12 +215,12 @@ export function processConstants(glslCode, constants) {
 /////  Private helper functions
 
 // Helper function to escape special regex characters
-function escapeRegExp(string) {
+function escapeRegExp(string: string): string {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function splitFunctions(shaderCode) {
-    const functions = [];
+function splitFunctions(shaderCode: string): string[] {
+    const functions: string[] = [];
     const lines = shaderCode.split('\n');
     let currentFunction = '';
     let braceCount = 0;
@@ -257,7 +274,7 @@ function splitFunctions(shaderCode) {
     return functions;
 }
 
-function createShaderFunctionObject(functionCode) {
+function createShaderFunctionObject(functionCode: string): ShaderFunction {
     const trimmedCode = functionCode.trim();
     
     // Find the opening brace to separate signature from body
