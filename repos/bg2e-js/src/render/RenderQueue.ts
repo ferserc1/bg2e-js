@@ -9,7 +9,6 @@ import type PolyListRenderer from "./PolyListRenderer";
 import type MaterialRenderer from "./MaterialRenderer";
 import type Pipeline from "./Pipeline";
 import type Light from "../base/Light";
-import type Mat3 from "../math/Mat3";
 
 export interface QueuePipelines {
     cullBackFace: Pipeline;

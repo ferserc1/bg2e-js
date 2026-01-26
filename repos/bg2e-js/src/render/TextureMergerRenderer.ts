@@ -41,7 +41,11 @@ export default class TextureMergerRenderer {
     }
 
     setTexture(tex: Texture | null, channel: TextureChannel, dstChannel: TextureChannel = TextureChannel.R): void {
-        this._shader.setTexture(tex,channel,dstChannel);
+        if (!tex) {
+            throw new Error("TextureMergerRenderer: cannot set null texture");
+        }
+
+        this._shader.setTexture(tex, channel, dstChannel);
         this._dirty = true;
     }
 
@@ -50,7 +54,7 @@ export default class TextureMergerRenderer {
     }
 
     get isComplete(): boolean {
-        return this._shader.isComplete;
+        return this._shader.isComplete ?? false;
     }
 
     update(): void {

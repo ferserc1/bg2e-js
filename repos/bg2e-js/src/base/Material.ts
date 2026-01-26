@@ -240,7 +240,6 @@ export default class Material {
     private _normalScale: Vec;
     private _normalUV: number;
     private _normalChannel: number;
-    private _normalUv: number;
     private _metalness: number;
     private _metalnessTexture: Texture | null;
     private _metalnessChannel: number;
@@ -286,7 +285,6 @@ export default class Material {
         this._normalScale = new Vec(1, 1);
         this._normalUV = 0;
         this._normalChannel = 0;
-        this._normalUv = 0;
         this._metalness = 0;
         this._metalnessTexture = null;
         this._metalnessChannel = 0;
@@ -438,8 +436,8 @@ export default class Material {
     set normalChannel(v: number) { this._normalChannel = v; this._dirty = true; }
     get normalScale(): Vec { return this._normalScale; }
     set normalScale(v: Vec) { assertScale(v, "normalScale"); this._normalScale = new Vec(v); this._dirty = true; }
-    get normalUv(): number { return this._normalUv; }
-    set normalUv(v: number) { this._normalUv = v; this._dirty = true; }
+    get normalUV(): number { return this._normalUV; }
+    set normalUV(v: number) { this._normalUV = v; this._dirty = true; }
     
     get metalness(): number { return this._metalness; }
     set metalness(v: number) {

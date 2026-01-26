@@ -22,19 +22,19 @@ export default class WebGLSceneRenderer extends SceneRenderer {
     }
 
     set brightness(value: number) {
-        this._shader._brightness = value;
+        this._shader.brightness = value;
     }
 
     get brightness(): number {
-        return this._shader._brightness;
+        return this._shader.brightness;
     }
 
     set contrast(value: number) {
-        this._shader._contrast = value;
+        this._shader.contrast = value;
     }
 
     get contrast(): number {
-        return this._shader._contrast;
+        return this._shader.contrast;
     }
 
     async setEnvironment(env: Environment): Promise<void> {

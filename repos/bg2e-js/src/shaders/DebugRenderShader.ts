@@ -1,7 +1,12 @@
-import Vec from "../math/Vec";
 import Shader from "../render/Shader";
 import ShaderFunction from "./ShaderFunction";
 import ShaderProgram from "../render/webgl/ShaderProgram";
+import PolyListRenderer from '../render/PolyListRenderer';
+import MaterialRenderer from '../render/MaterialRenderer';
+import Mat4 from "../math/Mat4";
+import Renderer from "../render/Renderer";
+import WebGLRenderer from "../render/webgl/Renderer";
+import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
 
 const g_code = {
     webgl: {
@@ -38,7 +43,9 @@ const g_code = {
 }
 
 export default class DebugRenderShader extends Shader {
-    constructor(renderer) {
+    protected _program: ShaderProgram | null = null;
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         if (renderer.typeId !== "WebGL") {
@@ -47,7 +54,7 @@ export default class DebugRenderShader extends Shader {
     }
 
     async load() {
-        const { gl } = this.renderer;
+        const { gl } = (this.renderer as WebGLRenderer);
 
         this._program = new ShaderProgram(gl, "DebugRenderShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
@@ -55,11 +62,21 @@ export default class DebugRenderShader extends Shader {
         this._program.link();
     }
 
-    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projMatrix) {
-        const { gl } = this.renderer;
-        const { material } = materialRenderer;
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projMatrix: Mat4
+    ) {
+        if (!this._program) {
+            throw new Error("DebugRenderShader: shader program is not loaded");
+        }
 
-        this.renderer.state.shaderProgram = this._program;
+        const { material } = materialRenderer;
+        const rend = this.renderer as WebGLRenderer;
+        
+        rend.state.shaderProgram = this._program;
         this._program.uniform1i("uTexture", 0);
         this._program.bindMatrix("uModelMatrix", modelMatrix);
         this._program.bindMatrix("uViewMatrix", viewMatrix);
@@ -67,8 +84,15 @@ export default class DebugRenderShader extends Shader {
 
         this._program.bindVector("uColor", material.albedo);
         
-        this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));
-        this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("texCoord"));
+        this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams("position"));
+        this._program.texCoordAttribPointer((plistRenderer as WebGLPolyListRenderer).texCoord0AttribParams("texCoord"));
         
+    }
+
+    destroy() {
+        if (this._program) {
+            ShaderProgram.Delete(this._program);
+            this._program = null;
+        }
     }
 }

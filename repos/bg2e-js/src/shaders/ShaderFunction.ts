@@ -2,9 +2,9 @@ interface FunctionLike {
     name: string;
 }
 
-type DependencyItem = string | ShaderFunction;
+export type DependencyItem = string | ShaderFunction;
 
-interface ConstantDefinition {
+export interface ConstantDefinition {
     name: string;
     value: string;
 }

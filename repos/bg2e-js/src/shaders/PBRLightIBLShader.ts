@@ -1,18 +1,17 @@
 import Shader from "../render/Shader";
-import {
-    pbrPointLight,
-    pbrDirectionalLight,
-    pbrAmbientLight,
-    getShadowColor,
-    lineal2SRGB,
-    brightnessContrast
-} from './webgl_shader_lib';
 import ShaderFunction from "./ShaderFunction";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
-import { LightType } from "../base/Light";
-import { createNormalTexture, normalTexture, createBRDFIntegrationTexture } from "../tools/TextureResourceDatabase";
+import Light, {
+    LightType
+} from "../base/Light";
+import {
+    createNormalTexture,
+    normalTexture,
+    createBRDFIntegrationTexture
+} from "../tools/TextureResourceDatabase";
+import Environment from "../render/Environment";
 
 import {
     getColorCorrectionFunctions,
@@ -21,8 +20,16 @@ import {
     getUniformsFunctions,
     replaceConstants
 } from "./webgl";
+import Renderer from "../render/Renderer";
+import WebGLRenderer from "../render/webgl/Renderer";
+import PolyListRenderer from "../render/webgl/PolyListRenderer";
+import MaterialRenderer from "../render/webgl/MaterialRenderer";
+import WebGLTextureRenderer from "../render/webgl/TextureRenderer";
+import Texture from "../base/Texture";
 
-function getShaderProgramForLights(renderer, numLights) {
+function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, numLights: number): ShaderProgram {
+    const r = renderer as WebGLRenderer;
+
     if (this._programs[numLights]) {
         return this._programs[numLights];
     }
@@ -228,11 +235,28 @@ function getShaderProgramForLights(renderer, numLights) {
             }`, deps)
         ]));
 
-    this._programs[numLights] = ShaderProgram.Create(renderer.gl,"PBRLightIBL",vshader,fshader);
+    this._programs[numLights] = ShaderProgram.Create(r.gl, "PBRLightIBL", vshader, fshader);
     return this._programs[numLights];
 }
+
 export default class PBRLightIBLShader extends Shader {
-    constructor(renderer) {
+    protected _programs: { [key: number]: ShaderProgram };
+    protected _lights: Light[];
+    protected _lightTransforms: Mat4[];
+    protected _lightTypes: LightType[] = [];
+    protected _lightPositions: Vec[] = [];
+    protected _lightDirections: Vec[] = [];
+    protected _lightColors: Vec[] = [];
+    protected _lightIntensities: number[] = [];
+    protected _brightness: number;
+    protected _contrast: number;
+
+    protected _cameraPosition: Vec;
+    protected _brdfIntegrationTexture: Texture | null = null;
+    protected _environment: Environment | null = null;
+    protected _program: ShaderProgram | null = null;
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         this._lights = [];
@@ -240,6 +264,8 @@ export default class PBRLightIBLShader extends Shader {
 
         this._brightness = 0.2;
         this._contrast = 1.1;
+
+        this._cameraPosition = new Vec(0,0,0);
 
         if (renderer.typeId !== "WebGL") {
             throw Error("PresentTextureShader is only compatible with WebGL renderer");
@@ -270,24 +296,24 @@ export default class PBRLightIBLShader extends Shader {
         this._contrast = c;
     }
 
-    set cameraPosition(p) {
+    set cameraPosition(p: Vec) {
         this._cameraPosition = p;
     }
 
-    set environment(env) {
+    set environment(env: Environment | null) {
         this._environment = env;
     }
 
     get environmentMap() {
-        return this._environment.environmentMap;
+        return this._environment ? this._environment.environmentMap : null;
     }
 
     get specularMap() {
-        return this._environment.specularMap;
+        return this._environment ? this._environment.specularMap : null;
     }
 
     get irradianceMap() {
-        return this._environment.irradianceMap;
+        return this._environment ? this._environment.irradianceMap : null;
     }
 
     set lights(l) {
@@ -326,8 +352,8 @@ export default class PBRLightIBLShader extends Shader {
         return this._lightTransforms;
     }
 
-    updateLight(light,index) {
-        if (light >= this._lights.length) {
+    updateLight(light: Light, index: number) {
+        if (index >= this._lights.length) {
             throw new Error("BasicPBRLightShader: Invalid light index updating light data");
         }
         this._lightTypes[index] = light.type;
@@ -337,7 +363,7 @@ export default class PBRLightIBLShader extends Shader {
         this._lightIntensities[index] = light.intensity;
     }
 
-    updateLights(lights) {
+    updateLights(lights: Light[]) {
         if (this._lights.length !== lights.length) {
             this.lights = lights;
         }
@@ -346,14 +372,21 @@ export default class PBRLightIBLShader extends Shader {
         }
     }
 
-    setup(plistRenderer,materialRenderer,modelMatrix,viewMatrix,projectionMatrix) {
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projectionMatrix: Mat4
+    ) {
+        const rend = this.renderer as WebGLRenderer;
         if (!this._program) {
             throw new Error("BasicPBRLightShader: lights array not specified");
         }
 
         const material = materialRenderer.material;
         materialRenderer.mergeTextures();
-        this.renderer.state.shaderProgram = this._program;
+        rend.state.shaderProgram = this._program;
         
         const normMatrix = Mat4.GetNormalMatrix(modelMatrix);
         this._program.bindMatrix('uNormMatrix', normMatrix);
@@ -396,10 +429,18 @@ export default class PBRLightIBLShader extends Shader {
         this._program.bindVector("uSheenColor", material.sheenColor);
         this._program.uniform1f("uSheenIntensity", material.sheenIntensity);
 
-        this._program.bindTexture("uIrradianceMap", this.renderer.factory.texture(this.irradianceMap), 3);
-        this._program.bindTexture("uSpecularMap", this.renderer.factory.texture(this.specularMap), 4);
-        this._program.bindTexture("uEnvMap", this.renderer.factory.texture(this.environmentMap), 5);
-        this._program.bindTexture("uBRDFIntegrationMap", this.renderer.factory.texture(this._brdfIntegrationTexture), 6);
+        if (!this.irradianceMap || !this.specularMap || !this.environmentMap || !this._brdfIntegrationTexture) {
+            throw new Error("PBRLightIBLShader: Environment maps not set.");
+        }
+        const irMap = this.renderer.factory.texture(this.irradianceMap) as WebGLTextureRenderer;
+        const specMap = this.renderer.factory.texture(this.specularMap) as WebGLTextureRenderer;
+        const envMap = this.renderer.factory.texture(this.environmentMap) as WebGLTextureRenderer;
+        const brdfLut = this.renderer.factory.texture(this._brdfIntegrationTexture) as WebGLTextureRenderer;
+
+        this._program.bindTexture("uIrradianceMap", irMap, 3);
+        this._program.bindTexture("uSpecularMap", specMap, 4);
+        this._program.bindTexture("uEnvMap", envMap, 5);
+        this._program.bindTexture("uBRDFIntegrationMap", brdfLut, 6);
 
         this._program.uniform1f("uBrightness", this._brightness);
         this._program.uniform1f("uContrast", this._contrast);
@@ -407,22 +448,23 @@ export default class PBRLightIBLShader extends Shader {
         // TODO: Get the ambient intensity from environment
         this._program.uniform1f("uAmbientIntensity", 1.0);
 
-        let shadowLight = null;
+        let shadowLight: Light | null = this._lights.find(light => light.depthTexture) || null;
         this._lights.forEach((light,i) => {
-            if (light._depthTexture) {
+            if (light.depthTexture) {
                 shadowLight = light;
             }
-            this._program.uniform1i(`uLightTypes[${i}]`, this._lightTypes[i]);
-            this._program.bindVector(`uLightPositions[${i}]`, this._lightPositions[i]);
-            this._program.bindVector(`uLightDirections[${i}]`, this._lightDirections[i]);
-            this._program.bindVector(`uLightColors[${i}]`, this._lightColors[i].rgb);
-            this._program.uniform1f(`uLightIntensities[${i}]`, this._lightIntensities[i]);
-            this._program.bindMatrix(`uLightTransforms[${i}]`, this._lightTransforms[i]);
+            this._program?.uniform1i(`uLightTypes[${i}]`, this._lightTypes[i]);
+            this._program?.bindVector(`uLightPositions[${i}]`, this._lightPositions[i]);
+            this._program?.bindVector(`uLightDirections[${i}]`, this._lightDirections[i]);
+            this._program?.bindVector(`uLightColors[${i}]`, this._lightColors[i].rgb);
+            this._program?.uniform1f(`uLightIntensities[${i}]`, this._lightIntensities[i]);
+            this._program?.bindMatrix(`uLightTransforms[${i}]`, this._lightTransforms[i]);
         });
 
-        if (shadowLight) {
-            this._program.bindTexture("uShadowMap", this.renderer.factory.texture(shadowLight.depthTexture), 7);
-            const projectionViewMatrix = Mat4.Mult(shadowLight.projection, shadowLight.viewMatrix);
+        if (shadowLight?.depthTexture) {
+            const depthTex = this.renderer.factory.texture(shadowLight.depthTexture) as WebGLTextureRenderer;
+            this._program.bindTexture("uShadowMap", depthTex, 7);
+            const projectionViewMatrix = Mat4.Mult(shadowLight.projection, shadowLight.viewMatrix || Mat4.MakeIdentity());
             this._program.bindMatrix("uLightPovMvp", projectionViewMatrix);
             this._program.uniform1f("uShadowBias", shadowLight.shadowBias * 30);
             this._program.uniform1f("uShadowStrength", shadowLight.shadowStrength);
@@ -438,6 +480,8 @@ export default class PBRLightIBLShader extends Shader {
     }
 
     destroy() {
-        ShaderProgram.Delete(this._program);
+        if (this._program) {
+            ShaderProgram.Delete(this._program);
+        }
     }
 }

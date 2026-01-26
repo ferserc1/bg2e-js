@@ -1,3 +1,4 @@
+// TODO: Deprecated. Use webgl/index.ts instead.
 
 import ShaderFunction from "./ShaderFunction";
 

@@ -1,10 +1,17 @@
 
-import Texture, { TextureTargetName } from '../base/Texture';
+import { TextureTargetName } from '../base/Texture';
 import Shader from '../render/Shader';
 import ShaderProgram from '../render/webgl/ShaderProgram';
 import ShaderFunction from './ShaderFunction';
 import { applyConvolution } from './webgl_shader_lib';
 import Vec from '../math/Vec';
+import PolyListRenderer from '../render/PolyListRenderer';
+import MaterialRenderer from '../render/MaterialRenderer';
+import Mat4 from "../math/Mat4";
+import Renderer from "../render/Renderer";
+import WebGLRenderer from "../render/webgl/Renderer";
+import WebGLTextureRenderer from "../render/webgl/TextureRenderer";
+import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
 
 const g_code = {
     webgl: {
@@ -44,7 +51,12 @@ const g_code = {
 }
 
 export default class SelectionHighlightShader extends Shader {
-    constructor(renderer) {
+    protected _program: ShaderProgram | null = null;
+    protected _borderWidth!: number;
+    protected _borderColor!: Vec;
+    protected _convMatrix!: number[];
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         if (renderer.typeId !== "WebGL") {
@@ -53,7 +65,7 @@ export default class SelectionHighlightShader extends Shader {
     }
 
     async load() {
-        const { gl } = this.renderer;
+        const { gl } = (this.renderer as WebGLRenderer);
 
         this._program = new ShaderProgram(gl, "SelectionHighlightShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
@@ -69,29 +81,47 @@ export default class SelectionHighlightShader extends Shader {
         ];
     }
 
-    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
-        const { gl, viewport } = this.renderer;
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projectionMatrix: Mat4
+    ) {
+        if (!this._program) {
+            throw new Error("SelectionHighlightShader: shader program is not loaded");
+        }
 
-        this.renderer.state.shaderProgram = this._program;
+        const rend = this.renderer as WebGLRenderer;
+        const { gl, viewport } = rend;
+
+        rend.state.shaderProgram = this._program;
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uTexture', 0);
         this._program.uniform2f('uTexSize', viewport[2], viewport[3]);
         this._program.uniform1f('uBorderWidth', this._borderWidth);
         this._program.uniform4fv('uBorderColor', this._borderColor);
-        this._program.uniform1fv('uConvMatrix', this._convMatrix, 4);
+        this._program.uniform1fv('uConvMatrix', this._convMatrix);
 
         const material = materialRenderer.material;
-        const webglTexture = materialRenderer.getTextureRenderer('albedoTexture')?.getApiObject();
-        if (webglTexture) {
+        const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer)?.getApiObject();
+        if (webglTexture && material.albedoTexture) {
             const target = TextureTargetName[material.albedoTexture.target];
-            gl.bindTexture(gl[target], webglTexture);
+            gl.bindTexture((gl as any)[target], webglTexture);
         }
         else {
             throw new Error("SelectionHighlightShader: invalid material setup. The albedoTexture material attribute must to be a texture");
         }
 
-        this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));
-        this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("texCoord"));
+        this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams("position"));
+        this._program.texCoordAttribPointer((plistRenderer as WebGLPolyListRenderer).texCoord0AttribParams("texCoord"));
+    }
+
+    destroy() {
+        if (this._program) {
+            ShaderProgram.Delete(this._program);
+            this._program = null;
+        }
     }
 }

@@ -4,13 +4,16 @@ import normalMap from "./normal_map.glsl?raw";
 import pbr from "./pbr.glsl?raw";
 import uniforms from "./uniforms.glsl?raw";
 
-import {
+import ShaderFunction, {
     generateShaderLibrary,
     extractConstants,
-    processConstants
+    processConstants,
+    ConstantDefinition,
+    DependencyItem
 } from "../ShaderFunction";
 
-let g_constants = null;
+let g_constants: ConstantDefinition[] | null = null;
+
 export function getConstants() {
     if (!g_constants) {
         // Extract constants all the GLSL files
@@ -25,7 +28,7 @@ export function getConstants() {
     return g_constants;
 }
 
-let g_colorCorrectionFunctions = null;
+let g_colorCorrectionFunctions: DependencyItem[] | null = null;
 export function getColorCorrectionFunctions() {
     if (!g_colorCorrectionFunctions) {
         g_colorCorrectionFunctions = generateShaderLibrary(colorCorrection);
@@ -34,7 +37,7 @@ export function getColorCorrectionFunctions() {
     return g_colorCorrectionFunctions;
 }
 
-let g_normalMapFunctions = null;
+let g_normalMapFunctions: DependencyItem[] | null = null;
 export function getNormalMapFunctions() {
     if (!g_normalMapFunctions) {
         g_normalMapFunctions = generateShaderLibrary(normalMap);
@@ -43,7 +46,7 @@ export function getNormalMapFunctions() {
     return g_normalMapFunctions;
 }
 
-let g_pbrFunctions = null;
+let g_pbrFunctions: DependencyItem[] | null = null;
 export function getPBRFunctions() {
     if (!g_pbrFunctions) {
         g_pbrFunctions = generateShaderLibrary(pbr);
@@ -52,7 +55,7 @@ export function getPBRFunctions() {
     return g_pbrFunctions;
 }
 
-let g_uniformsFunctions = null;
+let g_uniformsFunctions: DependencyItem[] | null = null;
 export function getUniformsFunctions() {
     if (!g_uniformsFunctions) {
         g_uniformsFunctions = generateShaderLibrary(uniforms);
@@ -61,7 +64,7 @@ export function getUniformsFunctions() {
     return g_uniformsFunctions;
 }
 
-export function replaceConstants(shaderCode) {
+export function replaceConstants(shaderCode: string): string {
     const constants = getConstants();
     return processConstants(shaderCode, constants);
 }

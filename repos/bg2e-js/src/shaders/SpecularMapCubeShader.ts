@@ -1,7 +1,13 @@
 import Shader from "../render/Shader";
 import ShaderProgram from "../render/webgl/ShaderProgram";
+import PolyListRenderer from '../render/PolyListRenderer';
+import MaterialRenderer from '../render/MaterialRenderer';
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
+import WebGLRenderer from "../render/webgl/Renderer";
+import Renderer from "../render/Renderer";
+import WebGLTextureRenderer from "../render/webgl/TextureRenderer";
+import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
 
 const g_code = {
     webgl: {
@@ -18,7 +24,7 @@ const g_code = {
             fragNormal = normalize(vertPosition);
         }`,
 
-        fragment: (sampleCount,roughness) => `precision mediump float;
+        fragment: (sampleCount: number, roughness: number) => `precision mediump float;
         
         varying vec3 fragNormal;
         
@@ -98,7 +104,10 @@ const g_code = {
 };
 
 export default class SpecularMapCubeShader extends Shader {
-    constructor(renderer) {
+    protected _roughness: number = 0.4;
+    protected _program: ShaderProgram | null = null;
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         if (renderer.typeId !== "WebGL") {
@@ -109,7 +118,7 @@ export default class SpecularMapCubeShader extends Shader {
     get roughness() { return this._roughness; }
 
     async load() {
-        const { gl } = this.renderer;
+        const { gl } = (this.renderer as WebGLRenderer);
 
         // This matches with the getPrefilteredColor function in pbr.glsl
         this._roughness = 0.4;
@@ -120,24 +129,37 @@ export default class SpecularMapCubeShader extends Shader {
         this._program.link();
     }
 
-    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projectionMatrix: Mat4
+    ) {
+        if (!this._program) {
+            throw new Error("SpecularMapCubeShader: Shader program is not loaded.");
+        }
+
         const { material } = materialRenderer;
-        const { gl } = this.renderer;
-        this.renderer.state.shaderProgram = this._program;
+        const rend = this.renderer as WebGLRenderer;
+        const { gl } = rend;
+        rend.state.shaderProgram = this._program;
 
         const mvp = Mat4.Mult(projectionMatrix, viewMatrix);
         this._program.uniformMatrix4fv('uMVP', false, mvp);
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
-        const webglTexture = materialRenderer.getTextureRenderer('albedoTexture')?.getApiObject();
+        const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer)?.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
 
-        this._program.positionAttribPointer(plistRenderer.positionAttribParams('vertPosition'));
+        this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams('vertPosition'));
     }
 
     destroy() {
-        ShaderProgram.Delete(this._program);
-        this._program = null;
+        if (this._program) {
+            ShaderProgram.Delete(this._program);
+            this._program = null;
+        }
     }
 }

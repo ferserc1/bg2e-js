@@ -2,6 +2,7 @@
 import Vec from '../math/Vec';
 import Mat4 from '../math/Mat4';
 import Color from './Color';
+import Texture from './Texture';
 
 export enum LightType {
     DIRECTIONAL = 4,
@@ -23,7 +24,7 @@ export default class Light {
     _castShadows: boolean;
     _shadowBias: number;
     _projection: Mat4;
-    _depthTexture: any;
+    _depthTexture: Texture | null;
     _viewMatrix?: Mat4;
 
     constructor() {
@@ -111,11 +112,11 @@ export default class Light {
     get projection() { return this._projection; }
     set projection(p) { this._projection = p; }
 
-    get depthTexture() {
+    get depthTexture(): Texture | null {
         return this._depthTexture;
     }
 
-    set depthTexture(t) {
+    set depthTexture(t: Texture | null) {
         this._depthTexture = t;
     }
 

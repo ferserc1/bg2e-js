@@ -1,8 +1,13 @@
 
 import Shader from "../render/Shader";
 import ShaderProgram from "../render/webgl/ShaderProgram";
+import PolyListRenderer from '../render/PolyListRenderer';
+import MaterialRenderer from '../render/MaterialRenderer';
 import Mat4 from "../math/Mat4";
-import Vec from "../math/Vec";
+import Renderer from "../render/Renderer";
+import WebGLRenderer from "../render/webgl/Renderer";
+import WebGLTextureRenderer from "../render/webgl/TextureRenderer";
+import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
 
 const g_code = {
     webgl: {
@@ -20,7 +25,7 @@ const g_code = {
         }
         `,
 
-        fragment: (sampleDelta) => `precision mediump float;
+        fragment: (sampleDelta: number) => `precision mediump float;
         varying vec3 fragNormal;
         
         uniform samplerCube uCubemap;
@@ -56,16 +61,18 @@ const g_code = {
 };
 
 export default class IrradianceMapCubeShader extends Shader {
-    constructor(renderer) {
+    protected _program: ShaderProgram | null = null;
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         if (renderer.typeId !== "WebGL") {
-            throw Error("PresentTextureShader is only compatible with WebGL renderer");
+            throw Error("IrradianceMapCubeShader is only compatible with WebGL renderer");
         }
     }
 
     async load() {
-        const { gl } = this.renderer;
+        const { gl } = (this.renderer as WebGLRenderer);
 
         this._program = new ShaderProgram(gl, "IrradianceMapCubeShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
@@ -73,10 +80,20 @@ export default class IrradianceMapCubeShader extends Shader {
         this._program.link();
     }
 
-    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
-        const { material } = materialRenderer;
-        const { gl } = this.renderer;
-        this.renderer.state.shaderProgram = this._program;
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projectionMatrix: Mat4
+    ) {
+        if (!this._program) {
+            throw new Error("IrradianceMapCubeShader: shader program is not loaded");
+        }
+
+        const rend = this.renderer as WebGLRenderer;
+        const { gl } = rend;
+        rend.state.shaderProgram = this._program;
 
         const mvp = Mat4.Mult(projectionMatrix, viewMatrix);
         this._program.uniformMatrix4fv('uMVP', false, mvp);
@@ -84,14 +101,16 @@ export default class IrradianceMapCubeShader extends Shader {
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
         
-        const webglTexture = materialRenderer.getTextureRenderer('albedoTexture').getApiObject();
+        const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer).getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
 
-        this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));
+        this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams("vertPosition"));
     }
 
     destroy() {
-        ShaderProgram.Delete(this._program);
-        this._program = null;
+        if (this._program) {
+            ShaderProgram.Delete(this._program);
+            this._program = null;
+        }
     }
 }

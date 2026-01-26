@@ -1,7 +1,15 @@
 import Shader from "../render/Shader";
 import ShaderProgram from "../render/webgl/ShaderProgram";
-import Texture, { ProceduralTextureFunction, TextureTargetName } from "../base/Texture";
+import Texture, { ProceduralTextureFunction } from "../base/Texture";
 import Vec from "../math/Vec";
+import PolyListRenderer from '../render/PolyListRenderer';
+import MaterialRenderer from '../render/MaterialRenderer';
+import Mat4 from "../math/Mat4";
+import Renderer from "../render/Renderer";
+import WebGLRenderer from "../render/webgl/Renderer";
+import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
+import TextureRenderer from "../render/TextureRenderer";
+import WebGLTextureRenderer from "../render/webgl/TextureRenderer";
 
 const g_code = {
     webgl: {
@@ -37,16 +45,20 @@ const g_code = {
 }
 
 export default class BasicDiffuseColorShader extends Shader {
-    constructor(renderer) {
+    protected _program: ShaderProgram | null = null;
+    protected _whiteTexture!: Texture;
+    protected _whiteTextureRenderer!: TextureRenderer;
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         if (renderer.typeId !== "WebGL") {
-            throw Error("PresentTextureShader is only compatible with WebGL renderer");
+            throw Error("BasicDiffuseColorShader is only compatible with WebGL renderer");
         }
     }
 
     async load() {
-        const { gl } = this.renderer;
+        const { gl } = (this.renderer as WebGLRenderer);
         this._program = new ShaderProgram(gl, "BasicDiffuseColorShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
         this._program.attachFragmentSource(g_code.webgl.fragment);
@@ -60,10 +72,20 @@ export default class BasicDiffuseColorShader extends Shader {
         this._whiteTextureRenderer = this.renderer.factory.texture(this._whiteTexture);
     }
 
-    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projectionMatrix: Mat4
+    ) {
+        if (!this._program) {
+            throw new Error("BasicDiffuseColorShader: shader program is not loaded");
+        }
+
         const { material } = materialRenderer;
-        const { gl } = this.renderer;
-        this.renderer.state.shaderProgram = this._program;
+        const rend = this.renderer as WebGLRenderer;
+        rend.state.shaderProgram = this._program;
 
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
@@ -73,14 +95,17 @@ export default class BasicDiffuseColorShader extends Shader {
         let texRenderer = materialRenderer.getTextureRenderer('albedoTexture') || this._whiteTextureRenderer;
         this._program.uniform3fv('uFixedColor', material.albedo.rgb);
         
-        texRenderer.activeTexture(0);
-        texRenderer.bindTexture();
+        (texRenderer as WebGLTextureRenderer).activeTexture(0);
+        (texRenderer as WebGLTextureRenderer).bindTexture();
 
-        this._program.positionAttribPointer(plistRenderer.positionAttribParams("vertPosition"));
-        this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("t0Position"));
+        this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams("vertPosition"));
+        this._program.texCoordAttribPointer((plistRenderer as WebGLPolyListRenderer).texCoord0AttribParams("t0Position"));
     }
 
     destroy() {
-        ShaderProgram.Delete(this._program);
+        if (this._program) {
+            ShaderProgram.Delete(this._program);
+            this._program = null;
+        }
     }
 }

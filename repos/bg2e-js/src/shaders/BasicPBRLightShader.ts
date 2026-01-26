@@ -1,13 +1,32 @@
 import Shader from "../render/Shader";
+
+// TODO: Deprecated. Use ./webgl/index.ts instead
 import { pbrPointLight, pbrDirectionalLight } from './webgl_shader_lib';
+
+import {
+    getColorCorrectionFunctions,
+    getNormalMapFunctions,
+    getPBRFunctions,
+    getUniformsFunctions,
+    replaceConstants
+} from "./webgl";
+
 import ShaderFunction from "./ShaderFunction";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
-import { LightType } from "../base/Light";
+import Light, { LightType } from "../base/Light";
 import { createNormalTexture, normalTexture } from "../tools/TextureResourceDatabase";
+import PolyListRenderer from '../render/PolyListRenderer';
+import MaterialRenderer from '../render/MaterialRenderer';
+import Renderer from "../render/Renderer";
+import WebGLRenderer from "../render/webgl/Renderer";
+import WebGLMaterialRenderer from "../render/webgl/MaterialRenderer";
+import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
 
-function getShaderProgramForLights(renderer, numLights) {
+function getShaderProgramForLights(this: BasicPBRLightShader, renderer: Renderer, numLights: number): ShaderProgram {
+    const r = renderer as WebGLRenderer;
+
     if (this._programs[numLights]) {
         return this._programs[numLights];
     }
@@ -111,17 +130,27 @@ function getShaderProgramForLights(renderer, numLights) {
             }`, [pbrPointLight, pbrDirectionalLight])
         ]);
 
-    this._programs[numLights] = ShaderProgram.Create(renderer.gl,"PBRBasicLight",vshader,fshader);
+    this._programs[numLights] = ShaderProgram.Create(r.gl,"PBRBasicLight",vshader,fshader);
     return this._programs[numLights];
 }
 export default class BasicPBRLightShader extends Shader {
-    constructor(renderer) {
+    protected _programs: { [key: number]: ShaderProgram };
+    protected _lights: Light[];
+    protected _lightTypes: LightType[] = [];
+    protected _lightPositions: Vec[] = [];
+    protected _lightDirections: Vec[] = [];
+    protected _lightColors: Vec[] = [];
+    protected _lightIntensities: number[] = [];
+    protected _cameraPosition: Vec | null = null;
+    protected _program: ShaderProgram | null = null;
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         this._lights = [];
 
         if (renderer.typeId !== "WebGL") {
-            throw Error("PresentTextureShader is only compatible with WebGL renderer");
+            throw Error("BasicPBRLightShader is only compatible with WebGL renderer");
         }
 
         this._programs = {};
@@ -131,11 +160,11 @@ export default class BasicPBRLightShader extends Shader {
         await createNormalTexture(this.renderer);
     }
 
-    set cameraPosition(p) {
+    set cameraPosition(p: Vec) {
         this._cameraPosition = p;
     }
 
-    set lights(l) {
+    set lights(l: Light[]) {
         if (!l.length) {
             throw new Error("BasicPBRLightShader: Invalid light array set.");
         }
@@ -159,8 +188,8 @@ export default class BasicPBRLightShader extends Shader {
         return this._lights;
     }
 
-    updateLight(light,index) {
-        if (light >= this._lights.length) {
+    updateLight(light: Light, index: number) {
+        if (index >= this._lights.length) {
             throw new Error("BasicPBRLightShader: Invalid light index updating light data");
         }
         this._lightTypes[index] = light.type;
@@ -170,7 +199,7 @@ export default class BasicPBRLightShader extends Shader {
         this._lightIntensities[index] = light.intensity;
     }
 
-    updateLights(lights) {
+    updateLights(lights: Light[]) {
         if (this._lights.length !== lights.length) {
             this.lights = lights;
         }
@@ -179,13 +208,20 @@ export default class BasicPBRLightShader extends Shader {
         }
     }
 
-    setup(plistRenderer,materialRenderer,modelMatrix,viewMatrix,projectionMatrix) {
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projectionMatrix: Mat4
+    ) {
         if (!this._program) {
             throw new Error("BasicPBRLightShader: lights array not specified");
         }
 
         const material = materialRenderer.material;
-        this.renderer.state.shaderProgram = this._program;
+        const rend = this.renderer as WebGLRenderer;
+        rend.state.shaderProgram = this._program;
         
         const normMatrix = Mat4.GetNormalMatrix(modelMatrix);
         this._program.bindMatrix('uNormMatrix', normMatrix);
@@ -201,14 +237,14 @@ export default class BasicPBRLightShader extends Shader {
             this._program.bindVector('uCameraPos',this._cameraPosition);
         }
 
-        materialRenderer.bindTexture(this._program, 'albedoTexture', 'uAlbedoTexture', 0);
-        materialRenderer.bindTexture(this._program, 'normalTexture', 'uNormalTexture', 1, normalTexture(this.renderer));
-        materialRenderer.bindTexture(this._program, 'metalnessTexture', 'uMetallicTexture', 2);
-        materialRenderer.bindTexture(this._program, 'roughnessTexture', 'uRoughnessTexture', 3);
+        (materialRenderer as WebGLMaterialRenderer).bindTexture(this._program, 'albedoTexture', 'uAlbedoTexture', 0);
+        (materialRenderer as WebGLMaterialRenderer).bindTexture(this._program, 'normalTexture', 'uNormalTexture', 1, normalTexture(this.renderer));
+        (materialRenderer as WebGLMaterialRenderer).bindTexture(this._program, 'metalnessTexture', 'uMetallicTexture', 2);
+        (materialRenderer as WebGLMaterialRenderer).bindTexture(this._program, 'roughnessTexture', 'uRoughnessTexture', 3);
 
-        materialRenderer.bindColor(this._program, 'albedo', 'uAlbedo');
-        materialRenderer.bindValue(this._program, 'metalness', 'uMetallic');
-        materialRenderer.bindValue(this._program, 'roughness', 'uRoughness');
+        (materialRenderer as WebGLMaterialRenderer).bindColor(this._program, 'albedo', 'uAlbedo');
+        (materialRenderer as WebGLMaterialRenderer).bindValue(this._program, 'metalness', 'uMetallic');
+        (materialRenderer as WebGLMaterialRenderer).bindValue(this._program, 'roughness', 'uRoughness');
         
         
         this._program.bindVector("uAlbedoScale", material.albedoScale);
@@ -217,14 +253,14 @@ export default class BasicPBRLightShader extends Shader {
         this._program.bindVector("uRoughnessScale", material.roughnessScale);
 
         this._lights.forEach((light,i) => {
-            this._program.uniform1i(`uLightTypes[${i}]`, this._lightTypes[i]);
-            this._program.bindVector(`uLightPositions[${i}]`, this._lightPositions[i]);
-            this._program.bindVector(`uLightDirections[${i}]`, this._lightDirections[i]);
-            this._program.bindVector(`uLightColors[${i}]`, this._lightColors[i].rgb);
-            this._program.uniform1f(`uLightIntensities[${i}]`, this._lightIntensities[i]);
+            this._program?.uniform1i(`uLightTypes[${i}]`, this._lightTypes[i]);
+            this._program?.bindVector(`uLightPositions[${i}]`, this._lightPositions[i]);
+            this._program?.bindVector(`uLightDirections[${i}]`, this._lightDirections[i]);
+            this._program?.bindVector(`uLightColors[${i}]`, this._lightColors[i].rgb);
+            this._program?.uniform1f(`uLightIntensities[${i}]`, this._lightIntensities[i]);
         });
 
-        this._program.bindAttribs(plistRenderer, {
+        this._program.bindAttribs(plistRenderer as WebGLPolyListRenderer, {
             position: "inPosition",
             normal: "inNormal",
             tex0: "inTexCoord",
@@ -233,6 +269,9 @@ export default class BasicPBRLightShader extends Shader {
     }
 
     destroy() {
-        ShaderProgram.Delete(this._program);
+        if (this._program) {
+            ShaderProgram.Delete(this._program);
+            this._program = null;
+        }
     }
 }
