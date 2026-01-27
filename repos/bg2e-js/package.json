@@ -13,8 +13,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite build --watch --emptyOutDir",
-    "build": "vite build --emptyOutDir",
-    "build_": "vite build --emptyOutDir && npm run bundle:types",
+    "build": "vite build --emptyOutDir && npm run bundle:types",
     "bundle:types": "dts-bundle-generator -o dist/bg2e-js.d.ts dist/src/index.d.ts --no-check",
     "types": "tsc -p tsconfig.json"
   },
