@@ -1,5 +1,5 @@
 
-import { app, render } from "bg2e-js";
+import { app, render } from "bg2e-js/ts";
 
 const {
 	MainLoop,
@@ -11,6 +11,10 @@ const {
 const {
 	WebGLRenderer
 } = render;
+
+import Bg2KeyboardEvent from "bg2e-js/ts/app/Bg2KeyboardEvent.ts";
+import Bg2MouseEvent from "bg2e-js/ts/app/Bg2MouseEvent.ts";
+import Bg2TouchEvent from "bg2e-js/ts/app/Bg2TouchEvent.ts";
 
 
 class MyAppController extends AppController {
@@ -35,55 +39,60 @@ class MyAppController extends AppController {
         console.log("display");
     }
 
-    keyDown(evt: KeyboardEvent) {
+    keyDown(evt: Bg2KeyboardEvent) {
         console.log(`keyDown - key: ${evt.key}`);
     }
 
-    keyUp(evt: KeyboardEvent) {
+    keyUp(evt: Bg2KeyboardEvent) {
         console.log(`keyUp - key: ${evt.key}`);
     }
 
-    mouseUp(evt: MouseEvent) {
+    mouseUp(evt: Bg2MouseEvent) {
         console.log(`mouseUp - mouse location: ${evt.x}, ${evt.y}`);
     }
 
-    mouseDown(evt: MouseEvent) {
+    mouseDown(evt: Bg2MouseEvent) {
         console.log(`mouseDown - mouse location: ${evt.x}, ${evt.y}`);
     }
 
-    mouseMove(evt: MouseEvent) {
+    mouseMove(evt: Bg2MouseEvent) {
         console.log(`mouseMove - mouse location: ${evt.x}, ${evt.y}`);
     }
 
-    mouseOut(evt: MouseEvent) {
+    mouseOut(evt: Bg2MouseEvent) {
         console.log(`mouseOut - mouse location: ${evt.x}, ${evt.y}`);
     }
 
-    mouseDrag(evt: MouseEvent) {
+    mouseDrag(evt: Bg2MouseEvent) {
         console.log(`mouseDrag - mouse location: ${evt.x}, ${evt.y}`);
         this.mainLoop.postRedisplay();
     }
 
-    mouseWheel(evt: MouseEvent) {
+    mouseWheel(evt: Bg2MouseEvent) {
         console.log(`mouseWheel - mouse location: ${evt.x}, ${evt.y}, delta: ${ evt.delta }`);
         evt.stopPropagation();
     }
 
-    touchStart(evt: TouchEvent) {
+    touchStart(evt: Bg2TouchEvent) {
         console.log(`touchStart`);
     }
 
-    touchMove(evt: TouchEvent) {
+    touchMove(evt: Bg2TouchEvent) {
         console.log(`touchMove`);
     }
 
-    touchEnd(evt: TouchEvent) {
+    touchEnd(evt: Bg2TouchEvent) {
         console.log(`touchEnd`);
     }
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     const appController = new MyAppController();
     const mainLoop = new MainLoop(canvas, appController);
     mainLoop.updateMode = FrameUpdate.MANUAL;

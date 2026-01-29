@@ -3,17 +3,15 @@ import AppController from "./AppController";
 
 import { 
     MouseButtonEventType, 
-    createMouseEvent, 
-    leftMouseButton,
-    middleMouseButton,
+    createMouseEvent,
     clearMouseButtons,
     setMouseButton
-} from "./MouseEvent";
-import MouseEvent from "./MouseEvent";
-import { createTouchEvent } from "./TouchEvent";
-import TouchEvent from "./TouchEvent";
-import { createKeyboardEvent } from "./KeyboardEvent";
-import KeyboardEvent from "./KeyboardEvent";
+} from "./Bg2MouseEvent";
+import Bg2MouseEvent from "./Bg2MouseEvent";
+import { createTouchEvent } from "./Bg2TouchEvent";
+import Bg2TouchEvent from "./Bg2TouchEvent";
+import { createKeyboardEvent } from "./Bg2KeyboardEvent";
+import Bg2KeyboardEvent from "./Bg2KeyboardEvent";
 
 export enum FrameUpdate {
     AUTO = 0,
@@ -203,14 +201,14 @@ async function onUpdate(mainLoop: MainLoop, elapsed: number): Promise<void> {
     }
 }
 
-function onMouseDown(evt: any, mainLoop: MainLoop): MouseEvent {
+function onMouseDown(evt: any, mainLoop: MainLoop): Bg2MouseEvent {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.DOWN);
     setMouseButton(bg2Event, true);
     mainLoop.appController.mouseDown(bg2Event);
     return bg2Event;
 }
 
-function onMouseMove(evt: any, mainLoop: MainLoop): MouseEvent {
+function onMouseMove(evt: any, mainLoop: MainLoop): Bg2MouseEvent {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.NONE);
     mainLoop.appController.mouseMove(bg2Event);
     if (mainLoop.mouseStatus.anyButton) {
@@ -219,56 +217,56 @@ function onMouseMove(evt: any, mainLoop: MainLoop): MouseEvent {
     return bg2Event;
 }
 
-function onMouseOut(evt: any, mainLoop: MainLoop): MouseEvent {
+function onMouseOut(evt: any, mainLoop: MainLoop): Bg2MouseEvent {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.NONE);
     clearMouseButtons();
     mainLoop.appController.mouseOut(bg2Event);
     return bg2Event;
 }
 
-function onMouseOver(evt: any, mainLoop: MainLoop): MouseEvent {
+function onMouseOver(evt: any, mainLoop: MainLoop): Bg2MouseEvent {
     return onMouseMove(evt, mainLoop);
 }
 
-function onMouseUp(evt: any, mainLoop: MainLoop): MouseEvent {
+function onMouseUp(evt: any, mainLoop: MainLoop): Bg2MouseEvent {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.UP);
     setMouseButton(bg2Event, false);
     mainLoop.appController.mouseUp(bg2Event);
     return bg2Event;
 }
 
-function onMouseWheel(evt: any, mainLoop: MainLoop): MouseEvent {
+function onMouseWheel(evt: any, mainLoop: MainLoop): Bg2MouseEvent {
     const bg2Event = createMouseEvent(evt, mainLoop, MouseButtonEventType.NONE);
     bg2Event.delta = evt.wheelDelta ? evt.wheelDelta * -1 : evt.detail * 10;
     mainLoop.appController.mouseWheel(bg2Event);
     return bg2Event;
 }
 
-function onTouchStart(evt: any, mainLoop: MainLoop): TouchEvent {
+function onTouchStart(evt: any, mainLoop: MainLoop): Bg2TouchEvent {
     const bgEvent = createTouchEvent(evt, mainLoop);
     mainLoop.appController.touchStart(bgEvent);
     return bgEvent;
 }
 
-function onTouchMove(evt: any, mainLoop: MainLoop): TouchEvent {
+function onTouchMove(evt: any, mainLoop: MainLoop): Bg2TouchEvent {
     const bgEvent = createTouchEvent(evt, mainLoop);
     mainLoop.appController.touchMove(bgEvent);
     return bgEvent;
 }
 
-function onTouchEnd(evt: any, mainLoop: MainLoop): TouchEvent {
+function onTouchEnd(evt: any, mainLoop: MainLoop): Bg2TouchEvent {
     const bgEvent = createTouchEvent(evt, mainLoop);
     mainLoop.appController.touchEnd(bgEvent);
     return bgEvent;
 }
 
-function onKeyDown(evt: any, mainLoop: MainLoop): KeyboardEvent {
+function onKeyDown(evt: any, mainLoop: MainLoop): Bg2KeyboardEvent {
     const bgEvent = createKeyboardEvent(evt);
     mainLoop.appController.keyDown(bgEvent);
     return bgEvent;
 }
 
-function onKeyUp(evt: any, mainLoop: MainLoop): KeyboardEvent {
+function onKeyUp(evt: any, mainLoop: MainLoop): Bg2KeyboardEvent {
     const bgEvent = createKeyboardEvent(evt);
     mainLoop.appController.keyUp(bgEvent);
     return bgEvent;

@@ -1,4 +1,4 @@
-import { app, base, render, math } from "bg2e-js";
+import { app, base, render, math } from "bg2e-js/ts";
 
 const {
     MainLoop,
@@ -10,16 +10,19 @@ const {
     WebGLRenderer
 } = render;
 const {
-    Color,
-    Texture
+    Color
 } = base;
 const {
     Vec
 } = math;
 
+import Texture from "bg2e-js/ts/base/Texture.ts";
+
 class MyAppController extends AppController {
+    private _texture: Texture | null = null;
+
     async init() {
-        if (!this.renderer instanceof WebGLRenderer) {
+        if (!(this.renderer instanceof WebGLRenderer)) {
             throw new Error("This example works only with WebGL Renderer");
         }
 
@@ -30,7 +33,7 @@ class MyAppController extends AppController {
         this.renderer.state.clearColor = Color.Green();
     }
 
-    reshape(width,height) {
+    reshape(width: number, height: number) {
         const { state } = this.renderer;
         state.viewport = new Vec(width, height);
         this.renderer.canvas.updateViewportSize();
@@ -46,7 +49,12 @@ class MyAppController extends AppController {
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "100vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();

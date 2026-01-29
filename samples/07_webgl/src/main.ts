@@ -1,29 +1,16 @@
 
-import { app, base, math, render } from 'bg2e-js';
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas,
-    AppController,
-    SpecialKey
-} = app;
-const {
-    Mat4,
-    Vec
-} = math;
-const {
-    Color
-} = base;
-const {
-    WebGLRenderer,
-    webgl
-} = render;
-const {
-    ShaderProgram,
-    VertexBuffer,
-    BufferTarget
-} = webgl;
+import math from 'bg2e-js/ts/math/index.ts';
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import AppController from "bg2e-js/ts/app/AppController.ts";
+import Mat4 from "bg2e-js/ts/math/Mat4.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import ShaderProgram from "bg2e-js/ts/render/webgl/ShaderProgram.ts";
+import VertexBuffer from 'bg2e-js/ts/render/webgl/VertexBuffer.js';
+import Bg2KeyboardEvent, { SpecialKey } from "bg2e-js/ts/app/Bg2KeyboardEvent.ts";
+import Color from "bg2e-js/ts/base/Color.ts";
+import WebGLRenderer from 'bg2e-js/ts/render/webgl/Renderer.js';
+import { BufferTarget } from 'bg2e-js/ts/render/webgl/VertexBuffer.js';
 
 const vertexShaderCode = 
 `precision mediump float;
@@ -110,11 +97,17 @@ const boxIndices = [
 ];
 
 class MyAppController extends AppController {
-    init() {
-        if (!this.renderer instanceof WebGLRenderer) {
-            throw new Error("This example works only with WebGL Renderer");
-        }
+    private _program: ShaderProgram | null = null;
+    private _vertex: VertexBuffer | null = null;
+    private _index: VertexBuffer | null = null;
+    private _color: Color = new Color();
+    private _elapsed: number = 0;
+    private _angle: number = 0;
+    private _worldMatrix: Mat4 = Mat4.MakeIdentity();
+    private _viewMatrix: Mat4 = Mat4.MakeIdentity();
+    private _projMatrix: Mat4 = Mat4.MakeIdentity();
 
+    async init() {
         const { gl, state } = this.renderer;
 
         const extensions = gl.getSupportedExtensions();
@@ -140,19 +133,27 @@ class MyAppController extends AppController {
         // const eab = VertexBuffer.CurrentBuffer(gl,BufferTarget.ELEMENT_ARRAY_BUFFER);
     }
 
-    reshape(width,height) {
+    reshape(width: number, height: number) {
         const { state } = this.renderer;
         state.viewport = new Vec(width, height);
         this.renderer.canvas.updateViewportSize();
     }
 
-    frame(delta) {
+    async frame(delta: number) {
         this._elapsed = this._elapsed || 0;
         this._elapsed += delta / 1000;
         this._angle = this._angle || 0;
         this._worldMatrix = Mat4.MakeIdentity();
-        this._viewMatrix = Mat4.MakeLookAt([0, 0, -8], [0, 0, 0], [0, 1, 0]);
-        this._projMatrix = Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0);
+        this._viewMatrix = Mat4.MakeLookAt(
+            new Vec(0, 0, -8),
+            new Vec(0, 0, 0),
+            new Vec(0, 1, 0)
+        );
+        this._projMatrix = Mat4.MakePerspective(
+            45,
+            this.canvas.viewport.aspectRatio,
+            0.1, 1000.0
+        );
 
         this._angle += (delta / 1000) * Math.PI / 2;
         this._worldMatrix.rotate(this._angle, 1, 0, 0);
@@ -167,6 +168,10 @@ class MyAppController extends AppController {
     }
 
     display() {
+        if (!this._program || !this._vertex || !this._index) {
+            return;
+        }
+
         const { gl, state } = this.renderer;
         //state.viewport = new Vec(this.canvas.width, this.canvas.height);
         const clearColor = Color.Sub(Color.White(), this._color);
@@ -187,12 +192,12 @@ class MyAppController extends AppController {
     }
 
     destroy() {
-        VertexBuffer.Delete(this._vertex);
-        VertexBuffer.Delete(this._index);
-        ShaderProgram.Delete(this._program);
+        if (this._vertex) VertexBuffer.Delete(this._vertex);
+        if (this._index) VertexBuffer.Delete(this._index);
+        if (this._program) ShaderProgram.Delete(this._program);
     }
 
-    keyUp(evt) {
+    keyUp(evt: Bg2KeyboardEvent) {
         const { gl } = this.renderer;
         if (evt.key === SpecialKey.ESCAPE) {
             this.mainLoop.exit();
@@ -213,7 +218,12 @@ class MyAppController extends AppController {
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "100vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();

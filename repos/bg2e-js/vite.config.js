@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 
 export default defineConfig({
     root: './src',
@@ -14,16 +13,8 @@ export default defineConfig({
             output: {
                 assetFileNames: '[name].[ext]'
             }
-        },
-        sourcemap: true
     },
-    assetsInclude: ["**/*.glsl"],
-    plugins: [
-        dts({
-            entryRoot: '',
-            outDir: '../dist',
-            include: ['**/*.ts']
-        })
-    ]
+    sourcemap: true
+  },
+  assetsInclude: ["**/*.glsl"]
 })
-

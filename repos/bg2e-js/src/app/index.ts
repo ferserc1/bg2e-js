@@ -4,12 +4,12 @@ import Canvas, {
      getEventTouches
 } from "./Canvas";
 import EventBase from "./EventBase";
-import KeyboardEvent from "./KeyboardEvent";
 import MainLoop, {
     FrameUpdate
 } from "./MainLoop";
-import MouseEvent from "./MouseEvent";
-import TouchEvent from "./TouchEvent";
+import Bg2KeyboardEvent from "./Bg2KeyboardEvent";
+import Bg2MouseEvent from "./Bg2MouseEvent";
+import Bg2TouchEvent from "./Bg2TouchEvent";
 
 export default {
     AppController,
@@ -18,8 +18,8 @@ export default {
     getMouseEventOffset,
     getEventTouches,
     EventBase,
-    KeyboardEvent,
+    Bg2KeyboardEvent,
     MainLoop,
-    MouseEvent,
-    TouchEvent
+    Bg2MouseEvent,
+    Bg2TouchEvent
 }

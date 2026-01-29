@@ -1,5 +1,5 @@
 
-import { math } from 'bg2e-js';
+import { math } from "bg2e-js";
 
 const container: HTMLElement | null = document.getElementById('app');
 

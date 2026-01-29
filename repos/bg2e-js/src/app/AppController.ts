@@ -1,6 +1,6 @@
-import MouseEvent from "./MouseEvent";
-import KeyboardEvent from "./KeyboardEvent";
-import TouchEvent from "./TouchEvent";
+import Bg2MouseEvent from "./Bg2MouseEvent";
+import Bg2KeyboardEvent from "./Bg2KeyboardEvent";
+import Bg2TouchEvent from "./Bg2TouchEvent";
 
 export default class AppController {
     _mainLoop: any;
@@ -25,15 +25,15 @@ export default class AppController {
     async frame(delta: number): Promise<void> {}
     display(): void {}
     destroy(): void {}
-    keyDown(evt: KeyboardEvent): void {}
-    keyUp(evt: KeyboardEvent): void {}
-    mouseUp(evt: MouseEvent): void {}
-    mouseDown(evt: MouseEvent): void {}
-    mouseMove(evt: MouseEvent): void {}
-    mouseOut(evt: MouseEvent): void {}
-    mouseDrag(evt: MouseEvent): void {}
-    mouseWheel(evt: MouseEvent): void {}
-    touchStart(evt: TouchEvent): void {}
-    touchMove(evt: TouchEvent): void {}
-    touchEnd(evt: TouchEvent): void {}
+    keyDown(evt: Bg2KeyboardEvent): void {}
+    keyUp(evt: Bg2KeyboardEvent): void {}
+    mouseUp(evt: Bg2MouseEvent): void {}
+    mouseDown(evt: Bg2MouseEvent): void {}
+    mouseMove(evt: Bg2MouseEvent): void {}
+    mouseOut(evt: Bg2MouseEvent): void {}
+    mouseDrag(evt: Bg2MouseEvent): void {}
+    mouseWheel(evt: Bg2MouseEvent): void {}
+    touchStart(evt: Bg2TouchEvent): void {}
+    touchMove(evt: Bg2TouchEvent): void {}
+    touchEnd(evt: Bg2TouchEvent): void {}
 }

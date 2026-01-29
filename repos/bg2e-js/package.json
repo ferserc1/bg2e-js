@@ -1,21 +1,35 @@
 {
   "name": "bg2e-js",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "a graphics engine for productivity applications",
   "main": "./dist/bg2e-js.js",
+  "types": "./src/index.ts",
   "files": [
     "dist/bg2e-js.js",
     "dist/bg2e-js.js.map",
-    "dist/bg2e-js.d.ts"
+    "src"
   ],
   "module": "./dist/bg2e-js.js",
-  "types": "./dist/bg2e-js.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/bg2e-js.js",
+      "require": "./dist/bg2e-js.js",
+      "default": "./dist/bg2e-js.js"
+    },
+    "./ts": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./ts/*": {
+      "types": "./src/*",
+      "import": "./src/*"
+    }
+  },
   "type": "module",
   "scripts": {
     "dev": "vite build --watch --emptyOutDir",
-    "build": "vite build --emptyOutDir && npm run bundle:types",
-    "bundle:types": "dts-bundle-generator -o dist/bg2e-js.d.ts dist/src/index.d.ts --no-check",
-    "types": "tsc -p tsconfig.json"
+    "build": "vite build --emptyOutDir"
   },
   "repository": {
     "type": "git",
@@ -34,11 +48,9 @@
   },
   "homepage": "https://github.com/ferserc1/bg2e-js#readme",
   "dependencies": {
-    "bg2io": "^1.0.7",
-    "vite-plugin-dts": "^4.5.4"
+    "bg2io": "^1.0.7"
   },
   "devDependencies": {
-    "dts-bundle-generator": "^9.5.1",
     "typescript": "^5.9.3",
     "vite": "^7.1.5"
   }

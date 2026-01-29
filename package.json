@@ -9,9 +9,33 @@
   },
   "packageManager": "npm@10.9.3",
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev --concurrency 20 --filter=23_selection...",
-    "dev:app": "turbo dev --concurrency 20 --filter=$APP..."
+    "build": "npm --prefix repos/bg2e-js run build",
+    "dev:math": "npm --prefix samples/00_math run dev",
+    "dev:tools": "npm --prefix samples/01_tools run dev",
+    "dev:load_model_basic": "npm --prefix samples/02_load_model_basic run dev",
+    "dev:base": "npm --prefix samples/03_base run dev",
+    "dev:scene_load_0": "npm --prefix samples/04_scene_load_0 run dev",
+    "dev:app": "npm --prefix samples/05_app run dev",
+    "dev:present_texture": "npm --prefix samples/06_present_texture run dev",
+    "dev:webgl": "npm --prefix samples/07_webgl run dev",
+    "dev:merge_textures": "npm --prefix samples/08_merge_textures run dev",
+    "dev:render_state_basic": "npm --prefix samples/10_render_state_basic run dev",
+    "dev:webgl_shader_utils": "npm --prefix samples/11_webgl_shader_utils run dev",
+    "dev:render_to_texture": "npm --prefix samples/12_render_to_texture run dev",
+    "dev:render_to_cubemap": "npm --prefix samples/13_render_to_cubemap run dev",
+    "dev:sky_sphere": "npm --prefix samples/14_sky_sphere run dev",
+    "dev:sky_cube": "npm --prefix samples/15_sky_cube run dev",
+    "dev:env_renderer": "npm --prefix samples/16_env_renderer run dev",
+    "dev:pbr_basic": "npm --prefix samples/17_pbr_basic run dev",
+    "dev:pbr_ibl": "npm --prefix samples/18_pbr_ibl run dev",
+    "dev:render_queue": "npm --prefix samples/19_render_queue run dev",
+    "dev:scene_renderer": "npm --prefix samples/20_scene_renderer run dev",
+    "dev:scene_app_controller": "npm --prefix samples/21_scene_app_controller run dev",
+    "dev:scene_load_1": "npm --prefix samples/22_scene_load_1 run dev",
+    "dev:selection": "npm --prefix samples/23_selection run dev",
+    "dev:canvas_texture": "npm --prefix samples/24_canvas_texture run dev",
+    "dev:debug": "npm --prefix samples/25_debug run dev",
+    "dev:model_load": "npm --prefix samples/26_model_load run dev"
   },
   "repository": {
     "type": "git",
@@ -34,9 +58,7 @@
     "repos/*",
     "samples/*"
   ],
-  "dependencies": {
-    "turbo": "^2.5.6"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^25.0.3"
   }

@@ -2,12 +2,12 @@ import Color from "../base/Color";
 import Vec from "../math/Vec";
 import { ProjectionStrategy, OrthographicProjectionStrategy } from "./Camera";
 import Component from "./Component";
-import { SpecialKey } from "../app/KeyboardEvent";
+import { SpecialKey } from "../app/Bg2KeyboardEvent";
 import MouseEvent, {
     leftMouseButton, 
     middleMouseButton, 
     rightMouseButton
-} from "../app/MouseEvent";
+} from "../app/Bg2MouseEvent";
 import { degreesToRadians } from "../math/functions";
 
 export const Action = {

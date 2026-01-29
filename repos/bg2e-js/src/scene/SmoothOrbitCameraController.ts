@@ -4,8 +4,8 @@ import MouseEvent, {
     leftMouseButton,
     middleMouseButton,
     rightMouseButton
-} from '../app/MouseEvent';
-import { SpecialKey } from '../app/KeyboardEvent';
+} from '../app/Bg2MouseEvent';
+import { SpecialKey } from '../app/Bg2KeyboardEvent';
 import { degreesToRadians, lerp, clamp } from '../math/functions';
 import Vec from '../math/Vec';
 import { OrthographicProjectionStrategy } from './Camera';
