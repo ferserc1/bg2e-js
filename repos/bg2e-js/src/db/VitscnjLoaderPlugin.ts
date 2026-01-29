@@ -56,7 +56,7 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
         return g_prefDrawableFormat;
     }
 
-    constructor({ bg2ioPath = null, preferedDrawableFormat = DrawableFormat.BG2 }: { bg2ioPath?: string | null; preferedDrawableFormat?: DrawableFormatValue } = {}) {
+    constructor({ bg2ioPath, preferedDrawableFormat = DrawableFormat.BG2 }: { bg2ioPath: string | null; preferedDrawableFormat?: DrawableFormatValue } = { bg2ioPath: null }) {
         super();
 
         this._bg2ioPath = bg2ioPath;

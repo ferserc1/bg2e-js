@@ -11,6 +11,9 @@ const {
 	DrawableComponent
 } = scene;
 
+// TODO: by now, the scene loading without a valid canvas does not work. This example don't work by now because of that.
+// We need to fix that in the future.
+
 // bg2ioPath is the path from the html file to the distribution files of the bg2io library, if
 // this path is different from the compiled js file (generated from this file, in this case, 
 // using Rollup)

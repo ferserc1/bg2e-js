@@ -14,17 +14,17 @@ const {
 
 
 class MyAppController extends AppController {
-    init() {
+    async init() {
         console.log("init");
     }
 
-    reshape(width,height) {
+    reshape(width: number, height: number) {
         console.log(`reshape - width:${width}, height:${height}`);
         const { gl } = this.renderer;
         gl.viewport(0, 0, width, height);
     }
 
-    frame(delta) {
+    async frame(delta: number) {
         console.log(`frame - elapsed time: ${ delta }`);
     }
 
@@ -35,49 +35,49 @@ class MyAppController extends AppController {
         console.log("display");
     }
 
-    keyDown(evt) {
+    keyDown(evt: KeyboardEvent) {
         console.log(`keyDown - key: ${evt.key}`);
     }
 
-    keyUp(evt) {
+    keyUp(evt: KeyboardEvent) {
         console.log(`keyUp - key: ${evt.key}`);
     }
 
-    mouseUp(evt) {
+    mouseUp(evt: MouseEvent) {
         console.log(`mouseUp - mouse location: ${evt.x}, ${evt.y}`);
     }
 
-    mouseDown(evt) {
+    mouseDown(evt: MouseEvent) {
         console.log(`mouseDown - mouse location: ${evt.x}, ${evt.y}`);
     }
 
-    mouseMove(evt) {
+    mouseMove(evt: MouseEvent) {
         console.log(`mouseMove - mouse location: ${evt.x}, ${evt.y}`);
     }
 
-    mouseOut(evt) {
+    mouseOut(evt: MouseEvent) {
         console.log(`mouseOut - mouse location: ${evt.x}, ${evt.y}`);
     }
 
-    mouseDrag(evt) {
+    mouseDrag(evt: MouseEvent) {
         console.log(`mouseDrag - mouse location: ${evt.x}, ${evt.y}`);
         this.mainLoop.postRedisplay();
     }
 
-    mouseWheel(evt) {
+    mouseWheel(evt: MouseEvent) {
         console.log(`mouseWheel - mouse location: ${evt.x}, ${evt.y}, delta: ${ evt.delta }`);
         evt.stopPropagation();
     }
 
-    touchStart(evt) {
+    touchStart(evt: TouchEvent) {
         console.log(`touchStart`);
     }
 
-    touchMove(evt) {
+    touchMove(evt: TouchEvent) {
         console.log(`touchMove`);
     }
 
-    touchEnd(evt) {
+    touchEnd(evt: TouchEvent) {
         console.log(`touchEnd`);
     }
 }
