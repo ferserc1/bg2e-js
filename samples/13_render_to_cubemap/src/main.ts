@@ -1,34 +1,23 @@
-import { app, base, math, render, primitives } from "bg2e-js";
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas,
-    AppController,
-    SpecialKey
-} = app;
-const {
-    Material,
-    Texture,
-    TextureRenderTargetAttachment,
-    TextureTarget
-} = base;
-const {
-    Mat4,
-    Vec
-} = math;
-const {
-    createCube,
-    createSphere,
-} = primitives;
-const {
-    RenderState,
-    WebGLRenderer,
-    Shader,
-    webgl
-} = render;
-
-const ShaderProgram = webgl.ShaderProgram;
+import AppController from "bg2e-js/ts/app/AppController.ts";
+import Bg2KeyboardEvent, { SpecialKey } from "bg2e-js/ts/app/Bg2KeyboardEvent.ts";
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Material from "bg2e-js/ts/base/Material.ts";
+import Texture, { TextureRenderTargetAttachment, TextureTarget } from "bg2e-js/ts/base/Texture.ts";
+import Mat4 from "bg2e-js/ts/math/Mat4.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import { createCube, createSphere } from "bg2e-js/ts/primitives/index.ts";
+import MaterialRenderer from "bg2e-js/ts/render/MaterialRenderer.js";
+import PolyListRenderer from "bg2e-js/ts/render/PolyListRenderer.js";
+import WebGLPolyListRenderer from "bg2e-js/ts/render/webgl/PolyListRenderer.js";
+import RenderBuffer from "bg2e-js/ts/render/RenderBuffer.ts";
+import RenderState from "bg2e-js/ts/render/RenderState.ts";
+import Renderer from "bg2e-js/ts/render/Renderer.ts";
+import Shader from "bg2e-js/ts/render/Shader.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import ShaderProgram from "bg2e-js/ts/render/webgl/ShaderProgram.ts";
+import WebGLSkySphere from "bg2e-js/ts/render/webgl/SkySphere.js";
+import { webgl } from "bg2e-js/ts/render/webgl/index.ts";
 
 const g_code = {
     webgl: {
@@ -77,19 +66,24 @@ const g_code = {
 }
 
 export default class CubeMapTextureShader extends Shader {
-    constructor(renderer) {
+    private _cameraPosition : Vec;
+    private _program: ShaderProgram | null = null;
+    private _cubeMapTexture: Texture | null = null;
+    private _cameraPositionInitialized: boolean = false;
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         // This shader is compatible with WebGL renderer
-        if (!renderer instanceof WebGLRenderer) {
+        if (!(renderer instanceof WebGLRenderer)) {
             throw new Error("shader.PresentTextureShader: invalid renderer. This shader is compatible with WebGLRenderer");
         }
 
-        this._cameraPosition = [0,0,0];
+        this._cameraPosition = new Vec(0,0,0);
     }
 
     async load() {
-        const { gl } = this.renderer;
+        const { gl } = this.renderer as WebGLRenderer;
 
         this._program = new ShaderProgram(gl, "DefaultPresentTextureShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
@@ -101,7 +95,7 @@ export default class CubeMapTextureShader extends Shader {
         this._cubeMapTexture = cm;
 
         // If necesary, initialize the texture renderer
-        if (!cm.renderer) {
+        if (cm && !cm.renderer) {
             this.renderer.factory.texture(cm);
         }
     }
@@ -111,7 +105,15 @@ export default class CubeMapTextureShader extends Shader {
     }
 
     // Call this function once each frame
-    updateCameraPosition({ viewMatrix = null, cameraMatrix = null, cameraPosition = null }) {
+    updateCameraPosition({
+        viewMatrix = null,
+        cameraMatrix = null,
+        cameraPosition = null
+    } : {
+        viewMatrix?: Mat4 | null,
+        cameraMatrix?: Mat4 | null,
+        cameraPosition?: Vec | null
+    }) {
         if (cameraPosition) {
             this._cameraPosition = new Vec(cameraPosition);
         }
@@ -127,14 +129,27 @@ export default class CubeMapTextureShader extends Shader {
         this._cameraPositionInitialized = true;
     }
 
-    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
+    setup(
+        plistRenderer: PolyListRenderer,
+        materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projectionMatrix: Mat4
+    ) {
         if (!this._cameraPositionInitialized) {
             console.warn("Warning: camera position not set in cubemap shader. Serious performance impact!");
             this._cameraPosition = Mat4.GetPosition(Mat4.GetInverted(viewMatrix)).xyz;
         }
-        const { gl } = this.renderer;
+        if (!this._program) {
+            throw new Error("CubeMapTextureShader: shader program not loaded");
+        }
+        if (!this.cubeMapTexture) {
+            throw new Error("CubeMapTextureShader: cubemap texture not set");
+        }
+        const renderer = this.renderer as WebGLRenderer;
+        const { gl } = renderer;
 
-        this.renderer.state.shaderProgram = this._program;
+        renderer.state.shaderProgram = this._program;
         
         const normalMatrix = Mat4.GetInverted(modelMatrix);
         normalMatrix.traspose();
@@ -150,17 +165,34 @@ export default class CubeMapTextureShader extends Shader {
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCube', 0);
 
-        this._program.positionAttribPointer(plistRenderer.positionAttribParams("position"));
-        this._program.normalAttribPointer(plistRenderer.normalAttribParams("normal"));
-        this._program.texCoordAttribPointer(plistRenderer.texCoord0AttribParams("texCoord"));
+        this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams("position"));
+        this._program.normalAttribPointer((plistRenderer as WebGLPolyListRenderer).normalAttribParams("normal"));
+        this._program.texCoordAttribPointer((plistRenderer as WebGLPolyListRenderer).texCoord0AttribParams("texCoord"));
     }
 }
 
 
 
 class MyAppController extends AppController {
+    private _animation: boolean = true;
+    private _alpha: number = 0;
+    private _cameraMatrix: Mat4 = Mat4.MakeIdentity()
+    private _cameraPosition: Vec = new Vec(0,0,0);
+    private _projectionMatrix: Mat4 = Mat4.MakeIdentity();
+    private _cube: PolyListRenderer | null = null;
+    private _cubeWorldMatrix: Mat4 = Mat4.MakeIdentity();
+    private _sphere: PolyListRenderer | null = null;
+    private _sphereWorldMatrix: Mat4 = Mat4.MakeIdentity();
+    private _material: MaterialRenderer | null = null
+    private _skySphere: WebGLSkySphere | null = null;
+    private _cubemapTexture: Texture | null = null
+    private _renderBuffer: RenderBuffer | null = null;
+    private _shader: CubeMapTextureShader | null = null
+    private _renderStates: RenderState[] = [];
+    private _environmentUpdated: boolean = false;
+
     async init() {
-        if (!this.renderer instanceof WebGLRenderer) {
+        if (!(this.renderer instanceof WebGLRenderer)) {
             throw new Error("This example works only with WebGL Renderer");
         }
 
@@ -191,7 +223,7 @@ class MyAppController extends AppController {
         // generate a light environment map, you need to set a shader that blurs the texture
         // TODO: Set predefined shaders to generate PBR cube maps
         this._skySphere = this.renderer.factory.skySphere();
-        await this._skySphere.load('../resources/country_field_sun.jpg');
+        await this._skySphere?.load('../resources/country_field_sun.jpg');
 
         // Cubemap resources: we need a RenderBuffer and a Texture
         this._cubemapTexture = new Texture();
@@ -210,7 +242,7 @@ class MyAppController extends AppController {
         this._shader.cubeMapTexture = this._cubemapTexture;
     }
 
-    reshape(width,height) {
+    reshape(width: number,height: number) {
         const { state } = this.renderer;
         state.viewport = new Vec(width, height);
         this._projectionMatrix = Mat4.MakePerspective(50, this.canvas.viewport.aspectRatio,0.1,100.0);
@@ -218,7 +250,7 @@ class MyAppController extends AppController {
     }
 
 
-    frame(delta) {
+    async frame(delta: number) {
         if (this._animation) {
             this._alpha = this._alpha || 0;
             this._alpha += delta * 0.0001;
@@ -239,9 +271,9 @@ class MyAppController extends AppController {
             .translate(-1, 0, 0);
 
         const viewMatrix = Mat4.GetInverted(this._cameraMatrix);
-        this._shader.updateCameraPosition({ cameraMatrix: this._cameraMatrix });
+        this._shader?.updateCameraPosition({ cameraMatrix: this._cameraMatrix });
 
-        this._skySphere.updateRenderState({ viewMatrix, projectionMatrix: this._projectionMatrix });
+        this._skySphere?.updateRenderState({ viewMatrix, projectionMatrix: this._projectionMatrix });
 
         this._renderStates = [
             new RenderState({
@@ -268,14 +300,17 @@ class MyAppController extends AppController {
         const { state } = this.renderer;
         state.clear();
 
-        this._skySphere.draw();
+        this._skySphere?.draw();
 
         if (!this._environmentUpdated) {
             console.log("Update cubemap render");
-            this._renderBuffer.update((face,viewMatrix,projectionMatrix) => {
+            this._renderBuffer?.update((face,viewMatrix,projectionMatrix) => {
                 state.clear();
-                this._skySphere.updateRenderState({ viewMatrix, projectionMatrix })
-                this._skySphere.draw();
+                this._skySphere?.updateRenderState({
+                    viewMatrix: viewMatrix || Mat4.MakeIdentity(),
+                    projectionMatrix
+                })
+                this._skySphere?.draw();
             });
             this._environmentUpdated = true;
         }
@@ -284,10 +319,10 @@ class MyAppController extends AppController {
     }
 
     destroy() {
-        this._skySphere.destroy();
+        this._skySphere?.destroy();
     }
 
-    keyUp(evt) {
+    keyUp(evt: Bg2KeyboardEvent) {
         if (evt.key === SpecialKey.SPACE) {
             this._animation = !this._animation;
         }
@@ -295,7 +330,12 @@ class MyAppController extends AppController {
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "100vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();

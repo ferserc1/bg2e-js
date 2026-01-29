@@ -1,32 +1,19 @@
-import { app, base, math, render, primitives, shaders } from "bg2e-js";
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas,
-    AppController
-} = app;
-const {
-    Material,
-} = base;
-const {
-    Mat4,
-    Vec
-} = math;
-const {
-    createCube,
-} = primitives;
-const {
-    RenderState,
-    WebGLRenderer,
-} = render;
-const {
-    BasicDiffuseColorShader
-} = shaders;
+import AppController from "bg2e-js/ts/app/AppController.ts";
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Material from "bg2e-js/ts/base/Material.ts";
+import Mat4 from "bg2e-js/ts/math/Mat4.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import { createCube } from "bg2e-js/ts/primitives/index.ts";
+import RenderState from "bg2e-js/ts/render/RenderState.ts";
+import Renderer from "bg2e-js/ts/render/Renderer.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import BasicDiffuseColorShader from "bg2e-js/ts/shaders/BasicDiffuseColorShader.ts";
 
 class MyAppController extends AppController {
+    [key: string]: any;
     async init() {
-        if (!this.renderer instanceof WebGLRenderer) {
+        if (!(this.renderer instanceof WebGLRenderer)) {
             throw new Error("This example works only with WebGL Renderer");
         }
 
@@ -46,7 +33,7 @@ class MyAppController extends AppController {
         }));
     }
 
-    reshape(width,height) {
+    reshape(width: number,height: number) {
         const { state } = this.renderer;
         state.viewport = new Vec(width, height);
         this._projectionMatrix = Mat4.MakePerspective(50, this.canvas.viewport.aspectRatio,0.1,100.0);
@@ -54,7 +41,7 @@ class MyAppController extends AppController {
     }
 
 
-    frame(delta) {
+    async frame(delta: number) {
         this._alpha = this._alpha || 0;
         this._alpha += delta * 0.001;
         this._viewMatrix.identity()
@@ -84,7 +71,7 @@ class MyAppController extends AppController {
         state.clear();
 
         this._skySphere.draw();
-        this._renderStates.forEach(rs => rs.draw());
+        this._renderStates.forEach((rs: RenderState) => rs.draw());
     }
 
     destroy() {
@@ -93,7 +80,12 @@ class MyAppController extends AppController {
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "100vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();

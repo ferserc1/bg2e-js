@@ -1,55 +1,49 @@
-import { app, base, db, debug, math, render, scene } from "bg2e-js";
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas
-} = app;
-const {
-    TextureTarget,
-} = base;
-const {
-    DebugRenderer,
-    WebGLTextureViewer
-} = debug;
-const {
-    Loader,
-    registerLoaderPlugin,
-    VitscnjLoaderPlugin
-} = db;
-const {
-    Vec
-} = math;
-const {
-    WebGLRenderer,
-    SceneAppController,
-    webgl
-} = render;
-const {
-    OpticalProjectionStrategy,
-    registerComponents,
-    FindNodeVisitor,
-    CameraComponent,
-    SmoothOrbitCameraControllerComponent,
-    LightComponent
-} = scene;
-const {
-    TextureRenderer: WebGLTextureRenderer
-} = webgl;
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Color from "bg2e-js/ts/base/Color.ts";
+import { TextureTarget } from "bg2e-js/ts/base/Texture.ts";
+import Loader, { registerLoaderPlugin } from "bg2e-js/ts/db/Loader.ts";
+import VitscnjLoaderPlugin from "bg2e-js/ts/db/VitscnjLoaderPlugin.ts";
+import DebugRenderer from "bg2e-js/ts/debug/DebugRenderer.ts";
+import WebGLTextureViewer from "bg2e-js/ts/debug/WebGLTextureViewer.ts";
+import Mat4 from "bg2e-js/ts/math/Mat4.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import SceneAppController from "bg2e-js/ts/render/SceneAppController.ts";
+import TextureRenderer from "bg2e-js/ts/render/TextureRenderer.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import CameraComponent, { OpticalProjectionStrategy } from "bg2e-js/ts/scene/Camera.ts";
+import FindNodeVisitor from "bg2e-js/ts/scene/FindNodeVisitor.ts";
+import LightComponent from "bg2e-js/ts/scene/LightComponent.ts";
+import SmoothOrbitCameraControllerComponent from "bg2e-js/ts/scene/SmoothOrbitCameraController.ts";
+import { registerComponents } from "bg2e-js/ts/scene/index.ts";
+import WebGLTextureRenderer from "bg2e-js/ts/render/webgl/TextureRenderer.js";
+import Texture from "bg2e-js/ts/base/Texture.ts";
+import OrbitCameraController from "bg2e-js/ts/scene/OrbitCameraController.js";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
  */
 class MyAppController extends SceneAppController {
+    private _textureViewer!: WebGLTextureViewer;
+
     initDebugger() {
         const debugArea = document.getElementById('debugArea');
+        if (!debugArea) {
+            console.error("Cannot find debugArea element");
+            return;
+        }
+
         this._textureViewer = new WebGLTextureViewer(this.renderer);
         this._textureViewer.attachToElement(debugArea);
 
-        window.textureViewer = this._textureViewer;
-
+        
         const debugSelect = document.getElementById('debugSelect');
-        let currentTexture = null;
+        if (!debugSelect) {
+            console.error("Cannot find debugSelect element");
+            return;
+        }
+
+        let currentTexture: Texture | null = null;
         const updateTextureSelect = () => {
             debugSelect.innerHTML = "";
             Object.keys(WebGLTextureRenderer.ListTextures(this.renderer))
@@ -58,7 +52,7 @@ class MyAppController extends SceneAppController {
                     if (texture.target == TextureTarget.TEXTURE_2D) {
                         if (!currentTexture) {
                             currentTexture = texture;
-                            this._textureViewer.drawTexture(currentTexture);
+                            this._textureViewer.drawTexture(currentTexture!);
                         }
                         const option = document.createElement('option');
                         option.value = textureName;
@@ -68,19 +62,22 @@ class MyAppController extends SceneAppController {
                 });
         }
 
-        window.updateTextureListButton.addEventListener('click', evt => {
+        document.getElementById("updateTextureListButton")?.addEventListener('click', evt => {
             updateTextureSelect();
         });
 
-        window.updateTextureButton.addEventListener('click', evt => {
+        document.getElementById("updateTextureButton")?.addEventListener('click', evt => {
             if (currentTexture) {
                 this._textureViewer.drawTexture(currentTexture);
             }
         });
 
         debugSelect.addEventListener('change', evt => {
-            currentTexture = WebGLTextureRenderer.ListTextures(this.renderer)[evt.target.value];
-            this._textureViewer.drawTexture(currentTexture);
+            const textureName = (evt.target as any)?.value;
+            currentTexture = WebGLTextureRenderer.ListTextures(this.renderer)[textureName];
+            if (currentTexture) {
+                this._textureViewer.drawTexture(currentTexture);
+            }
         });
     }
 
@@ -126,11 +123,17 @@ class MyAppController extends SceneAppController {
         // Get main camera
         // Add Orbit camera controller component to the camera node
         const mainCamera = CameraComponent.GetMain(root);
-        mainCamera.projectionStrategy = new OpticalProjectionStrategy();
-        mainCamera.projectionStrategy.focalLength = 55;
-        mainCamera.projectionStrategy.frameSize = 35;
-        mainCamera.projectionStrategy.far = 1000;
-        const cameraController = mainCamera.node.component("OrbitCameraController");
+        if (!mainCamera) {
+            throw new Error("No main camera found in the scene");
+        }
+        const proj = new OpticalProjectionStrategy();
+        proj.focalLength = 55;
+        proj.frameSize = 35;
+        proj.far = 1000;
+
+        mainCamera.projectionStrategy = proj;
+
+        const cameraController = mainCamera.node.component("OrbitCameraController") as OrbitCameraController;
         if (cameraController) {
             cameraController.center = new Vec(0,1,0);
             cameraController.distance = 10;
@@ -138,30 +141,25 @@ class MyAppController extends SceneAppController {
             cameraController.rotation.y = 0;
         }
         const smoothCameraController = new SmoothOrbitCameraControllerComponent();
-        smoothCameraController.assign(cameraController);
+        smoothCameraController.assign(cameraController as SmoothOrbitCameraControllerComponent);
         mainCamera.node.addComponent(smoothCameraController);
         mainCamera.node.removeComponent(cameraController);
 
         const mainLight = LightComponent.GetMainDirectionalLight(root);
-        mainLight.light.shadowStrength = 0.8;
-        mainLight.light.shadowBias = 0.000002;
-        //mainLight.light.intensity = 1;
-
-        window.mainLight = mainLight.light;
-        
-        window.root = root;
+        mainLight!.light.shadowStrength = 0.8;
+        mainLight!.light.shadowBias = 0.000002;
 
         return root;
     }
 
     async loadDone() {
         
-        globalThis.sceneRenderer = this.sceneRenderer;
+        (globalThis as any).sceneRenderer = this.sceneRenderer;
 
         this.initDebugger();
     }
 
-    frame(dt) {
+    async frame(dt: number) {
         super.frame(dt);
 
         //const debugRenderer = DebugRenderer.Get(this.renderer);
@@ -174,7 +172,12 @@ class MyAppController extends SceneAppController {
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     const appController = new MyAppController();
     const mainLoop = new MainLoop(canvas, appController);
 

@@ -191,7 +191,7 @@ export default class RenderBuffer {
         this.restoreVertexBufferState();
     }
 
-    readPixels(x: number, y: number, width: number, height: number, format: any, type: any): void {
-        
+    readPixels(x: number, y: number, width: number, height: number): Uint8Array | undefined {
+        return undefined;
     }
  }

@@ -3,9 +3,31 @@ import SelectionBuffer from "./SelectionBuffer";
 import Camera from "../scene/Camera";
 import SelectionIdAssignVisitor from "./SelectionIdAssignVisitor";
 import SelectionMode from "./SelectionMode";
+import Renderer from "../render/Renderer";
+import Node from "../scene/Node";
+import Bg2MouseEvent from "../app/Bg2MouseEvent";
+import Bg2TouchEvent from "../app/Bg2TouchEvent";
+
+export type SelectionChangedData = {
+    polyList: any;
+    drawable: any;
+}
+export type SelectionChangedCallback = (selection: SelectionChangedData[]) => void;
 
 export default class SelectionManager {
-    constructor(renderer) {
+    protected _renderer: Renderer;
+    protected _sceneRoot: Node | null;
+    protected _camera: Camera | null;
+    protected _selectionMode: SelectionMode;
+    protected _multiSelect: boolean;
+    protected _selection: Array<{ polyList: any; drawable: any }>;
+    protected _selectionChangedCallbacks: Record<string, SelectionChangedCallback>;
+    protected _selectionBuffer: SelectionBuffer | null = null;
+    protected _selectionIdVisitor: SelectionIdAssignVisitor | null = null;
+    protected _downPosition: Vec = new Vec();
+    protected _viewportSize: [number, number] = [1, 1];
+
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
         this._sceneRoot = null;
         this._camera = null;
@@ -24,7 +46,7 @@ export default class SelectionManager {
         this._selectionIdVisitor = new SelectionIdAssignVisitor();
     }
 
-    setViewportSize(w,h) {
+    setViewportSize(w: number, h: number) {
         this._viewportSize = [w, h];
     }
 
@@ -55,11 +77,15 @@ export default class SelectionManager {
             return this._camera;
         }
 
+        if (!this.sceneRoot) {
+            return null;
+        }
+
         this._camera = Camera.GetMain(this.sceneRoot);
         return this._camera;
     }
 
-    set selectionMode(mode) {
+    set selectionMode(mode: SelectionMode) {
         this._selectionMode = mode;
         this.clearSelection();
     }
@@ -77,7 +103,7 @@ export default class SelectionManager {
         return this._multiSelect;
     }
 
-    onSelectionChanged(id, cb) {
+    onSelectionChanged(id: string, cb: SelectionChangedCallback) {
         this._selectionChangedCallbacks[id] = cb;
     }
 
@@ -87,14 +113,20 @@ export default class SelectionManager {
         }
     }
 
-    mouseUp(evt) {
+    mouseUp(evt: { x: number; y: number }) {
+        if (!this._selectionBuffer || !this._selectionIdVisitor || !this.camera || !this.sceneRoot) {
+            return;
+        }
+
         const upPosition = new Vec([evt.x, evt.y]);
         if (Vec.Distance(this._downPosition, upPosition) < 2) {
-            this._selectionIdVisitor.selectionMode = this.selectionMode;
-            this.sceneRoot.accept(this._selectionIdVisitor);
+            if (this._selectionIdVisitor && this.sceneRoot) {
+                this._selectionIdVisitor.selectionMode = this.selectionMode;
+                this.sceneRoot.accept(this._selectionIdVisitor);
+            }
             const pixelRatio = window.devicePixelRatio || 1;
-            this._selectionBuffer.reshape(this._viewportSize[0], this._viewportSize[1]);
-            const pickedColor = this._selectionBuffer.draw(this.sceneRoot, this.camera, evt.x * pixelRatio, evt.y * pixelRatio);
+            this._selectionBuffer?.reshape(this._viewportSize[0], this._viewportSize[1]);
+            const pickedColor = this._selectionBuffer!.draw(this.sceneRoot, this.camera, evt.x * pixelRatio, evt.y * pixelRatio);
             const item = this._selectionIdVisitor.findElement(pickedColor);
             const isSelected = () => this._selection.find(s => {
                 return s.polyList === item.polyList && s.drawable === item.drawable
@@ -116,19 +148,19 @@ export default class SelectionManager {
         }
     }
 
-    mouseDown(evt) {
+    mouseDown(evt: Bg2MouseEvent) {
         this._downPosition = new Vec([evt.x, evt.y]);
     }
 
-    touchStart(evt) {
+    touchStart(evt: Bg2TouchEvent) {
 
     }
 
-    touchEnd(evt) {
+    touchEnd(evt: Bg2TouchEvent) {
 
     }
 
     destroy() {
-        this._selectionBuffer.destroy();
+        this._selectionBuffer?.destroy();
     }
 }

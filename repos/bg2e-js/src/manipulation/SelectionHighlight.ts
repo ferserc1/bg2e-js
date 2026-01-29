@@ -8,9 +8,21 @@ import { FrameVisitor } from "../render/SceneRenderer";
 import Transform from "../scene/Transform";
 import PickSelectionShader from "../shaders/PickSelectionShader";
 import SelectionHighlightShader from "../shaders/SelectionHighlightShader";
+import Renderer from "../render/Renderer";
+import RenderBuffer from "../render/RenderBuffer";
+import Node from "../scene/Node";
+import Camera from "../scene/Camera";
 
 export default class SelectionHighlight {
-    constructor(renderer) {
+    protected _renderer: Renderer;
+    protected _targetTexture: Texture | null = null
+    protected _renderBuffer: RenderBuffer | null = null;
+    protected _shader: PickSelectionShader | null = null;
+    protected _renderQueue: RenderQueue | null = null
+    protected _frameVisitor: FrameVisitor | null = null;
+    protected _selectionDrawShader: SelectionHighlightShader | null = null;
+
+    constructor(renderer: Renderer) {
         this._renderer = renderer;
     }
 
@@ -37,11 +49,15 @@ export default class SelectionHighlight {
         await this._selectionDrawShader.load();
     }
 
-    setViewportSize(width,height) {
-        this._renderBuffer.size = new Vec(width,height);
+    setViewportSize(width: number, height: number) {
+        this._renderBuffer!.size = new Vec(width,height);
     }
 
-    draw(scene,camera) {
+    draw(scene: Node, camera: Camera) {
+        if (!this._renderQueue || !this._frameVisitor || !this._renderBuffer || !this._targetTexture) {
+            return;
+        }
+
         const cameraView = Mat4.GetInverted(Transform.GetWorldMatrix(camera.node));
         this._renderQueue.viewMatrix = cameraView;
         this._renderQueue.projectionMatrix = camera.projectionMatrix;
@@ -51,8 +67,8 @@ export default class SelectionHighlight {
         scene.accept(this._frameVisitor);
 
         this._renderBuffer.update(() => {
-            this._renderBuffer.frameBuffer.clear();
-            this._renderQueue.draw(RenderLayer.SELECTION_DEFAULT);
+            this._renderBuffer?.frameBuffer.clear();
+            this._renderQueue?.draw(RenderLayer.SELECTION_DEFAULT);
         });
 
         // TODO: Draw target texture using a border detection shader
@@ -61,8 +77,8 @@ export default class SelectionHighlight {
     }
 
     destroy() {
-        this._renderBuffer.destroy();
-        this._targetTexture.destroy();
+        this._renderBuffer?.destroy();
+        this._targetTexture?.destroy();
         this._renderBuffer = null;
         this._targetTexture = null;
     }

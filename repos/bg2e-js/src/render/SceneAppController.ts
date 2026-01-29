@@ -8,9 +8,9 @@ import Vec from "../math/Vec";
 import Node from "../scene/Node";
 import type SceneRenderer from "./SceneRenderer";
 import type Environment from "./Environment";
-import KeyboardEvent from "../app/KeyboardEvent";
-import MouseEvent from "../app/MouseEvent";
-import TouchEvent from "../app/TouchEvent";
+import Bg2KeyboardEvent from "../app/Bg2KeyboardEvent";
+import Bg2MouseEvent from "../app/Bg2MouseEvent";
+import Bg2TouchEvent from "../app/Bg2TouchEvent";
 
 export default class SceneAppController extends AppController {
     _sceneRoot: Node | null = null;
@@ -142,8 +142,8 @@ export default class SceneAppController extends AppController {
         }
         this.sceneRenderer.draw();
         const camera = Camera.GetMain(this.sceneRoot);
-        this.selectionHighlight && this.selectionHighlight.draw(this.sceneRoot, camera);
         if (camera) {
+            this.selectionHighlight && this.selectionHighlight.draw(this.sceneRoot, camera);
             this._debugRenderer?.draw(camera);
         }
     }
@@ -155,21 +155,21 @@ export default class SceneAppController extends AppController {
         }
     }
 
-    keyDown(evt: KeyboardEvent): void {
+    keyDown(evt: Bg2KeyboardEvent): void {
         this.sceneRoot && this.sceneRenderer?.keyDown(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay();
         }
     }
 
-    keyUp(evt: KeyboardEvent): void {
+    keyUp(evt: Bg2KeyboardEvent): void {
         this.sceneRoot && this.sceneRenderer?.keyUp(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay();
         }
     }
 
-    mouseUp(evt: MouseEvent): void {
+    mouseUp(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseUp(this.sceneRoot, evt);
         this.selectionManager?.mouseUp(evt);
         if (this.updateOnInputEvents) {
@@ -177,7 +177,7 @@ export default class SceneAppController extends AppController {
         }
     }
 
-    mouseDown(evt: MouseEvent): void {
+    mouseDown(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseDown(this.sceneRoot, evt);
         this.selectionManager?.mouseDown(evt);
         if (this.updateOnInputEvents) {
@@ -185,35 +185,35 @@ export default class SceneAppController extends AppController {
         }
     }
 
-    mouseMove(evt: MouseEvent): void {
+    mouseMove(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseMove(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay();
         }
     }
 
-    mouseOut(evt: MouseEvent): void {
+    mouseOut(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseOut(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay();
         }
     }
 
-    mouseDrag(evt: MouseEvent): void {
+    mouseDrag(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseDrag(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay();
         }
     }
 
-    mouseWheel(evt: MouseEvent): void {
+    mouseWheel(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseWheel(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay();
         }
     }
 
-    touchStart(evt: TouchEvent): void {
+    touchStart(evt: Bg2TouchEvent): void {
         this.sceneRoot && this.sceneRenderer?.touchStart(this.sceneRoot, evt);
         this.selectionManager?.touchStart(evt);
         if (this.updateOnInputEvents) {
@@ -221,14 +221,14 @@ export default class SceneAppController extends AppController {
         }
     }
 
-    touchMove(evt: TouchEvent): void {
+    touchMove(evt: Bg2TouchEvent): void {
         this.sceneRoot && this.sceneRenderer?.touchMove(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay();
         }
     }
 
-    touchEnd(evt: TouchEvent): void {
+    touchEnd(evt: Bg2TouchEvent): void {
         this.sceneRoot && this.sceneRenderer?.touchEnd(this.sceneRoot, evt);
         this.selectionManager?.touchEnd(evt);
         if (this.updateOnInputEvents) {

@@ -1,49 +1,40 @@
-import { app, base, math, primitives, render, shaders } from "bg2e-js";
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas,
-    AppController
-} = app;
-const {
-    Color,
-    Material,
-    Light,
-    LightType,
-    RenderLayer
-} = base;
-const {
-    createCube,
-    createSphere
-} = primitives;
-const {
-    Mat4,
-    Vec
-} = math;
-const {
-    WebGLRenderer,
-    RenderState,
-    BlendFunction
-} = render;
-const {
-    PBRLightIBLShader
-} = shaders;
+import AppController from "bg2e-js/ts/app/AppController.ts";
+import Bg2KeyboardEvent from "bg2e-js/ts/app/Bg2KeyboardEvent.ts";
+import Bg2MouseEvent from "bg2e-js/ts/app/Bg2MouseEvent.ts";
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Light, { LightType } from "bg2e-js/ts/base/Light.ts";
+import Material from "bg2e-js/ts/base/Material.ts";
+import { RenderLayer } from "bg2e-js/ts/base/PolyList.ts";
+import Mat4 from "bg2e-js/ts/math/Mat4.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import { createCube, createSphere } from "bg2e-js/ts/primitives/index.ts";
+import Environment from "bg2e-js/ts/render/Environment.js";
+import MaterialRenderer from "bg2e-js/ts/render/MaterialRenderer.js";
+import PolyListRenderer from "bg2e-js/ts/render/PolyListRenderer.js";
+import RenderQueue from "bg2e-js/ts/render/RenderQueue.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import SkyCube from "bg2e-js/ts/render/webgl/SkyCube.js";
+import PBRLightIBLShader from "bg2e-js/ts/shaders/PBRLightIBLShader.ts";
 
 /*
  * This example shows how to use the basic pbr shader to render objects using lights
  */
 class MyAppController extends AppController {
+    protected _zoom: number = 10;
+    protected _shader: PBRLightIBLShader | null = null;
+    protected _lights: Light[] = [];
+    protected _plistRenderers: Array<{ plistRenderer: PolyListRenderer; materialRenderer: MaterialRenderer; transform: Mat4 }> = [];
+    protected _worldMatrix: Mat4 = Mat4.MakeIdentity();
+    protected _viewMatrix: Mat4 = Mat4.MakeIdentity();
+    protected _projMatrix: Mat4 = Mat4.MakeIdentity();
+    protected _renderQueue: RenderQueue | null = null;
+    protected _env: Environment | null = null;
+    protected _skyCube: SkyCube | null = null;
+    protected _rotation: Vec = new Vec();
+    protected _downPos: Vec = new Vec();
+
     async init() {
-        if (!this.renderer instanceof WebGLRenderer) {
-            throw new Error("This example works only with WebGL Renderer");
-        }
-
-        const { state } = this.renderer;
-
-        state.depthTestEnabled = true;
-        state.clearColor = new Color([0.1, 0.1, 0.112, 1]);
-
         this._zoom = 10;
 
         this._shader = new PBRLightIBLShader(this.renderer);
@@ -61,8 +52,9 @@ class MyAppController extends AppController {
             return light;
         }));
 
+
         console.log("Loading scene...");
-        const sphereColor = [0.93, 0.95, 0.95, 1];
+        const sphereColor = [1, 0.0, 0.0, 1];
         const spherePlist = createSphere(0.3);
         this._plistRenderers = await Promise.all([
             { roughness: 0.0, metallic: 1.0, diffuse: sphereColor, position: [ -3, 3, 0 ] },
@@ -128,7 +120,7 @@ class MyAppController extends AppController {
                     roughness,
                     metallic
                 })),
-                transform: Mat4.MakeTranslation(...position)
+                transform: Mat4.MakeTranslation(position)
             }
         }));
 
@@ -159,54 +151,29 @@ class MyAppController extends AppController {
         this._viewMatrix = Mat4.MakeIdentity();
         this._projMatrix = Mat4.MakeIdentity();
 
-        this._opaquePipeline = this.renderer.factory.pipeline();
-        this._opaquePipeline.setBlendState({
-            enabled: false
-        });
-        this._opaquePipeline.create();
-        this._transparentPipeline = this.renderer.factory.pipeline();
-        this._transparentPipeline.setBlendState({
-            enabled: true,
-            blendFuncSrc: BlendFunction.SRC_ALPHA,
-            blendFuncDst: BlendFunction.ONE_MINUS_SRC_ALPHA,
-            blendFuncSrcAlpha: BlendFunction.ONE,
-            blendFuncDstAlpha: BlendFunction.ONE_MINUS_SRC_ALPHA
-        });
-        this._transparentPipeline.create();
-
-        this._renderStates = [];
-        this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
-            this._renderStates.push(new RenderState({
-                shader: this._shader,
-                materialRenderer: materialRenderer,
-                modelMatrix: (new Mat4(transform)).mult(this._worldMatrix),
-                polyListRenderer: plistRenderer,
-
-                // Save view and projection matrixes pointers to update
-                // from the frame() callback
-                viewMatrix: this._viewMatrix,
-                projectionMatrix: this._projMatrix
-            }))
-        });
-
+        this._renderQueue = new RenderQueue(this.renderer);
+        this._renderQueue.enableQueue(RenderLayer.OPAQUE_DEFAULT, this._shader);
+        this._renderQueue.enableQueue(RenderLayer.TRANSPARENT_DEFAULT, this._shader);
+        
         this._env = this.renderer.factory.environment();
-        await this._env.load({ textureUrl: '../resources/equirectangular-env3.jpg' });
+        await this._env?.load({ textureUrl: '../resources/mirrored_hall_4k.png' });
         this._shader.environment = this._env;
 
         // A sky cube to render the environment
         this._skyCube = this.renderer.factory.skyCube();
-        await this._skyCube.load(this._env.environmentMap);
+        if (this._env?.environmentMap) {
+            await this._skyCube?.load(this._env.environmentMap);
+        }
 
         this._rotation = new Vec();
     }
 
-    reshape(width,height) {
-        const { state } = this.renderer;
-        state.viewport = new Vec(width, height);
+    reshape(width: number,height: number) {
+        this.renderer.viewport = new Vec(width,height);
         this.renderer.canvas.updateViewportSize();
     }
 
-    frame(delta) {
+    async frame(delta: number) {
         const rotScale = 0.02;
         const cameraMatrix = Mat4.MakeIdentity()
             .translate(0, 0, this._zoom)
@@ -217,9 +184,16 @@ class MyAppController extends AppController {
         this._projMatrix.assign(Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0));
         this._viewMatrix.assign(Mat4.GetInverted(cameraMatrix));
         
-        this._shader.cameraPosition = Mat4.GetPosition(cameraMatrix);
+        this._shader!.cameraPosition = Mat4.GetPosition(cameraMatrix);
 
-        this._skyCube.updateRenderState({
+        this._renderQueue!.viewMatrix = this._viewMatrix;
+        this._renderQueue!.projectionMatrix = this._projMatrix;
+        this._renderQueue?.newFrame();
+        this._plistRenderers.forEach(({ plistRenderer, materialRenderer, transform }) => {
+            this._renderQueue?.addPolyList(plistRenderer,materialRenderer,transform);
+        });
+
+        this._skyCube?.updateRenderState({
             viewMatrix: this._viewMatrix,
             projectionMatrix: this._projMatrix
         });
@@ -228,30 +202,22 @@ class MyAppController extends AppController {
     display() {
         this.renderer.frameBuffer.clear();
         
-        if (!this._env.updated) {
+        if (this._env && !this._env.updated) {
             this._env.updateMaps();
         }
 
-        this._skyCube.draw();
-        
-        this._renderStates.forEach(rs => {
-            if (rs.isLayerEnabled(RenderLayer.OPAQUE_DEFAULT)) {
-                this._opaquePipeline.activate();
-            }
-            else if (rs.isLayerEnabled(RenderLayer.TRANSPARENT_DEFAULT)) {
-                this._transparentPipeline.activate();
-            }
-            rs.draw()
-        });
+        this._skyCube?.draw();
+        this._renderQueue?.draw(RenderLayer.OPAQUE_DEFAULT);
+        this._renderQueue?.draw(RenderLayer.TRANSPARENT_DEFAULT);
     }
 
     destroy() {
-        this._plistRenderers.forEach(plRenderer => plRenderer.destroy());
+        this._plistRenderers.forEach(plRenderer => plRenderer.plistRenderer.destroy());
         this._plistRenderers = [];
-        this._shader.destroy();
+        this._shader?.destroy();
     }
 
-    async keyUp(evt) {
+    async keyUp(evt: Bg2KeyboardEvent) {
         let img = null;
         switch (evt.key) {
         case 'Digit1':
@@ -277,22 +243,25 @@ class MyAppController extends AppController {
             break;
         }
         if (img) {
+            if (!this._env?.environmentMap) {
+                return;
+            }
             await this._env.reloadImage(img);
-            this._shader.environment = this._env;
-            this._skyCube.load(this._env);
+            this._shader!.environment = this._env;
+            this._skyCube?.load(this._env.environmentMap);
         }
     }
 
-    mouseWheel(evt) {
+    mouseWheel(evt: Bg2MouseEvent) {
         this._zoom += evt.delta * 0.005;
         evt.stopPropagation();
     }
 
-    mouseDown(evt) {
+    mouseDown(evt: Bg2MouseEvent) {
         this._downPos = new Vec([evt.x, evt.y]);
     }
 
-    mouseDrag(evt) {
+    mouseDrag(evt: Bg2MouseEvent) {
         const currPos = new Vec([evt.x, evt.y]);
         const diff = Vec.Sub(this._downPos, currPos);
         this._rotation = Vec.Add(this._rotation, diff);
@@ -301,7 +270,12 @@ class MyAppController extends AppController {
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "100vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();

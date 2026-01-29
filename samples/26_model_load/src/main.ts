@@ -1,35 +1,11 @@
-import { app, base, db, math, render, scene } from "bg2e-js";
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas
-} = app;
-const {
-    Texture,
-    ProceduralTextureFunction
-} = base;
-const {
-    Loader,
-    registerLoaderPlugin,
-    VitscnjLoaderPlugin
-} = db;
-const {
-    Vec
-} = math;
-const {
-    WebGLRenderer,
-    SceneAppController
-} = render;
-const {
-    OpticalProjectionStrategy,
-    OrbitCameraController,
-    registerComponents,
-    FindNodeVisitor,
-    CameraComponent,
-    registercomponents
-} = scene;
-
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Loader, { registerLoaderPlugin } from "bg2e-js/ts/db/Loader.ts";
+import VitscnjLoaderPlugin from "bg2e-js/ts/db/VitscnjLoaderPlugin.ts";
+import SceneAppController from "bg2e-js/ts/render/SceneAppController.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import CameraComponent, { OpticalProjectionStrategy } from "bg2e-js/ts/scene/Camera.ts";
+import { registerComponents } from "bg2e-js/ts/scene/index.ts";
 
 class MyAppController extends SceneAppController {
     createOutputText() {

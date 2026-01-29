@@ -1,30 +1,19 @@
-import { app, db, math, render, scene } from "bg2e-js";
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas
-} = app;
-const {
-    Loader,
-    registerLoaderPlugin,
-    VitscnjLoaderPlugin
-} = db;
-const {
-    Vec
-} = math;
-const {
-    WebGLRenderer,
-    SceneAppController
-} = render;
-const {
-    OpticalProjectionStrategy,
-    registerComponents,
-    FindNodeVisitor,
-    CameraComponent
-} = scene;
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Loader, { registerLoaderPlugin } from "bg2e-js/ts/db/Loader.ts";
+import VitscnjLoaderPlugin from "bg2e-js/ts/db/VitscnjLoaderPlugin.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import SceneAppController from "bg2e-js/ts/render/SceneAppController.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import CameraComponent, { OpticalProjectionStrategy } from "bg2e-js/ts/scene/Camera.ts";
+import OrbitCameraController from "bg2e-js/ts/scene/OrbitCameraController.ts";
+import FindNodeVisitor from "bg2e-js/ts/scene/FindNodeVisitor.ts";
+import { registerComponents } from "bg2e-js/ts/scene/index.ts";
+import { SelectionChangedCallback, SelectionChangedData } from "bg2e-js/ts/manipulation/SelectionManager.js";
 
 class MyAppController extends SceneAppController {
+    private _textContainer!: HTMLElement;
+
     createOutputText() {
         const textContainer = document.createElement("h1");
         document.body.appendChild(textContainer);
@@ -36,7 +25,7 @@ class MyAppController extends SceneAppController {
         this._textContainer = textContainer;
     }
 
-    printText(text) {
+    printText(text: string) {
         this._textContainer.innerHTML += `<br/>${text}`;
     }
 
@@ -77,22 +66,23 @@ class MyAppController extends SceneAppController {
         // Get main camera
         // Add Orbit camera controller component to the camera node
         const mainCamera = CameraComponent.GetMain(root);
-        mainCamera.projectionStrategy = new OpticalProjectionStrategy();
-        mainCamera.projectionStrategy.focalLength = 55;
-        mainCamera.projectionStrategy.frameSize = 35;
-        const cameraController = mainCamera.node.component("OrbitCameraController");
-        if (cameraController) {
-            cameraController.center = new Vec(0,1,0);
-            cameraController.distance = 10;
+        if (mainCamera) {
+            const strategy = new OpticalProjectionStrategy();
+            strategy.focalLength = 55;
+            strategy.frameSize = 35;
+            mainCamera.projectionStrategy = strategy;
+            const cameraController = mainCamera.node.component("OrbitCameraController") as OrbitCameraController;
+            if (cameraController) {
+                cameraController.center = new Vec(0,1,0);
+                cameraController.distance = 10;
+            }
         }
-
-        window.root = root;
 
         return root;
     }
 
     async loadDone() {
-        this.selectionManager.onSelectionChanged("appController", selection => {
+        this.selectionManager.onSelectionChanged("appController", (selection: SelectionChangedData[]) => {
             this.clearText();
             this.printText("Selection changed:");
             selection.forEach(item => {
@@ -108,12 +98,16 @@ class MyAppController extends SceneAppController {
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "100vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();
     const mainLoop = new MainLoop(canvas, appController);
     mainLoop.updateMode = FrameUpdate.MANUAL;
     await mainLoop.run();
-    window.mainLoop = mainLoop;
 }

@@ -1,37 +1,17 @@
-import { app, base, db, math, render, scene } from "bg2e-js";
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas
-} = app;
-const {
-    Texture,
-    ProceduralTextureFunction
-} = base;
-const {
-    Loader,
-    registerLoaderPlugin,
-    VitscnjLoaderPlugin
-} = db;
-const {
-    Vec
-} = math;
-const {
-    WebGLRenderer,
-    SceneAppController
-} = render;
-const {
-    OpticalProjectionStrategy,
-    OrbitCameraController,
-    registerComponents,
-    FindNodeVisitor,
-    CameraComponent,
-    registercomponents
-} = scene;
-
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Texture, { ProceduralTextureFunction } from "bg2e-js/ts/base/Texture.ts";
+import Loader, { registerLoaderPlugin } from "bg2e-js/ts/db/Loader.ts";
+import VitscnjLoaderPlugin from "bg2e-js/ts/db/VitscnjLoaderPlugin.ts";
+import SceneAppController from "bg2e-js/ts/render/SceneAppController.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import CameraComponent, { OpticalProjectionStrategy, ProjectionStrategy } from "bg2e-js/ts/scene/Camera.ts";
+import FindNodeVisitor from "bg2e-js/ts/scene/FindNodeVisitor.ts";
+import { registerComponents } from "bg2e-js/ts/scene/index.ts";
 
 class MyAppController extends SceneAppController {
+    private _textContainer!: HTMLElement;
+
     createOutputText() {
         const textContainer = document.createElement("h1");
         document.body.appendChild(textContainer);
@@ -43,7 +23,7 @@ class MyAppController extends SceneAppController {
         this._textContainer = textContainer;
     }
 
-    printText(text) {
+    printText(text: string) {
         this._textContainer.innerHTML += `<br/>${text}`;
     }
 
@@ -75,11 +55,15 @@ class MyAppController extends SceneAppController {
         // Get main camera
         // Add Orbit camera controller component to the camera node
         const mainCamera = CameraComponent.GetMain(root);
-        mainCamera.projectionStrategy = new OpticalProjectionStrategy();
-        mainCamera.projectionStrategy.focalLength = 55;
-        mainCamera.projectionStrategy.frameSize = 35;
-        mainCamera.projectionStrategy.near = 0.1;
-        mainCamera.projectionStrategy.far = 1000.0;
+        if (!mainCamera) {
+            throw new Error("No main camera found in the scene");
+        }
+        const proj = new OpticalProjectionStrategy();
+        mainCamera.projectionStrategy = proj;
+        proj.focalLength = 55;
+        proj.frameSize = 35;
+        proj.near = 0.1;
+        proj.far = 1000.0;
 
         // Find floor to set the canvas texture
         const findVisitor = new FindNodeVisitor();
@@ -104,14 +88,11 @@ class MyAppController extends SceneAppController {
             });
         });
 
-        window.findVisitor = findVisitor;
-
-        window.root = root;
         return root;
     }
 
     async loadDone() {
-        this.selectionManager.onSelectionChanged("appController", selection => {
+        this.selectionManager?.onSelectionChanged("appController", selection => {
             this.clearText();
             this.printText("Selection changed:");
             selection.forEach(item => {
@@ -124,8 +105,12 @@ class MyAppController extends SceneAppController {
 }
 
 function initCanvas() {
-    const canvas = document.getElementById('canvas-2d');
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('canvas-2d') as HTMLCanvasElement;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) {
+        console.error("Cannot find canvas element with id 'canvas-2d' or cannot get 2D context");
+        return;
+    }
 
     ctx.fillStyle = "red";
     ctx.fillRect(0, 0, 255, 255);
@@ -150,12 +135,16 @@ function initCanvas() {
 window.onload = async () => {
     initCanvas();
 
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "50vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();
     const mainLoop = new MainLoop(canvas, appController);
     mainLoop.updateMode = FrameUpdate.MANUAL;
     await mainLoop.run();
-    window.mainLoop = mainLoop;
 }

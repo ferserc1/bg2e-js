@@ -1,10 +1,17 @@
 import NodeVisitor from "../scene/NodeVisitor";
 import SelectionMode from "./SelectionMode";
 import Color from "../base/Color";
+import Node from "../scene/Node";
 
-const getColor = (comps) => "" + comps[0] + comps[1] + comps[2];
+const getColor = (comps: number[]) => "" + comps[0] + comps[1] + comps[2];
 
 export default class SelectionAssignVisitor extends NodeVisitor {
+    protected _selectionMode: SelectionMode;
+    protected _elements: Record<string, any>;
+    protected _r: number = 0;
+    protected _g: number = 0;
+    protected _b: number = 0;
+
     constructor() {
         super();
 
@@ -49,7 +56,11 @@ export default class SelectionAssignVisitor extends NodeVisitor {
         return new Color([components[0]/255, components[1]/255, components[2]/255, 1]);
     }
 
-    findElement(pickedColor) {
+    findElement(pickedColor: Uint8Array | undefined | null) {
+        if (!pickedColor) {
+            return null;
+        }
+
         const color = [
             pickedColor[0],
             pickedColor[1],
@@ -58,7 +69,7 @@ export default class SelectionAssignVisitor extends NodeVisitor {
         return this._elements[getColor(color)];
     }
 
-    visit(node) {
+    visit(node: Node) {
         const { drawable } = node;
         if (drawable) {
             let color = this.getNextColor();

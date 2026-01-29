@@ -1,42 +1,22 @@
-import { app, base, db, math, render, primitives, scene } from "bg2e-js";
-
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas,
-    AppController
-} = app;
-const {
-    Color,
-    Material
-} = base;
-const {
-    Bg2LoaderPlugin,
-    Loader,
-    registerLoaderPlugin
-} = db;
-const {
-    Mat4,
-    Vec
-} = math;
-const {
-    createCube,
-    createSphere,
-    createCylinder,
-    createCone,
-    createPlane
-} = primitives;
-const {
-    RenderState,
-    Shader,
-    webgl,
-    WebGLRenderer
-} = render;
-const {
-    registerComponents
-} = scene;
-const ShaderProgram = webgl.ShaderProgram;
-
+import AppController from "bg2e-js/ts/app/AppController.ts";
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Color from "bg2e-js/ts/base/Color.ts";
+import Material from "bg2e-js/ts/base/Material.ts";
+import Bg2LoaderPlugin from "bg2e-js/ts/db/Bg2LoaderPlugin.ts";
+import Loader, { registerLoaderPlugin } from "bg2e-js/ts/db/Loader.ts";
+import Mat4 from "bg2e-js/ts/math/Mat4.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import { createCone, createCube, createCylinder, createPlane, createSphere } from "bg2e-js/ts/primitives/index.ts";
+import WebGLMaterialRenderer from "bg2e-js/ts/render/webgl/MaterialRenderer.ts";
+import WebGLPolyListRenderer from "bg2e-js/ts/render/webgl/PolyListRenderer.js";
+import RenderState from "bg2e-js/ts/render/RenderState.ts";
+import Renderer from "bg2e-js/ts/render/Renderer.ts";
+import Shader from "bg2e-js/ts/render/Shader.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import ShaderProgram from "bg2e-js/ts/render/webgl/ShaderProgram.ts";
+import PolyList from "bg2e-js/ts/base/PolyList.js";
+import { registerComponents } from "bg2e-js/ts/scene/index.ts";
 /*
  * This example shows the use of the utility functions of webgl.MaterialRender 
  * and webgl.ShaderProgram to pass uniform variables and attributes.
@@ -56,7 +36,10 @@ const ShaderProgram = webgl.ShaderProgram;
  */
 
 class MyWebGLShader extends Shader {
-    constructor(renderer) {
+    private _program: ShaderProgram;
+    private _checked: boolean = false;
+
+    constructor(renderer: Renderer) {
         super(renderer);
 
         const vertexShaderCode = 
@@ -89,7 +72,7 @@ class MyWebGLShader extends Shader {
                 gl_FragColor = vec4(texColor.rgb * uFixedColor.rgb, 1.0);
             }`;
         
-        const { gl } = renderer;
+        const { gl } = (renderer as WebGLRenderer);
         this._program = new ShaderProgram(gl, "SimpleColorCombination");
         this._program.attachVertexSource(vertexShaderCode);
         this._program.attachFragmentSource(fragmentShaderCode);
@@ -100,8 +83,15 @@ class MyWebGLShader extends Shader {
     async load() {
     }
 
-    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
-        this.renderer.state.shaderProgram = this._program;
+    setup(
+        plistRenderer: WebGLPolyListRenderer,
+        materialRenderer: WebGLMaterialRenderer,
+        modelMatrix: Mat4,
+        viewMatrix: Mat4,
+        projectionMatrix: Mat4
+    ) {
+        const renderer = this.renderer as WebGLRenderer;
+        renderer.state.shaderProgram = this._program;
         
         this._program.bindMatrix('mWorld', modelMatrix);
         this._program.bindMatrix('mView', viewMatrix);
@@ -120,8 +110,8 @@ class MyWebGLShader extends Shader {
         // The trick is to pass as default value a value that is neutral in the shader, for 
         // this reason bindTexture sends by default a white texture, and bindColor sends a 
         // white color.
-        materialRenderer.bindTexture(this._program, 'diffuse', 'uTexture', 0);
-        materialRenderer.bindColor(this._program, 'diffuse', 'uFixedColor');
+        materialRenderer.bindTexture(this._program, 'albedoTexture', 'uTexture', 0);
+        materialRenderer.bindColor(this._program, 'albedo', 'uFixedColor');
         
 
         // The bindAttribs function allows you to activate all the atrib variables in a single call and with a much simpler syntax
@@ -143,8 +133,22 @@ class MyWebGLShader extends Shader {
 
 
 class MyAppController extends AppController {
+    [key: string]: any;
+    private _plistRenderers: {
+        plistRenderer: WebGLPolyListRenderer,
+        materialRenderer: WebGLMaterialRenderer,
+        transform: Mat4
+    }[] = [];
+    private _shader: MyWebGLShader | null = null;
+    private _renderStates: RenderState[] = [];
+    private _worldMatrix: Mat4 = Mat4.MakeIdentity();
+    private _viewMatrix: Mat4 = Mat4.MakeIdentity();
+    private _projMatrix: Mat4 = Mat4.MakeIdentity();
+    private _angle: number = 0;
+    private _elapsed: number = 0;
+
     async init() {
-        if (!this.renderer instanceof WebGLRenderer) {
+        if (!(this.renderer instanceof WebGLRenderer)) {
             throw new Error("This example works only with WebGL Renderer");
         }
 
@@ -160,7 +164,9 @@ class MyAppController extends AppController {
         registerComponents();
         const loader = new Loader();
         const drawable = await loader.loadDrawable("../resources/cubes.bg2");
-        this._plistRenderers = drawable.items.map(({ polyList, material, transform }) => {
+        this._plistRenderers = drawable.items.map(({
+            polyList, material, transform
+        } : { polyList: PolyList, material: Material, transform: Mat4 }) => {
             const plistRenderer = this.renderer.factory.polyList(polyList);
             const materialRenderer = this.renderer.factory.material(material);
             return {
@@ -171,58 +177,62 @@ class MyAppController extends AppController {
         });
 
         this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createCube(5,0.5,2)),
+            plistRenderer: this.renderer.factory.polyList(createCube(5,0.5,2)) as WebGLPolyListRenderer,
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
                 diffuse: [0.8, 0.4, 0.1]
-            })),
+            })) as WebGLMaterialRenderer,
             transform: Mat4.MakeRotation(45,0,1,0)
         });
 
         this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createSphere(0.5)),
+            plistRenderer: this.renderer.factory.polyList(createSphere(0.5)) as WebGLPolyListRenderer,
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
                 diffuse: [0.3,0.98,0.05]
-            })),
+            })) as WebGLMaterialRenderer,
             transform: Mat4.MakeTranslation(2, 0, 0)
         });
 
         this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createCylinder(1,1)),
+            plistRenderer: this.renderer.factory.polyList(createCylinder(1,1)) as WebGLPolyListRenderer,
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
                 diffuse: [0.3,0.28,0.95]
-            })),
+            })) as WebGLMaterialRenderer,
             transform: Mat4.MakeTranslation(-2,0,0)
         });
 
         this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createCone(1,0.5)),
+            plistRenderer: this.renderer.factory.polyList(createCone(1,0.5)) as WebGLPolyListRenderer,
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
                 diffuse: [0.3,0.98,0.85]
-            })),
+            })) as WebGLMaterialRenderer,
             transform: Mat4.MakeTranslation(-2,0,-2)
         });
 
         this._plistRenderers.push({
-            plistRenderer: this.renderer.factory.polyList(createPlane(5, 5)),
+            plistRenderer: this.renderer.factory.polyList(createPlane(5, 5)) as WebGLPolyListRenderer,
             materialRenderer: this.renderer.factory.material(await Material.Deserialize({
                 diffuse: [0.93,0.98,0.05]
-            })),
+            })) as WebGLMaterialRenderer,
             transform: Mat4.MakeIdentity()
         });
     }
 
-    reshape(width,height) {
+    reshape(width: number,height: number) {
         const { state } = this.renderer;
         state.viewport = new Vec(width, height);
         this.renderer.canvas.updateViewportSize();
     }
 
-    frame(delta) {
+    async frame(delta: number) {
         this._elapsed = this._elapsed || 0;
         this._elapsed += delta / 1000;
         this._angle = this._angle || 0;
         this._worldMatrix = Mat4.MakeIdentity();
-        this._viewMatrix = Mat4.MakeLookAt([0, 0, -8], [0, 0, 0], [0, 1, 0]);
+        this._viewMatrix = Mat4.MakeLookAt(
+            new Vec(0, 0, -8),
+            new Vec(0, 0, 0),
+            new Vec(0, 1, 0)
+        );
         this._projMatrix = Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0);
 
         this._angle += (delta / 1000) * Math.PI / 2;
@@ -250,14 +260,19 @@ class MyAppController extends AppController {
     }
 
     destroy() {
-        this._plistRenderers.forEach(plRenderer => plRenderer.destroy());
+        this._plistRenderers.forEach(plRenderer => plRenderer.plistRenderer.destroy());
         this._plistRenderers = [];
-        this._shader.destroy();
+        this._shader?.destroy();
     }
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "100vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();

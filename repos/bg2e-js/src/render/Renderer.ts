@@ -9,10 +9,13 @@ import PolyListRenderer from "./PolyListRenderer";
 import MaterialRenderer from "./MaterialRenderer";
 import TextureRenderer from "./TextureRenderer";
 import RenderBuffer from "./RenderBuffer";
+import Pipeline from "./Pipeline";
 import PresentTextureShader from "../shaders/PresentTextureShader";
 import Vec from "../math/Vec";
 import SkySphere from "./SkySphere";
 import SkyCube from "./SkyCube";
+import ShadowRenderer from "./ShadowRenderer";
+import SceneRenderer from "./SceneRenderer";
 
 export enum EngineFeatures {
     RENDER_TARGET_TEXTURES = 0x1 << 0,
@@ -26,13 +29,13 @@ interface RendererFactory {
     material(material: Material): MaterialRenderer;
     texture(texture: Texture): TextureRenderer;
     renderBuffer(): RenderBuffer;
-    skySphere(): any;
-    skyCube(): any;
+    skySphere(): SkySphere;
+    skyCube(): SkyCube;
     environment(): Environment;
     textureMerger(): TextureMergerRenderer;
-    pipeline(): any;
-    scene(): any;
-    shadowRenderer(): any;
+    pipeline(): Pipeline;
+    scene(): SceneRenderer;
+    shadowRenderer(): ShadowRenderer;
 }
 
 export default class Renderer {
@@ -198,10 +201,10 @@ export default class Renderer {
             renderBuffer(): RenderBuffer {
                 return renderer.renderBufferFactory();
             },
-            skySphere(): any {
+            skySphere(): SkySphere {
                 return renderer.skySphereFactory();
             },
-            skyCube(): any {
+            skyCube(): SkyCube {
                 return renderer.skyCubeFactory();
             },
             environment(): Environment {
@@ -210,13 +213,13 @@ export default class Renderer {
             textureMerger(): TextureMergerRenderer {
                 return renderer.textureMergerFactory();
             },
-            pipeline(): any {
+            pipeline(): Pipeline {
                 return renderer.pipelineFactory();
             },
-            scene(): any {
+            scene(): SceneRenderer {
                 return renderer.sceneRendererFactory();
             },
-            shadowRenderer(): any {
+            shadowRenderer(): ShadowRenderer {
                 return renderer.shadowRendererFactory();
             }
         }

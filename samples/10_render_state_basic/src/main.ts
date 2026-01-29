@@ -1,51 +1,36 @@
-import { app, base, db, math, render, primitives, scene } from "bg2e-js";
+import math from "bg2e-js/ts/math/index.ts";
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.ts";
+import Canvas from "bg2e-js/ts/app/Canvas.ts";
+import AppController from "bg2e-js/ts/app/AppController.ts";
+import Bg2KeyboardEvent, { SpecialKey } from "bg2e-js/ts/app/Bg2KeyboardEvent.ts";
+import Color from "bg2e-js/ts/base/Color.ts";
+import Material from "bg2e-js/ts/base/Material.ts";
+import PolyList from "bg2e-js/ts/base/PolyList.ts";
+import Texture, { ProceduralTextureFunction } from "bg2e-js/ts/base/Texture.ts";
+import { RenderLayer } from "bg2e-js/ts/base/PolyList.ts";
+import Bg2LoaderPlugin from "bg2e-js/ts/db/Bg2LoaderPlugin.ts";
+import Loader, { registerLoaderPlugin } from "bg2e-js/ts/db/Loader.ts";
+import Mat4 from "bg2e-js/ts/math/Mat4.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import { createCube, createSphere, createCylinder, createCone, createPlane } from "bg2e-js/ts/primitives/index.ts";
+import RenderState from "bg2e-js/ts/render/RenderState.ts";
+import Shader from "bg2e-js/ts/render/Shader.ts";
+import ShaderProgram from "bg2e-js/ts/render/webgl/ShaderProgram.ts";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import { registerComponents } from "bg2e-js/ts/scene/index.ts";
+import PolyListRenderer from "bg2e-js/ts/render/PolyListRenderer.js";
+import MaterialRenderer from "bg2e-js/ts/render/MaterialRenderer.js";
 
-const {
-    MainLoop,
-    FrameUpdate,
-    Canvas,
-    SpecialKey,
-    AppController
-} = app;
-const {
-    Color,
-    Material,
-    RenderLayer,
-    Texture,
-    ProceduralTextureFunction
-} = base;
-const {
-    Bg2LoaderPlugin,
-    Loader,
-    registerLoaderPlugin
-} = db;
-const {
-    Mat4,
-    Vec
-} = math;
-const {
-    createCube,
-    createSphere,
-    createCylinder,
-    createCone,
-    createPlane
-} = primitives;
-const {
-    RenderState,
-    Shader,
-    webgl,
-    WebGLRenderer
-} = render;
-const {
-    registerComponents
-} = scene;
-const ShaderProgram = webgl.ShaderProgram;
-
-window.Mat4 = Mat4;
-window.Vec = Vec;
+(window as any).Mat4 = Mat4;
+(window as any).Vec = Vec;
 
 class MyWebGLShader extends Shader {
-    constructor(renderer) {
+    private _program: ShaderProgram | null = null;
+    private _whiteTexture: Texture | null = null;
+    private _whiteTextureRenderer: any = null;
+    private _checked = false;
+
+    constructor(renderer: WebGLRenderer) {
         super(renderer);
 
         const vertexShaderCode = 
@@ -95,10 +80,14 @@ class MyWebGLShader extends Shader {
         this._whiteTextureRenderer = this.renderer.factory.texture(this._whiteTexture);
     }
 
-    setup(plistRenderer, materialRenderer, modelMatrix, viewMatrix, projectionMatrix) {
+    setup(plistRenderer: any, materialRenderer: any, modelMatrix: Mat4, viewMatrix: Mat4, projectionMatrix: Mat4) {
         const material = materialRenderer.material;
-        const { gl } = this.renderer;
-        this.renderer.state.shaderProgram = this._program;
+        const renderer = this.renderer as WebGLRenderer;
+        const { gl } = renderer;
+        if (!this._program) {
+            return;
+        }
+        renderer.state.shaderProgram = this._program;
 
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
@@ -123,15 +112,25 @@ class MyWebGLShader extends Shader {
     }
 
     destroy() {
-        ShaderProgram.Delete(this._program);
+        if (this._program) {
+            ShaderProgram.Delete(this._program);
+        }
     }
 }
 
-
-
 class MyAppController extends AppController {
+    private _shader: MyWebGLShader | null = null;
+    private _plistRenderers: Array<{ plistRenderer: PolyListRenderer; materialRenderer: MaterialRenderer; transform: Mat4 }> = [];
+    private _renderStates: RenderState[] = [];
+    private _color: Color = Color.Black();
+    private _elapsed = 0;
+    private _angle = 0;
+    private _worldMatrix: Mat4 = Mat4.MakeIdentity();
+    private _viewMatrix: Mat4 = Mat4.MakeIdentity();
+    private _projMatrix: Mat4 = Mat4.MakeIdentity();
+
     async init() {
-        if (!this.renderer instanceof WebGLRenderer) {
+        if (!(this.renderer instanceof WebGLRenderer)) {
             throw new Error("This example works only with WebGL Renderer");
         }
 
@@ -146,7 +145,9 @@ class MyAppController extends AppController {
         registerComponents();
         const loader = new Loader();
         const drawable = await loader.loadDrawable("../resources/cubes.bg2");
-        this._plistRenderers = drawable.items.map(({ polyList, material, transform }) => {
+        this._plistRenderers = drawable.items.map(({
+            polyList, material, transform
+        } : { polyList: PolyList, material: Material, transform: Mat4 }) => {
             const plistRenderer = this.renderer.factory.polyList(polyList);
             const materialRenderer = this.renderer.factory.material(material);
             return {
@@ -198,7 +199,7 @@ class MyAppController extends AppController {
         
         this._color = Color.Black();
 
-        window.cubes = drawable;
+        (window as any).cubes = drawable;
         console.log(RenderLayer);
 
         const layer = RenderLayer.LAYER_31 | RenderLayer.LAYER_0;
@@ -210,18 +211,22 @@ class MyAppController extends AppController {
         console.log((layer2 >>> 0).toString(2));
     }
 
-    reshape(width,height) {
+    reshape(width: number, height: number) {
         const { state } = this.renderer;
         state.viewport = new Vec(width, height);
         this.renderer.canvas.updateViewportSize();
     }
 
-    frame(delta) {
+    async frame(delta: number) {
         this._elapsed = this._elapsed || 0;
         this._elapsed += delta / 1000;
         this._angle = this._angle || 0;
         this._worldMatrix = Mat4.MakeIdentity();
-        this._viewMatrix = Mat4.MakeLookAt([0, 0, -8], [0, 0, 0], [0, 1, 0]);
+        this._viewMatrix = Mat4.MakeLookAt(
+            new Vec(0, 0, -8),
+            new Vec(0, 0, 0),
+            new Vec(0, 1, 0)
+        );
         this._projMatrix = Mat4.MakePerspective(45, this.canvas.viewport.aspectRatio, 0.1, 1000.0);
 
         this._angle += (delta / 1000) * Math.PI / 2;
@@ -253,6 +258,9 @@ class MyAppController extends AppController {
     }
 
     display() {
+        if (!this._shader) {
+            return;
+        }
         const { state } = this.renderer;
         const clearColor = Color.Sub(Color.White(), this._color);
         clearColor.a = 1;
@@ -263,13 +271,12 @@ class MyAppController extends AppController {
     }
 
     destroy() {
-        this._plistRenderers.forEach(plRenderer => plRenderer.destroy());
+        this._plistRenderers.forEach(plRenderer => plRenderer.plistRenderer.destroy());
         this._plistRenderers = [];
-        this._shader.destroy();
+        this._shader?.destroy();
     }
 
-    keyUp(evt) {
-        const { gl } = this.renderer;
+    keyUp(evt: Bg2KeyboardEvent) {
         if (evt.key === SpecialKey.ESCAPE) {
             this.mainLoop.exit();
         }
@@ -289,7 +296,12 @@ class MyAppController extends AppController {
 }
 
 window.onload = async () => {
-    const canvas = new Canvas(document.getElementById('gl-canvas'), new WebGLRenderer());
+    const canvasElem = document.getElementById('gl-canvas') as HTMLCanvasElement;
+    if (!canvasElem) {
+        console.error("Cannot find canvas element with id 'gl-canvas'");
+        return;
+    }
+    const canvas = new Canvas(canvasElem, new WebGLRenderer());
     canvas.domElement.style.width = "100vw";
     canvas.domElement.style.height = "100vh";
     const appController = new MyAppController();
