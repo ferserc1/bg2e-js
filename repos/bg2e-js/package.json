@@ -14,7 +14,6 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./dist/bg2e-js.js",
-      "require": "./dist/bg2e-js.js",
       "default": "./dist/bg2e-js.js"
     },
     "./ts": {

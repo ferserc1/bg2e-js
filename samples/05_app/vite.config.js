@@ -6,6 +6,13 @@ const bg2ioPath = '../../node_modules/bg2io/';
 
 export default defineConfig({
   assetsInclude: ["**/*.glsl"],
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        ".glsl": "text",
+      },
+    },
+  },
   plugins: [
     viteStaticCopy({
       targets: [

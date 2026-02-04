@@ -16,5 +16,12 @@ export default defineConfig({
     },
     sourcemap: true
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        ".glsl": "text",
+      },
+    },
+  },
   assetsInclude: ["**/*.glsl"]
 })
