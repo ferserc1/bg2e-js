@@ -117,6 +117,10 @@ export const vectorTypeLoader: TypeLoader = {
         else if (obj.length >= 2 && obj.length <= 4) {
             return new Vec(obj);
         }
+        // Retrocompatibility with v1.4
+        else if (obj._v && obj._v.length >= 2 && obj._v.length <= 4) {
+            return new Vec(obj._v);
+        }
         else {
             throw new Error(`Invalid parameter found in material deserialization. The required parameter type is array with 2, 3 or 4 elements`);
         }
