@@ -2,7 +2,7 @@ import Resource, { removeFileName, ResourceType } from "../tools/Resource";
 import LoaderPlugin from "./LoaderPlugin";
 import Node from "../scene/Node";
 import { deserializeComponent } from "../scene/Component";
-import Bg2LoaderPlugin from "./Bg2LoaderPlugin";
+import Bg2LoaderPlugin, { MaterialImportCallback } from "./Bg2LoaderPlugin";
 import Loader from "./Loader";
 
 interface NodeData {
@@ -51,16 +51,26 @@ export type DrawableFormatValue = typeof DrawableFormat[keyof typeof DrawableFor
 let g_prefDrawableFormat: DrawableFormatValue = DrawableFormat.BG2;
 export default class VitscnjLoaderPlugin extends LoaderPlugin {
     private _bg2ioPath: string | null;
+    private _materialImportCallback?: MaterialImportCallback;
 
     static PreferredDrawableFormat(): DrawableFormatValue {
         return g_prefDrawableFormat;
     }
 
-    constructor({ bg2ioPath, preferedDrawableFormat = DrawableFormat.BG2 }: { bg2ioPath: string | null; preferedDrawableFormat?: DrawableFormatValue } = { bg2ioPath: null }) {
+    constructor({
+        bg2ioPath,
+        preferedDrawableFormat = DrawableFormat.BG2,
+        materialImportCallback
+    }: {
+        bg2ioPath: string | null
+        preferedDrawableFormat?: DrawableFormatValue
+        materialImportCallback?: MaterialImportCallback
+    } = { bg2ioPath: null }) {
         super();
 
         this._bg2ioPath = bg2ioPath;
         g_prefDrawableFormat = preferedDrawableFormat;
+        this._materialImportCallback = materialImportCallback;
     }
 
     get supportedExtensions(): string[] { return ["vitscnj"]; }
@@ -95,6 +105,9 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
     }
 
     get dependencies(): LoaderPlugin[] {
-        return [new Bg2LoaderPlugin({ bg2ioPath: this._bg2ioPath })];
+        return [new Bg2LoaderPlugin({
+            bg2ioPath: this._bg2ioPath,
+            materialImportCallback: this._materialImportCallback
+        })];
     }
 }

@@ -81,13 +81,23 @@ const createNode = async (jsonData: any, filePath: string, loader: Loader): Prom
     return node;
 }
 
+export type MaterialImportCallback = (matData: any) => any;
+
 export default class Bg2LoaderPlugin extends LoaderPlugin {
     private _bg2ioPath: string | null;
     private _resource: Resource;
+    private _materialImportCallback?: MaterialImportCallback;
 
-    constructor( { bg2ioPath = null }: { bg2ioPath?: string | null } = {}) {
+    constructor( {
+        bg2ioPath = null,
+        materialImportCallback
+    }: {
+        bg2ioPath?: string | null,
+        materialImportCallback?: MaterialImportCallback
+    } = {}) {
         super();
         this._bg2ioPath = bg2ioPath;
+        this._materialImportCallback = materialImportCallback;
         this._resource = new Resource();
     }
 
@@ -114,6 +124,10 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
                 delete mat["class"];
             }
         });
+
+        if (this._materialImportCallback) {
+            jsonData.materials = jsonData.materials.map((mat: any) => this._materialImportCallback!(mat));
+        }
         
         switch (resourceType) {
         case ResourceType.PolyList:
