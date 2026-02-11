@@ -433,7 +433,7 @@ export default class MaterialModifier {
         }
 
         if (this.lightEmissionScale !== undefined) {
-            material.lightEmissionScale = this.lightEmissionScale;
+            material.lightEmissionScale = new Vec(this.lightEmissionScale);
         }
 
         if (this.unlit !== undefined) {
