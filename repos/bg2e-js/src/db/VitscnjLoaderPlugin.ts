@@ -2,7 +2,7 @@ import Resource, { removeFileName, ResourceType } from "../tools/Resource";
 import LoaderPlugin from "./LoaderPlugin";
 import Node from "../scene/Node";
 import { deserializeComponent } from "../scene/Component";
-import Bg2LoaderPlugin, { MaterialImportCallback } from "./Bg2LoaderPlugin";
+import Bg2LoaderPlugin, { type MaterialImportCallback } from "./Bg2LoaderPlugin";
 import Loader from "./Loader";
 
 interface NodeData {

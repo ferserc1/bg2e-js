@@ -16,9 +16,9 @@ import type SkyCube from "./SkyCube";
 import type ShadowRenderer from "./ShadowRenderer";
 import type EnvironmentRenderer from "../render/Environment";
 import type EnvironmentComponent from "../scene/EnvironmentComponent";
-import KeyboardEvent from "../app/KeyboardEvent"
-import MouseEvent from "../app/MouseEvent"
-import TouchEvent from "../app/TouchEvent";
+import KeyboardEvent from "../app/Bg2KeyboardEvent"
+import MouseEvent from "../app/Bg2MouseEvent"
+import TouchEvent from "../app/Bg2TouchEvent";
 
 export class FrameVisitor extends NodeVisitor {
     _renderQueue: RenderQueue;
