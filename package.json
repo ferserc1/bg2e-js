@@ -35,7 +35,8 @@
     "dev:selection": "npm --prefix samples/23_selection run dev",
     "dev:canvas_texture": "npm --prefix samples/24_canvas_texture run dev",
     "dev:debug": "npm --prefix samples/25_debug run dev",
-    "dev:model_load": "npm --prefix samples/26_model_load run dev"
+    "dev:model_load": "npm --prefix samples/26_model_load run dev",
+    "dev:material_modifier": "npm --prefix samples/27_material_modifier run dev"
   },
   "repository": {
     "type": "git",
