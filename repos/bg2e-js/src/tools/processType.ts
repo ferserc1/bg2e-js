@@ -21,12 +21,13 @@ export const getProcessTypeName = (type: ProcessType): string => {
 };
 
 export const getProcessType = (): ProcessType => {
-    if (typeof process !== 'undefined' && process.release.name === 'node') {
-        return ProcessType.NODE;
-    }
-    else {
+    // TODO: Node process detection disabled for now
+    //if (typeof process !== 'undefined' && process.release.name === 'node') {
+    //    return ProcessType.NODE;
+    //}
+    //else {
         return ProcessType.BROWSER;
-    }
+    //}
 }
 
 export const isBrowser = (): boolean => {

@@ -8,8 +8,8 @@ import ShaderFunction, {
     generateShaderLibrary,
     extractConstants,
     processConstants,
-    ConstantDefinition,
-    DependencyItem
+    type ConstantDefinition,
+    type DependencyItem
 } from "../ShaderFunction";
 
 let g_constants: ConstantDefinition[] | null = null;

@@ -10,6 +10,7 @@ import OrbitCameraController from "bg2e-js/ts/scene/OrbitCameraController.ts";
 import FindNodeVisitor from "bg2e-js/ts/scene/FindNodeVisitor.ts";
 import { registerComponents } from "bg2e-js/ts/scene/index.ts";
 import { SelectionChangedData } from "bg2e-js/ts/manipulation/SelectionManager.js";
+import MaterialModifier, { MaterialModifierData } from "bg2e-js/ts/tools/MaterialModifier.ts";
 
 class MyAppController extends SceneAppController {
     private _textContainer!: HTMLElement;
@@ -47,10 +48,7 @@ class MyAppController extends SceneAppController {
         // bg2ioPath is the path from the html file to the distribution files of the bg2io library, if
         // this path is different from the compiled js file (generated from this file, in this case, 
         // using Rollup)
-        registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "dist/", materialImportCallback: (mat: any) => {
-            console.log(mat);
-            return mat;
-        } }));
+        registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "dist/" }));
         registerComponents();
 
         // Load scene
@@ -63,6 +61,9 @@ class MyAppController extends SceneAppController {
         root.accept(findVisitor);
         findVisitor.result.forEach(node => {
             node.drawable?.makeSelectable(node.name === "Ball");
+            node.drawable?.items.forEach(item => {
+                item.polyList.groupName = "material(base)";
+            })
         });
 
 
@@ -85,11 +86,23 @@ class MyAppController extends SceneAppController {
     }
 
     async loadDone() {
+        const texturesPath = "../resources/";
+        const materialModifierData: MaterialModifierData = {
+            diffuse: [ 1, 0, 0, 1 ],    // Deprecated property example
+            albedoTexture: "logo.png",
+            albedoScale: [6, 6],
+            normalTexture: "logo_nm.png",
+            normalScale: [6, 6],
+        };
+
         this.selectionManager?.onSelectionChanged("appController", (selection: SelectionChangedData[]) => {
             this.clearText();
             this.printText("Selection changed:");
+            const materialModifier = new MaterialModifier(materialModifierData, texturesPath);
+
             selection.forEach(item => {
                 this.printText(`&nbsp;${ item.drawable.name }`);
+                materialModifier.applyDrawable(this.canvas, item.drawable, { groupRE: /^material\(([a-z0-9]+)\)$/ });
             });
         });
 

@@ -65,7 +65,7 @@ float sampleLightEmission(sampler2D tex, vec2 uv0, vec2 uv1, PBRMaterialData mat
 vec3 sampleNormal(sampler2D tex, vec2 uv0, vec2 uv1, PBRMaterialData mat, mat3 TBN)
 {
     vec2 uv = mat.normalUVSet == 0 ? uv0 : uv1;
-    vec3 normal = texture2D(tex, uv).xyz * 2.0 - 1.0;
+    vec3 normal = texture2D(tex, uv * mat.normalScale).xyz * 2.0 - 1.0;
     return normalize(TBN * normal);
 }
 
