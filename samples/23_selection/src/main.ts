@@ -82,7 +82,7 @@ class MyAppController extends SceneAppController {
     }
 
     async loadDone() {
-        this.selectionManager.onSelectionChanged("appController", (selection: SelectionChangedData[]) => {
+        this.selectionManager?.onSelectionChanged("appController", (selection: SelectionChangedData[]) => {
             this.clearText();
             this.printText("Selection changed:");
             selection.forEach(item => {

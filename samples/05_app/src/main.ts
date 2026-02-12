@@ -1,17 +1,9 @@
 
-import { app, render } from "bg2e-js/ts";
 
-const {
-	MainLoop,
-	FrameUpdate,
-	Canvas,
-	AppController
-} = app;
-
-const {
-	WebGLRenderer
-} = render;
-
+import MainLoop, { FrameUpdate } from "bg2e-js/ts/app/MainLoop.js";
+import Canvas from "bg2e-js/ts/app/Canvas.js";
+import AppController from "bg2e-js/ts/app/AppController.js";
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
 import Bg2KeyboardEvent from "bg2e-js/ts/app/Bg2KeyboardEvent.ts";
 import Bg2MouseEvent from "bg2e-js/ts/app/Bg2MouseEvent.ts";
 import Bg2TouchEvent from "bg2e-js/ts/app/Bg2TouchEvent.ts";
@@ -24,7 +16,7 @@ class MyAppController extends AppController {
 
     reshape(width: number, height: number) {
         console.log(`reshape - width:${width}, height:${height}`);
-        const { gl } = this.renderer;
+        const { gl } = this.renderer as WebGLRenderer;
         gl.viewport(0, 0, width, height);
     }
 
@@ -33,7 +25,7 @@ class MyAppController extends AppController {
     }
 
     display() {
-        const { gl } = this.renderer;
+        const { gl } = this.renderer as WebGLRenderer;
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
         console.log("display");
