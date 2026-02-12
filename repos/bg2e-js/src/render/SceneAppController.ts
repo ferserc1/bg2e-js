@@ -13,13 +13,14 @@ import Bg2MouseEvent from "../app/Bg2MouseEvent";
 import Bg2TouchEvent from "../app/Bg2TouchEvent";
 
 export default class SceneAppController extends AppController {
-    _sceneRoot: Node | null = null;
-    _sceneRenderer: SceneRenderer | null = null;
-    _environment: Environment | null = null;
-    _selectionManager: SelectionManager | null = null;
-    _selectionHighlight: SelectionHighlight | null = null;
-    _updateOnInputEvents: boolean | undefined;
-    _debugRenderer: DebugRenderer | null = null;
+    protected _sceneRoot: Node | null = null;
+    protected _sceneRenderer: SceneRenderer | null = null;
+    protected _environment: Environment | null = null;
+    protected _selectionManager: SelectionManager | null = null;
+    protected _selectionHighlight: SelectionHighlight | null = null;
+    protected _updateOnInputEvents: boolean | undefined;
+    protected _debugRenderer: DebugRenderer | null = null;
+    protected _updateInputEventsFrameCount: number = 60;
 
     get sceneRoot(): Node | null {
         return this._sceneRoot;
@@ -55,6 +56,14 @@ export default class SceneAppController extends AppController {
 
     set updateOnInputEvents(update: boolean) {
         this._updateOnInputEvents = update;
+    }
+
+    get updateInputEventsFrameCount(): number {
+        return this._updateInputEventsFrameCount;
+    }
+
+    set updateInputEventsFrameCount(count: number) {
+        this._updateInputEventsFrameCount = count;
     }
 
     async loadScene(): Promise<Node> {
@@ -158,14 +167,14 @@ export default class SceneAppController extends AppController {
     keyDown(evt: Bg2KeyboardEvent): void {
         this.sceneRoot && this.sceneRenderer?.keyDown(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     keyUp(evt: Bg2KeyboardEvent): void {
         this.sceneRoot && this.sceneRenderer?.keyUp(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
@@ -173,7 +182,7 @@ export default class SceneAppController extends AppController {
         this.sceneRoot && this.sceneRenderer?.mouseUp(this.sceneRoot, evt);
         this.selectionManager?.mouseUp(evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
@@ -181,35 +190,35 @@ export default class SceneAppController extends AppController {
         this.sceneRoot && this.sceneRenderer?.mouseDown(this.sceneRoot, evt);
         this.selectionManager?.mouseDown(evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     mouseMove(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseMove(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     mouseOut(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseOut(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     mouseDrag(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseDrag(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     mouseWheel(evt: Bg2MouseEvent): void {
         this.sceneRoot && this.sceneRenderer?.mouseWheel(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
@@ -217,14 +226,14 @@ export default class SceneAppController extends AppController {
         this.sceneRoot && this.sceneRenderer?.touchStart(this.sceneRoot, evt);
         this.selectionManager?.touchStart(evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     touchMove(evt: Bg2TouchEvent): void {
         this.sceneRoot && this.sceneRenderer?.touchMove(this.sceneRoot, evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
@@ -232,7 +241,7 @@ export default class SceneAppController extends AppController {
         this.sceneRoot && this.sceneRenderer?.touchEnd(this.sceneRoot, evt);
         this.selectionManager?.touchEnd(evt);
         if (this.updateOnInputEvents) {
-            this.mainLoop.postRedisplay();
+            this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }   
 }
