@@ -244,6 +244,10 @@ export default class Mat4 extends NumericArray {
 		return Mat4.TransformDirection(this, new Vec(0.0, -1.0, 0.0));
 	}
 
+	get translation(): Vec {
+		return new Vec(this[12], this[13], this[14]);
+	}
+
     row(i: number): Vec {
         return new Vec(
             this[i * 4], 

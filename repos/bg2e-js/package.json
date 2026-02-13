@@ -1,6 +1,6 @@
 {
   "name": "bg2e-js",
-  "version": "2.2.8",
+  "version": "2.2.9",
   "description": "a graphics engine for productivity applications",
   "main": "./dist/bg2e-js.js",
   "types": "./src/index.ts",
