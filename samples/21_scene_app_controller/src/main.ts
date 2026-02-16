@@ -17,6 +17,10 @@ import LightComponent from "bg2e-js/ts/scene/LightComponent.ts";
 import Node from "bg2e-js/ts/scene/Node.ts";
 import OrbitCameraControllerComponent from "bg2e-js/ts/scene/OrbitCameraController.ts";
 import TransformComponent from "bg2e-js/ts/scene/Transform.ts";
+import Drawable from "bg2e-js/ts/scene/Drawable.ts";
+import Color from "bg2e-js/ts/base/Color.js";
+import Texture from "bg2e-js/ts/base/Texture.js";
+import Vec from "bg2e-js/ts/math/Vec.js";
 
 class MyAppController extends SceneAppController {
     protected _sphereModel: PolyList | null = null;
@@ -115,9 +119,21 @@ class MyAppController extends SceneAppController {
         spheres.addChild(await addSphere(1.0, 0.1, [0.93, 0.95, 0.95, 1], [  3,-3, 0 ]));
 
         const loader = new Loader();
-        const drawable = await loader.loadDrawable("../resources/plane.obj");
+        const drawable: Drawable = await loader.loadDrawable("../resources/sphere.bg2");
+        drawable.items[0].material.albedo = new Color([0.8, 0.8, 0.8, 1]);
+        drawable.items[0].material.roughness = 0.3;
+        drawable.items[0].material.metalness = 0.4;
+        drawable.items[0].material.albedoScale = new Vec(3, 3);
+        const tex = new Texture();
+        tex.fileName = "../resources/logo_transparent.png";
+        await tex.loadImageData();
+        drawable.items[0].material.albedoTexture = tex;
+
+        console.log(drawable.items[0].material.albedo);
+
         const modelNode = new Node("Model");
         modelNode.addComponent(drawable);
+        modelNode.addComponent(new TransformComponent(Mat4.MakeScale(0.2, 0.2, 0.2).translate(0, 0, 0.5)));
         root.addChild(modelNode);
 
         const cameraNode = new Node("Camera");

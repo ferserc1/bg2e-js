@@ -23,7 +23,11 @@ import FindNodeVisitor from "./FindNodeVisitor";
 export const registerComponents = () => {
     registerComponent("Drawable", DrawableComponent);
     registerComponent("Transform", TransformComponent);
+
+    // Retrocompatibility: the light is registered with both "Light" and "LightComponent" names, but only "LightComponent" should be used in the future
     registerComponent("Light", LightComponent);
+    registerComponent("LightComponent", LightComponent);
+    
     registerComponent("Chain", ChainComponent);
     registerComponent("InputChainJoint", InputChainJointComponent);
     registerComponent("OutputChainJoint", OutputChainJointComponent);

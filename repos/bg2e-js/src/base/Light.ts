@@ -71,24 +71,24 @@ export default class Light {
     }
     
     get enabled() { return this._enabled; }
-    set enabled(v) { this._enabled = v; }
+    set enabled(v: boolean) { this._enabled = v; }
     
     get type() { return this._type; }
-    set type(t) { this._type = t; }
+    set type(t: LightType) { this._type = t; }
     
     get direction() { return this._direction; }
-    set direction(d) { this._direction = d; }
+    set direction(d: Vec) { this._direction = d; }
 
     get position() { return this._position; }
-    set position(p) { this._position = p; }
+    set position(p: Vec) { this._position = p; }
     
-    get color() { return this._color; }
-    set color(c) {
+    get color() : Color { return this._color; }
+    set color(c: Color | number[]) {
         if (c.length === 3) {
-            this._color = new Vec([c[0], c[1], c[2], 1]);
+            this._color = new Color([c[0], c[1], c[2], 1]);
         }
         else if (c.length === 4) {
-            this._color = new Vec(c);
+            this._color = new Color(c);
         }
         else {
             throw new Error(`Invalid light color assignment. Parameter must be a three or four component array.`);
