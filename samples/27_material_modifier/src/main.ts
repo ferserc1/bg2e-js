@@ -9,8 +9,8 @@ import CameraComponent, { OpticalProjectionStrategy } from "bg2e-js/ts/scene/Cam
 import OrbitCameraController from "bg2e-js/ts/scene/OrbitCameraController.ts";
 import FindNodeVisitor from "bg2e-js/ts/scene/FindNodeVisitor.ts";
 import { registerComponents } from "bg2e-js/ts/scene/index.ts";
-import { SelectionChangedData } from "bg2e-js/ts/manipulation/SelectionManager.js";
-import MaterialModifier, { MaterialModifierData } from "bg2e-js/ts/tools/MaterialModifier.ts";
+import { type SelectionChangedData } from "bg2e-js/ts/manipulation/SelectionManager.js";
+import MaterialModifier, { type MaterialModifierData } from "bg2e-js/ts/tools/MaterialModifier.ts";
 
 class MyAppController extends SceneAppController {
     private _textContainer!: HTMLElement;
