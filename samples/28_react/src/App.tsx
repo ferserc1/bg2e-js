@@ -9,8 +9,8 @@ import './App.css'
 function App() {
     const [count, setCount] = useState(0)
 
-    useBg2e("#bg2eCanvas", new WebGLRenderer(), new AppController());
-
+    const { canvas } = useBg2e("#bg2eCanvas", WebGLRenderer, AppController);
+    console.log(canvas);
     return (
         <>
             <div>

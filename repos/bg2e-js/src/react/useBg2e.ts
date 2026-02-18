@@ -15,7 +15,14 @@ function resolveCanvas(canvas: string | HTMLCanvasElement): HTMLCanvasElement | 
     }
 }
 
-export default function useBg2e(target: string | HTMLCanvasElement, renderer: Renderer, appController: AppController) {
+type RendererConstructor<T extends Renderer> = new () => T;
+type AppControllerConstructor<T extends AppController> = new () => T;
+
+export default function useBg2e<R extends Renderer, A extends AppController>(
+    target: string | HTMLCanvasElement,
+    RendererType: RendererConstructor<R>,
+    AppControllerType: AppControllerConstructor<A>
+) {
     const canvas = useMemo(() => {
         if (typeof document === "undefined") return null; // SSR guard
         return resolveCanvas(target);
@@ -41,6 +48,9 @@ export default function useBg2e(target: string | HTMLCanvasElement, renderer: Re
             return;
         }
 
+        const renderer = new RendererType();
+        const appController = new AppControllerType();
+
         const bg2Canvas = new Canvas(canvas, renderer);
         const mainLoop = new MainLoop(bg2Canvas, appController);
         
@@ -51,7 +61,7 @@ export default function useBg2e(target: string | HTMLCanvasElement, renderer: Re
         createdRef.current = true;
 
         forceUpdate((x) => x + 1);
-    }, []);
+    }, [canvas, RendererType, AppControllerType]);
 
     return {
         mainLoop: mainLoopRef.current,
