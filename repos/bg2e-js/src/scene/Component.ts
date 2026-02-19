@@ -7,6 +7,7 @@ import Transform from "./Transform";
 import Bg2KeyboardEvent from "../app/Bg2KeyboardEvent";
 import Bg2MouseEvent from "../app/Bg2MouseEvent";
 import Bg2TouchEvent from "../app/Bg2TouchEvent";
+import Loader from "../db/Loader";
 
 // Type definitions
 type ComponentConstructor<T extends Component = Component> = new () => T;
@@ -44,7 +45,7 @@ export const createComponent = (typeId: string): Component | null => {
     return null;
 };
 
-export const deserializeComponent = async (sceneData: any, loader: any): Promise<Component | null> => {
+export const deserializeComponent = async (sceneData: any, loader: Loader): Promise<Component | null> => {
     const componentInstance = createComponent(sceneData.type);
     if (!componentInstance) {
         return null;
@@ -84,11 +85,11 @@ export default class Component {
         // Override in subclasses if needed
     }
 
-    addedToNode(node: any): void {
+    addedToNode(node: Node): void {
         // Override in subclasses if needed
     }
 
-    removedFromNode(node: any): void {
+    removedFromNode(node: Node): void {
         // Override in subclasses if needed
     }
 
