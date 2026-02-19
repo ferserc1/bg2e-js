@@ -10,6 +10,11 @@ import OrbitCameraController from "bg2e-js/ts/scene/OrbitCameraController.ts";
 import FindNodeVisitor from "bg2e-js/ts/scene/FindNodeVisitor.ts";
 import { registerComponents } from "bg2e-js/ts/scene/index.ts";
 import { SelectionChangedData } from "bg2e-js/ts/manipulation/SelectionManager.js";
+import ObjLoaderPlugin from "bg2e-js/ts/db/ObjLoaderPlugin.js";
+import Transform from "bg2e-js/ts/scene/Transform.js";
+import Mat4 from "bg2e-js/ts/math/Mat4.js";
+import Node from "bg2e-js/ts/scene/Node.js";
+import SelectionMode from "bg2e-js/ts/manipulation/SelectionMode.js";
 
 class MyAppController extends SceneAppController {
     private _textContainer!: HTMLElement;
@@ -51,6 +56,8 @@ class MyAppController extends SceneAppController {
             console.log(mat);
             return mat;
         } }));
+        registerLoaderPlugin(new ObjLoaderPlugin());
+
         registerComponents();
 
         // Load scene
@@ -58,13 +65,24 @@ class MyAppController extends SceneAppController {
         const root = await loader.loadNode("../resources/test-scene/test-scene.vitscnj");
 
         const findVisitor = new FindNodeVisitor();
-        findVisitor.name = "Ball";
         findVisitor.hasComponents(["Drawable"]);
         root.accept(findVisitor);
         findVisitor.result.forEach(node => {
+            // Make only nodes named “Ball” selectable. This will prevent the ground in the scene from being selected.
             node.drawable?.makeSelectable(node.name === "Ball");
         });
 
+        const cube = await loader.loadDrawable("../resources/simple_cube.obj");
+        // This isn't necessary. By default, all polyList are selectable. If you want to make
+        // a specific polyList selectable or non selectable, you must iterate through the
+        // drawable items and set the selectable property of the polyList you want to change.
+        // The makeSelectable() method apply the selectable property to all polyLists of
+        // the drawable.
+        cube.makeSelectable(true);
+        const cubeNode = new Node("Cube node");
+        cubeNode.addComponent(cube);
+        cubeNode.addComponent(new Transform(Mat4.MakeTranslation(3, 0, 3)));
+        root.addChild(cubeNode);
 
         // Get main camera
         // Add Orbit camera controller component to the camera node
@@ -92,6 +110,10 @@ class MyAppController extends SceneAppController {
                 this.printText(`&nbsp;${ item.drawable.name }`);
             });
         });
+
+        if (this.selectionManager) {
+            this.selectionManager.selectionMode = SelectionMode.POLY_LIST;
+        }
 
         this.createOutputText();
         // Adjust brightness and contrast of the scene shader

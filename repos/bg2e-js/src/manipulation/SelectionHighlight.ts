@@ -62,7 +62,6 @@ export default class SelectionHighlight {
         this._renderQueue.viewMatrix = cameraView;
         this._renderQueue.projectionMatrix = camera.projectionMatrix;
         this._renderQueue.newFrame();
-        this._frameVisitor.delta = 0;
         this._frameVisitor.modelMatrix.identity();
         scene.accept(this._frameVisitor);
 
