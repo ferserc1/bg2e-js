@@ -143,6 +143,9 @@ export default class SceneAppController extends AppController {
         this._debugRenderer?.beginFrame();
 
         await this.sceneRenderer?.frame(this.sceneRoot, delta);
+        if (this.sceneRenderer.postRedisplayFrames > 0) {
+            this.mainLoop.postRedisplay({ frames: this.sceneRenderer.postRedisplayFrames });
+        }
     }
 
     display(): void {

@@ -35,6 +35,8 @@ export default class Node {
     private _bindedRenderer?: Renderer;
     private _sceneChanged: boolean = false;
 
+    private _postRedisplayFrames: number = 0;
+
     constructor(name: string = "") {
         this._name = name;
         this._enabled = true;
@@ -216,6 +218,18 @@ export default class Node {
                 await this._children[ch].asyncAccept(nodeVisitor);
             }
         }
+    }
+
+    // Used by components to require a redraw of the scene for a certain number of frames.
+    // This is needed, for example, when a component changes the material of a drawable,
+    // so the change is reflected inmediately in the screen, or when a component generates
+    // an animation that needs to be updated for a certain number of frames.
+    get postRedisplayFrames(): number {
+        return this._postRedisplayFrames;
+    }
+
+    set postRedisplayFrames(frames: number) {
+        this._postRedisplayFrames = frames;
     }
     
     // Most usual components

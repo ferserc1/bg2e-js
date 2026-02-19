@@ -4,6 +4,9 @@ import Drawable from "./Drawable";
 import LightComponent from "./LightComponent";
 import Node from "./Node";
 import Transform from "./Transform";
+import Bg2KeyboardEvent from "../app/Bg2KeyboardEvent";
+import Bg2MouseEvent from "../app/Bg2MouseEvent";
+import Bg2TouchEvent from "../app/Bg2TouchEvent";
 
 // Type definitions
 type ComponentConstructor<T extends Component = Component> = new () => T;
@@ -159,15 +162,15 @@ export default class Component {
     // draw(renderQueue: any, modelMatrix: any): void {}
 
     // Event callbacks
-    keyDown(evt: any): void {}
-    keyUp(evt: any): void {}
-    mouseUp(evt: any): void {}
-    mouseDown(evt: any): void {}
-    mouseMove(evt: any): void {}
-    mouseOut(evt: any): void {}
-    mouseDrag(evt: any): void {}
-    mouseWheel(evt: any): void {}
-    touchStart(evt: any): void {}
-    touchMove(evt: any): void {}
-    touchEnd(evt: any): void {}
+    keyDown(evt: Bg2KeyboardEvent): void {}
+    keyUp(evt: Bg2KeyboardEvent): void {}
+    mouseUp(evt: Bg2MouseEvent): void {}
+    mouseDown(evt: Bg2MouseEvent): void {}
+    mouseMove(evt: Bg2MouseEvent): void {}
+    mouseOut(evt: Bg2MouseEvent): void {}
+    mouseDrag(evt: Bg2MouseEvent): void {}
+    mouseWheel(evt: Bg2MouseEvent): void {}
+    touchStart(evt: Bg2TouchEvent): void {}
+    touchMove(evt: Bg2TouchEvent): void {}
+    touchEnd(evt: Bg2TouchEvent): void {}
 }

@@ -37,7 +37,8 @@
     "dev:debug": "npm --prefix samples/25_debug run dev",
     "dev:model_load": "npm --prefix samples/26_model_load run dev",
     "dev:material_modifier": "npm --prefix samples/27_material_modifier run dev",
-    "dev:react": "npm --prefix samples/28_react run dev"
+    "dev:react": "npm --prefix samples/28_react run dev",
+    "dev:custom_component": "npm --prefix samples/29_custom_component run dev"
   },
   "repository": {
     "type": "git",

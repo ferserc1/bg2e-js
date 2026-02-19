@@ -25,6 +25,7 @@ export class FrameVisitor extends NodeVisitor {
     _delta: number;
     _modelMatrix: Mat4;
     _matrixStack: Mat4[];
+    _postRedisplayFrames: number = 0;
 
     constructor(renderQueue: RenderQueue) {
         super();
@@ -35,9 +36,17 @@ export class FrameVisitor extends NodeVisitor {
     }
 
     get delta(): number { return this._delta; }
-    set delta(d: number) { this._delta = d; }
 
     get modelMatrix(): Mat4 { return this._modelMatrix; }
+
+    get postRedisplayFrames() : number {
+        return this._postRedisplayFrames;
+    }
+
+    beginFrame(delta: number): void {
+        this._delta = delta;
+        this._postRedisplayFrames = 0;
+    }
     
     visit(node: Node): void {
         this._matrixStack.push(new Mat4(this._modelMatrix));
@@ -47,6 +56,8 @@ export class FrameVisitor extends NodeVisitor {
     didVisit(node: Node): void {
         this._modelMatrix = this._matrixStack[this._matrixStack.length - 1] || Mat4.MakeIdentity();
         this._matrixStack.pop();
+        this._postRedisplayFrames = Math.max(this._postRedisplayFrames, node.postRedisplayFrames);
+        node.postRedisplayFrames = 0;
     }
 }
 
@@ -156,6 +167,10 @@ export default class SceneRenderer {
         return this._renderQueue;
     }
 
+    get postRedisplayFrames() : number {
+        return this._frameVisitor ? this._frameVisitor.postRedisplayFrames : 0;
+    }
+
     async init({ shadowMapSize = new Vec(1024, 1024) }: { shadowMapSize?: Vec | number } = {}): Promise<void> {
         if (typeof(shadowMapSize) === "number") {
             shadowMapSize = new Vec(shadowMapSize, shadowMapSize);
@@ -253,7 +268,7 @@ export default class SceneRenderer {
         this._sceneRoot = sceneRoot;
 
         this._renderQueue?.newFrame();
-        this._frameVisitor.delta = delta;
+        this._frameVisitor.beginFrame(delta);
         this._frameVisitor.modelMatrix.identity();
 
         const mainCamera = Camera.GetMain(sceneRoot);
