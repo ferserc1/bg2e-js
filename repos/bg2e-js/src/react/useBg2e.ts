@@ -21,7 +21,8 @@ type AppControllerConstructor<T extends AppController> = new () => T;
 export default function useBg2e<R extends Renderer, A extends AppController>(
     target: string | HTMLCanvasElement,
     RendererType: RendererConstructor<R>,
-    AppControllerType: AppControllerConstructor<A>
+    AppControllerType: AppControllerConstructor<A>,
+    onLoad?: (canvas: Canvas, mainLoop: MainLoop) => void
 ) {
     const canvas = useMemo(() => {
         if (typeof document === "undefined") return null; // SSR guard
@@ -61,7 +62,11 @@ export default function useBg2e<R extends Renderer, A extends AppController>(
         createdRef.current = true;
 
         forceUpdate((x) => x + 1);
-    }, [canvas, RendererType, AppControllerType]);
+
+        if (onLoad) {
+            onLoad(bg2Canvas, mainLoop);
+        }
+    }, [canvas, RendererType, AppControllerType, onLoad]);
 
     return {
         mainLoop: mainLoopRef.current,
