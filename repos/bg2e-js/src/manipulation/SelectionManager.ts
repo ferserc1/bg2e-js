@@ -26,6 +26,7 @@ export default class SelectionManager {
     protected _selectionIdVisitor: SelectionIdAssignVisitor | null = null;
     protected _downPosition: Vec = new Vec();
     protected _viewportSize: [number, number] = [1, 1];
+    protected _enabled: boolean = true;
 
     constructor(renderer: Renderer) {
         this._renderer = renderer;
@@ -52,6 +53,25 @@ export default class SelectionManager {
 
     get selection() {
         return this._selection;
+    }
+
+    enable() {
+        this.enabled = true;
+    }
+
+    disable() {
+        this.enabled = false;
+    }
+
+    get enabled() {
+        return this._enabled;
+    }
+
+    set enabled(value: boolean) {
+        this._enabled = value;
+        if (!this._enabled) {
+            this.clearSelection();
+        }
     }
 
     clearSelection() {
@@ -96,6 +116,14 @@ export default class SelectionManager {
         return this._selectionMode;
     }
 
+    setSelectionMode(mode: SelectionMode) {
+        this.selectionMode = mode;
+    }
+
+    setMultiSelectMode(mode: boolean) {
+        this.multiSelectMode = mode;
+    }
+
     set multiSelectMode(mode) {
         this._multiSelect = mode;
         this.clearSelection();
@@ -116,7 +144,7 @@ export default class SelectionManager {
     }
 
     mouseUp(evt: { x: number; y: number }) {
-        if (!this._selectionBuffer || !this._selectionIdVisitor || !this.camera || !this.sceneRoot) {
+        if (!this._selectionBuffer || !this._selectionIdVisitor || !this.camera || !this.sceneRoot || !this.enabled) {
             return;
         }
 
