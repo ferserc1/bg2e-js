@@ -30,6 +30,22 @@ class MyAppController extends SceneAppController {
         this._textContainer = textContainer;
     }
 
+    createClearButton() {
+        const button = document.createElement("button");
+        button.innerText = "Clear selection";
+        document.body.appendChild(button);
+        button.style.position = "absolute";
+        button.style.top = "10px";
+        button.style.left = "10px";
+        button.style.padding = "8px 12px";
+        button.style.fontSize = "14px";
+        button.style.cursor = "pointer";
+        button.addEventListener("click", () => {
+            this.selectionManager?.clearSelection();
+            this.mainLoop.postRedisplay();
+        });
+    }
+
     printText(text: string) {
         this._textContainer.innerHTML += `<br/>${text}`;
     }
@@ -103,6 +119,9 @@ class MyAppController extends SceneAppController {
     }
 
     async loadDone() {
+        this.createOutputText();
+        this.createClearButton();
+
         this.selectionManager?.onSelectionChanged("appController", (selection: SelectionChangedData[]) => {
             this.clearText();
             this.printText("Selection changed:");
@@ -115,7 +134,7 @@ class MyAppController extends SceneAppController {
             this.selectionManager.selectionMode = SelectionMode.POLY_LIST;
         }
 
-        this.createOutputText();
+        
         // Adjust brightness and contrast of the scene shader
         //this.sceneRenderer.brightness = 0.34;
         //this.sceneRenderer.contrast = 1.4;

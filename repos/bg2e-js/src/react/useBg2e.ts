@@ -51,15 +51,15 @@ export default function useBg2e<R extends Renderer, A extends AppController>(
         const bg2Canvas = new Canvas(canvas, renderer);
         const mainLoop = new MainLoop(bg2Canvas, appController);
         
-        mainLoop.run();  // Background execution
-
-        mainLoopByCanvas.set(canvas, mainLoop);
-        mainLoopRef.current = mainLoop;
-        createdRef.current = true;
-
-        if (onLoad) {
-            onLoad(bg2Canvas, mainLoop);
-        }
+        mainLoop.run().then(() => {
+            mainLoopByCanvas.set(canvas, mainLoop);
+            mainLoopRef.current = mainLoop;
+            createdRef.current = true;
+    
+            if (onLoad) {
+                onLoad(bg2Canvas, mainLoop);
+            }
+        })
     }, [canvas, RendererType, AppControllerType, onLoad]);
 
     return {

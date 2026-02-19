@@ -55,7 +55,9 @@ export default class SelectionManager {
     }
 
     clearSelection() {
+        this._selection.forEach(item => item.polyList.selected = false);
         this._selection = [];
+        this.triggerSelectionChanged();
     }
 
     set sceneRoot(root) {

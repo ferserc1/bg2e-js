@@ -14,6 +14,8 @@ function App() {
         console.log("Canvas loaded:", canvas);
         console.log("Main loop started:", mainLoop);
         mainLoop.updateMode = FrameUpdate.MANUAL;
+        const appCtrl = mainLoop.appController as AppController;
+        console.log(appCtrl.selectionManager);
     });
 
     return (
