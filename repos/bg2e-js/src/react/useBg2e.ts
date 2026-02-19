@@ -31,21 +31,17 @@ export default function useBg2e<R extends Renderer, A extends AppController>(
     const mainLoopRef = useRef<MainLoop | null>(null);
     const createdRef = useRef(false);
 
-    const [, forceUpdate] = useState(0);
-
     useEffect(() => {
         createdRef.current = false;
 
         if (!canvas) {
             mainLoopRef.current = null;
-            forceUpdate((x) => x + 1);
             return;
         }
 
         const existing = mainLoopByCanvas.get(canvas);
         if (existing) {
             mainLoopRef.current = existing;
-            forceUpdate((x) => x + 1);
             return;
         }
 
@@ -60,8 +56,6 @@ export default function useBg2e<R extends Renderer, A extends AppController>(
         mainLoopByCanvas.set(canvas, mainLoop);
         mainLoopRef.current = mainLoop;
         createdRef.current = true;
-
-        forceUpdate((x) => x + 1);
 
         if (onLoad) {
             onLoad(bg2Canvas, mainLoop);
