@@ -64,6 +64,22 @@ export default class SelectionHighlightShader extends Shader {
         }
     }
 
+    get borderColor() {
+        return this._borderColor;
+    }
+
+    set borderColor(value: Vec) {
+        this._borderColor = value;
+    }
+
+    get borderWidth() {
+        return this._borderWidth;
+    }
+
+    set borderWidth(value: number) {
+        this._borderWidth = value;
+    }
+
     async load() {
         const { gl } = (this.renderer as WebGLRenderer);
 

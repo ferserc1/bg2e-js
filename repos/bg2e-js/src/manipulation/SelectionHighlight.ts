@@ -12,6 +12,7 @@ import Renderer from "../render/Renderer";
 import RenderBuffer from "../render/RenderBuffer";
 import Node from "../scene/Node";
 import Camera from "../scene/Camera";
+import Color from "../base/Color";
 
 export default class SelectionHighlight {
     protected _renderer: Renderer;
@@ -24,6 +25,26 @@ export default class SelectionHighlight {
 
     constructor(renderer: Renderer) {
         this._renderer = renderer;
+    }
+
+    get borderColor() : Color {
+        return this._selectionDrawShader?.borderColor || new Vec(1,0,0,1);
+    }
+
+    set borderColor(color: Color) {
+        if (this._selectionDrawShader) {
+            this._selectionDrawShader.borderColor = color;
+        }
+    }
+
+    get borderWidth() : number {
+        return this._selectionDrawShader?.borderWidth || 3;
+    }
+
+    set borderWidth(width: number) {
+        if (this._selectionDrawShader) {
+            this._selectionDrawShader.borderWidth = width;
+        }
     }
 
     async init() {

@@ -120,7 +120,6 @@ class MyAppController extends SceneAppController {
 
     async loadDone() {
         this.createOutputText();
-        this.createClearButton();
 
         this.selectionManager?.onSelectionChanged("appController", (selection: SelectionChangedData[]) => {
             this.clearText();
@@ -134,10 +133,10 @@ class MyAppController extends SceneAppController {
             this.selectionManager.selectionMode = SelectionMode.POLY_LIST;
         }
 
-        
-        // Adjust brightness and contrast of the scene shader
-        //this.sceneRenderer.brightness = 0.34;
-        //this.sceneRenderer.contrast = 1.4;
+        if (this.selectionHighlight) {
+            this.selectionHighlight.borderColor = new Vec(0.0, 0.8, 0.3, 1.0);
+            this.selectionHighlight.borderWidth = 6;
+        }
     }
 }
 
