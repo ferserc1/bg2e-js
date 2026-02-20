@@ -78,10 +78,14 @@ export default class Drawable extends Component {
             throw new Error("Error adding polyList to drawable object: transform is not an instance of Mat4");
         }
         this._items.push({ polyList, material, transform });
+        polyList.mainDrawable = this;
     }
 
     removePolyList(plist: PolyList): void {
         this._items = this._items.filter(item => item.polyList != plist);
+        if (plist.mainDrawable === this) {
+            plist.mainDrawable = undefined;
+        }
     }
 
     destroy(): void {

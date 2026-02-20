@@ -2,12 +2,19 @@ import NodeVisitor from "../scene/NodeVisitor";
 import SelectionMode from "./SelectionMode";
 import Color from "../base/Color";
 import Node from "../scene/Node";
+import PolyList from "../base/PolyList";
+import Drawable from "../scene/Drawable";
 
 const getColor = (comps: number[]) => "" + comps[0] + comps[1] + comps[2];
 
+export type SelectionElement = {
+    polyList: PolyList;
+    drawable: Drawable;
+}
+
 export default class SelectionAssignVisitor extends NodeVisitor {
     protected _selectionMode: SelectionMode;
-    protected _elements: Record<string, any>;
+    protected _elements: Record<string, SelectionElement>;
     protected _r: number = 0;
     protected _g: number = 0;
     protected _b: number = 0;
@@ -56,7 +63,7 @@ export default class SelectionAssignVisitor extends NodeVisitor {
         return new Color([components[0]/255, components[1]/255, components[2]/255, 1]);
     }
 
-    findElement(pickedColor: Uint8Array | undefined | null) {
+    findElement(pickedColor: Uint8Array | undefined | null) : SelectionElement | null {
         if (!pickedColor) {
             return null;
         }
@@ -66,7 +73,7 @@ export default class SelectionAssignVisitor extends NodeVisitor {
             pickedColor[1],
             pickedColor[2]
         ];
-        return this._elements[getColor(color)];
+        return this._elements[getColor(color)] || null;
     }
 
     visit(node: Node) {

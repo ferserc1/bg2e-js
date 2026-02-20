@@ -2,7 +2,7 @@ import Vec from "../math/Vec";
 import Mat4 from "../math/Mat4";
 import Color from "./Color";
 import Material from "./Material";
-
+import Drawable from "../scene/Drawable";
 
 export enum BufferType {
     VERTEX		    = 1 << 0,
@@ -188,6 +188,8 @@ export default class PolyList {
     private _selectable: boolean;
     private _renderer?: any;
 
+    private _mainDrawable?: Drawable;
+
     constructor() {
         // The object will be rendered in the default layer for
         // transparent or opaque objects
@@ -308,6 +310,17 @@ export default class PolyList {
 
     set selectable(s: boolean) {
         this._selectable = s;
+    }
+
+    // The mainDrawable is a reference to the las Drawable object that contains this polyList. Note that
+    // in some circunstances a polyList can be shared by several Drawable objects, but the mainDrawable
+    // will be the last one that was assigned.
+    get mainDrawable(): Drawable | undefined {
+        return this._mainDrawable;
+    }
+
+    set mainDrawable(d: Drawable | undefined) {
+        this._mainDrawable = d;
     }
 
     // The this._renderer variable is initialized by the polyListRenderer factory

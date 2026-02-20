@@ -91,7 +91,6 @@ export default class SelectionHighlight {
             this._renderQueue?.draw(RenderLayer.SELECTION_DEFAULT);
         });
 
-        // TODO: Draw target texture using a border detection shader
         const shader = this._selectionDrawShader;
         this._renderer.presentTexture(this._targetTexture, { clearBuffers: false, shader });
     }

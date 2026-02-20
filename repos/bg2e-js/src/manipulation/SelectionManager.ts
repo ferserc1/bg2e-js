@@ -159,8 +159,12 @@ export default class SelectionManager {
             const pickedColor = this._selectionBuffer!.draw(this.sceneRoot, this.camera, evt.x * pixelRatio, evt.y * pixelRatio);
             const item = this._selectionIdVisitor.findElement(pickedColor);
             const isSelected = () => this._selection.find(s => {
-                return s.polyList === item.polyList && s.drawable === item.drawable
+                return item && s.polyList === item.polyList && s.drawable === item.drawable
             });
+            if (item && this.selectionMode === SelectionMode.OBJECT) {
+                item.drawable.items.forEach(it => it.polyList.selected = true);
+            }
+
             if (item && this._multiSelect && !isSelected()) {
                 this._selection.push(item);
                 this.triggerSelectionChanged();
