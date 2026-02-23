@@ -40,4 +40,8 @@ export default class MyAppController extends SceneAppController {
 
         return root;
     }
+
+    async loadDone(): Promise<void> {
+        this.selectionManager?.setMultiSelectMode(true);
+    }
 }
