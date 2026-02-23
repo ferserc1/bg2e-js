@@ -75,7 +75,9 @@ export default class SelectionManager {
     }
 
     clearSelection() {
-        this._selection.forEach(item => item.polyList.selected = false);
+        this._selection.forEach(item => {
+            item.drawable.items.forEach((it: any) => it.polyList.selected = false);
+        });
         this._selection = [];
         this.triggerSelectionChanged();
     }
@@ -161,9 +163,6 @@ export default class SelectionManager {
             const isSelected = () => this._selection.find(s => {
                 return item && s.polyList === item.polyList && s.drawable === item.drawable
             });
-            if (item && this.selectionMode === SelectionMode.OBJECT) {
-                item.drawable.items.forEach(it => it.polyList.selected = true);
-            }
 
             if (item && this._multiSelect && !isSelected()) {
                 this._selection.push(item);
@@ -173,9 +172,20 @@ export default class SelectionManager {
                 this._selection = [item];
                 this.triggerSelectionChanged();
             }
-            else if (!item && !this._multiSelect && this._selection.length > 0) {
+            else if (item && this._multiSelect && isSelected()) {
+                this._selection = this._selection.filter(s => !(s.polyList === item.polyList));
+                this.triggerSelectionChanged();
+            }
+            else if (!item && this._selection.length > 0) {
                 this._selection = [];
                 this.triggerSelectionChanged();
+            }
+
+            if (this.selectionMode === SelectionMode.OBJECT) {
+                this._selection.forEach(item => {
+                    item.drawable.items.forEach((it: any) => it.polyList.selected = true);
+                });
+                //item.drawable.items.forEach(it => it.polyList.selected = true);
             }
 
             this._selection.forEach(item => item.polyList.selected = true);

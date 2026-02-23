@@ -46,6 +46,30 @@ class MyAppController extends SceneAppController {
         });
     }
 
+    createSwitchModeButton() {
+        const button = document.createElement("button");
+        button.innerText = "SelectionMode: POLY_LIST";
+        document.body.appendChild(button);
+        button.style.position = "absolute";
+        button.style.top = "50px";
+        button.style.right = "10px";
+        button.style.padding = "8px 12px";
+        button.style.fontSize = "14px";
+        button.style.cursor = "pointer";
+        button.addEventListener("click", (evt) => {
+            if (this.selectionManager?.selectionMode === SelectionMode.POLY_LIST) {
+                if (!evt.target) return;
+                (evt.target as HTMLButtonElement).innerText = "SelectionMode: OBJECT";
+                this.selectionManager.selectionMode = SelectionMode.OBJECT;
+            }
+            else if (this.selectionManager?.selectionMode === SelectionMode.OBJECT) {
+                if (!evt.target) return;
+                (evt.target as HTMLButtonElement).innerText = "SelectionMode: POLY_LIST";
+                this.selectionManager.selectionMode = SelectionMode.POLY_LIST;
+            }
+        })
+    }
+
     printText(text: string) {
         this._textContainer.innerHTML += `<br/>${text}`;
     }
@@ -120,6 +144,8 @@ class MyAppController extends SceneAppController {
 
     async loadDone() {
         this.createOutputText();
+        this.createClearButton();
+        this.createSwitchModeButton();
 
         this.selectionManager?.onSelectionChanged("appController", (selection: SelectionChangedData[]) => {
             this.clearText();
@@ -131,6 +157,7 @@ class MyAppController extends SceneAppController {
 
         if (this.selectionManager) {
             this.selectionManager.selectionMode = SelectionMode.POLY_LIST;
+            this.selectionManager.multiSelectMode = true;
         }
 
         if (this.selectionHighlight) {
