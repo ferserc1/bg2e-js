@@ -19,7 +19,7 @@ export default class LoaderPlugin {
         throw new Error("LoaderPlugin.load(): method not implemented");
     }
 
-    async loadBuffer(buffer: ArrayBuffer, format: string, dependencies: string[], type: ResourceType, loader: any): Promise<any> {
+    async loadBuffer(buffer: ArrayBuffer, format: string, dependencies: File[], type: ResourceType, loader: any): Promise<any> {
         throw new Error("LoaderPlugin.loadBuffer(): method not implemented");
     }
 

@@ -13,6 +13,7 @@ export enum MaterialType {
 interface TypeLoader {
     serialize: (attName: string, obj: any) => any;
     deserialize: (attName: string, obj: any, relativePath?: string, canvas?: Canvas | null) => any;
+    deserializeWithDependencies: (attName: string, obj: any, dependencies: File[], canvas?: Canvas | null) => any;
 }
 
 export const textureTypeLoader: TypeLoader = {
@@ -59,11 +60,48 @@ export const textureTypeLoader: TypeLoader = {
         else {
             throw new Error(`Invalid parameter found in material deserialization. The required parameter type is string (file path)`);
         }
+    },
+
+    deserializeWithDependencies: (attName: string, obj: any, dependencies: File[], canvas?: Canvas | null) => {
+        if (!obj) {
+            return null;
+        }
+        else if (attName === "ambientOcclussion" && typeof(obj) === "number") {
+            // Compatibility with v1.4 where ambient occlussion could be a float value
+            return null;
+        }
+        else if (typeof(obj) === "string") {
+            // TODO: search obj (path) in dependencies and load the texture from the file instead of creating a new one.
+            // TODO: Search the texture in cache before loading it from the file.
+
+            console.warn("TODO: Implement  deserializeWithDependencies for textureTypeLoader. Currently, the dependencies parameter is ignored and the texture is loaded from the path specified in the obj parameter.");
+            // const texturePath = relativePath + obj;
+            // const textureCache = TextureCache.Get(canvas);
+            // if (textureCache.findTexture(texturePath)) {
+            //     console.debug(`Texture '${ texturePath }' already loaded. Reusing texture.`);
+            //     return textureCache.getTexture(texturePath);
+            // }
+            // else {
+            //     console.log(`Texture not found in cache. Loading texture '${ texturePath }'`);
+            //     const tex = new Texture(canvas);
+            //     tex.fileName = relativePath + obj;
+            //     tex.dataType = TextureDataType.IMAGE;
+            //     tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+            //     tex.magFilter = TextureFilter.LINEAR;
+            //     tex.wrapModeX = TextureWrap.REPEAT;
+            //     tex.wrapModeY = TextureWrap.REPEAT;
+            //     textureCache.registerTexture(tex);
+            //     return tex;
+            // }
+        }
+        else {
+            throw new Error(`Invalid parameter found in material deserialization. The required parameter type is string (file path)`);
+        }
     }
 }
 
 export const colorTypeLoader: TypeLoader = {
-    serialize: (attName: string, obj: any) => {
+    serialize(attName: string, obj: any) {
         if (!obj) {
             return null;
         }
@@ -76,7 +114,7 @@ export const colorTypeLoader: TypeLoader = {
         }
     },
 
-    deserialize: (attName: string, obj: any) => {
+    deserialize(attName: string, obj: any) {
         if (!obj) {
             return null;
         }
@@ -93,6 +131,10 @@ export const colorTypeLoader: TypeLoader = {
         else {
             throw new Error(`Invalid parameter found in material deserialization. The required parameter type is array with 3 or 4 elements`);
         }
+    },
+
+    deserializeWithDependencies(attName: string, obj: any, dependencies: File[], canvas?: Canvas | null) {
+        return this.deserialize(attName, obj, "", canvas);
     }
 }
 
@@ -124,6 +166,10 @@ export const vectorTypeLoader: TypeLoader = {
         else {
             throw new Error(`Invalid parameter found in material deserialization. The required parameter type is array with 2, 3 or 4 elements`);
         }
+    },
+
+    deserializeWithDependencies(attName: string, obj: any, dependencies: File[], canvas?: Canvas | null) {
+        return this.deserialize(attName, obj);
     }
 }
 
@@ -138,6 +184,10 @@ export const primitiveTypeLoader: TypeLoader = {
 
     deserialize: (attName: string, obj: any) => {
         return obj;
+    },
+
+    deserializeWithDependencies(attName: string, obj: any, dependencies: File[], canvas?: Canvas | null) {
+        return this.deserialize(attName, obj);
     }
 }
 
@@ -584,6 +634,29 @@ export default class Material {
             const loader = MaterialAttributeNames[attName]?.loader;
             if (loader) {
                 const value = loader.deserialize(attName, sceneData[attName], relativePath, this.canvas);
+                if (value instanceof Texture) {
+                    P.push(value.loadImageData());
+                }
+
+                if (value !== null && value !== undefined) {
+                    (this as any)[attName] = value;
+                }
+            }
+        }
+        await Promise.all(P);
+    }
+
+    async deserializeWithDependencies(sceneData: any, dependencies: File[], canvas?: Canvas | null): Promise<void> {
+        const P: Promise<any>[] = [];
+        
+        this.type = sceneData.type || MaterialType.PBR;
+        this.alphaCutoff = sceneData.alphaCutoff || 0.5;
+        this.isTransparent = sceneData.isTransparent || false;
+
+        for (const attName in MaterialAttributeNames) {
+            const loader = MaterialAttributeNames[attName]?.loader;
+            if (loader) {
+                const value = loader.deserializeWithDependencies(attName, sceneData[attName], dependencies, this.canvas);
                 if (value instanceof Texture) {
                     P.push(value.loadImageData());
                 }

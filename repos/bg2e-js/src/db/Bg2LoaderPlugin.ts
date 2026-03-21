@@ -46,13 +46,18 @@ const createPolyList = (jsonData: any, loader: Loader): Array<{ plist: PolyList,
     return result;
 }
 
-const createDrawable = async (jsonData: any, filePath: string, loader: Loader): Promise<Drawable> => {
+const createDrawable = async (jsonData: any, filePath: string, loader: Loader, dependencies?: File[]): Promise<Drawable> => {
     const name = removeExtension(getFileName(filePath));
     const relativePath = removeFileName(filePath);
     const drawable = new Drawable(name);
     for (const item of createPolyList(jsonData, loader)) {
         const mat = new Material(loader.canvas);
-        await mat.deserialize(item.materialData, relativePath);
+        if (dependencies) {
+            await mat.deserializeWithDependencies(item.materialData, dependencies);
+        }
+        else {
+            await mat.deserialize(item.materialData, relativePath);
+        }
         drawable.addPolyList(item.plist, mat);
     }
     //createPolyList(jsonData).forEach(item => {
@@ -63,9 +68,9 @@ const createDrawable = async (jsonData: any, filePath: string, loader: Loader): 
     return drawable;
 }
 
-const createNode = async (jsonData: any, filePath: string, loader: Loader): Promise<Node> => {
+const createNode = async (jsonData: any, filePath: string, loader: Loader, dependencies?: File[]): Promise<Node> => {
     const name = removeExtension(getFileName(filePath));
-    const drawable = await createDrawable(jsonData,filePath,loader);
+    const drawable = await createDrawable(jsonData,filePath,loader, dependencies);
     const node = new Node(name);
     node.addComponent(drawable);
     for (const compData of jsonData.components) {
@@ -111,7 +116,7 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
         ]; 
     }
 
-    async load(path: string, resourceType: ResourceType, loader: Loader): Promise<any> {
+    override async load(path: string, resourceType: ResourceType, loader: Loader): Promise<any> {
         const bg2io = await bg2ioFactory(this._bg2ioPath);
 
         const buffer = await this._resource.load(path);
@@ -138,6 +143,34 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
             return await createNode(jsonData,path,loader);
         default:
             throw new Error(`Bg2LoaderPlugin.load() unexpected resource type received: ${resourceType}`);
+        }
+    }
+
+    override async loadBuffer(buffer: ArrayBuffer, format: string, dependencies: File[], type: ResourceType, loader: any): Promise<any> {
+        const bg2io = await bg2ioFactory(this._bg2ioPath);
+        const jsonData = bg2io.loadBg2FileAsJson(buffer);
+
+        // Compatibility with 1.4 models
+        jsonData.materials.forEach((mat: any) => {
+            if (!mat.type) {
+                mat.type = mat["class"];
+                delete mat["class"];
+            }
+        });
+
+        if (this._materialImportCallback) {
+            jsonData.materials = jsonData.materials.map((mat: any) => this._materialImportCallback!(mat));
+        }
+
+        switch (type) {
+        case ResourceType.PolyList:
+            return createPolyList(jsonData, loader).map(item => item.plist);
+        case ResourceType.Drawable:
+            return createDrawable(jsonData, "", loader, dependencies);
+        case ResourceType.Node:
+            return await createNode(jsonData, "", loader, dependencies);
+        default:
+            throw new Error(`Bg2LoaderPlugin.loadBuffer() unexpected resource type received: ${type}`);
         }
     }
 }

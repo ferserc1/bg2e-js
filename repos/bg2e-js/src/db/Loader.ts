@@ -83,7 +83,7 @@ export default class Loader {
         return result;
     }
 
-    async loadResourceBuffer(buffer: ArrayBuffer, format: string, dependencies: string[], type: ResourceType): Promise<any> {
+    async loadResourceBuffer(buffer: ArrayBuffer, format: string, dependencies: File[], type: ResourceType): Promise<any> {
         const plugin = getLoaderPlugin(`file.${ format }`, type);
         const result = await plugin.loadBuffer(buffer, format, dependencies, type, this);
         return result;
@@ -97,7 +97,7 @@ export default class Loader {
         return await this.loadResource(path, ResourceType.Drawable);
     }
 
-    async loadDrawableBuffer(buffer: ArrayBuffer, format: string, dependencies: string[]): Promise<any> {
+    async loadDrawableBuffer(buffer: ArrayBuffer, format: string, dependencies: File[]): Promise<any> {
         return await this.loadResourceBuffer(buffer, format, dependencies, ResourceType.Drawable);
     }
 
