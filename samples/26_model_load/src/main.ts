@@ -77,42 +77,14 @@ class MyAppController extends SceneAppController {
 
         this.setupDropZone();
     }
-    
-    async loadModelFile(file: File, dependencies: File[] = []) {
-        const buffer = await file.arrayBuffer();
-        const loader = new Loader();
-        return await loader.loadDrawableBuffer(buffer, "bg2", dependencies );
-    }
 
     setupDropZone() {
-        const dropZone = document.body;
-
-        dropZone.addEventListener("dragover", event => {
-            event.stopPropagation();
-            event.preventDefault();
-            //event.dataTransfer.dropEffect = "copy";
-        });
-
-        dropZone.addEventListener("drop", async event => {
-            event.stopPropagation();
-            event.preventDefault();
-            const dataTransfer = event.dataTransfer;
-            if (!dataTransfer) {
-                return;
-            }
-
-            const files = Array.from(dataTransfer.files);
-            console.log(files);
-
-            const modelFile = files.find(f => f.name.toLowerCase().endsWith(".bg2") || f.name.toLowerCase().endsWith(".vwglb"));
-            if (modelFile) {
-                const result = await this.loadModelFile(modelFile, files.filter(f => f !== modelFile));
-                console.log(result);
-                const modelNode = new Node(modelFile.name);
-                modelNode.addComponent(result);
-                modelNode.addComponent(new Transform(Mat4.MakeTranslation(0, 0, 0).scale(10, 10, 10)));
-                this.sceneRoot!.addChild(modelNode);
-            }
+        const loader = new Loader();
+        loader.setupModelDropZone(document.body, ["bg2","vwglb"], drawable => {
+            const modelNode = new Node("Dropped model");
+            modelNode.addComponent(drawable);
+            modelNode.addComponent(new Transform(Mat4.MakeTranslation(0, 0, 0).scale(10, 10, 10)));
+            this.sceneRoot!.addChild(modelNode);
         });
     }
 }

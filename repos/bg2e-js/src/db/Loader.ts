@@ -10,6 +10,7 @@ import Canvas from '../app/Canvas';
 import LoaderPlugin from './LoaderPlugin';
 import PolyList from '../base/PolyList';
 import Texture from '../base/Texture';
+import Drawable from '../scene/Drawable';
 
 const g_loadPluginDatabase = createPluginDatabase(PluginOperationType.Read);
 
@@ -61,6 +62,32 @@ export default class Loader {
 
     set currentPath(p: string) {
         this._currentPath = p;
+    }
+
+    setupModelDropZone(dropZone: HTMLElement, fileFormats: string[], cb: (drawable: Drawable) => void): void {
+        dropZone.addEventListener("dragover", event => {
+            event.stopPropagation();
+            event.preventDefault();
+            //event.dataTransfer.dropEffect = "copy";
+        });
+
+        dropZone.addEventListener("drop", async event => {
+            event.stopPropagation();
+            event.preventDefault();
+            const dataTransfer = event.dataTransfer;
+            if (!dataTransfer) {
+                return;
+            }
+
+            const files = Array.from(dataTransfer.files);
+
+            const modelFile = files.find(f => f.name.toLowerCase().endsWith(".bg2") || f.name.toLowerCase().endsWith(".vwglb"));
+            if (modelFile) {
+                const buffer = await modelFile.arrayBuffer();
+                const drawable = await this.loadDrawableBuffer(buffer, "bg2", files.filter(f => f !== modelFile));
+                cb(drawable);
+            }
+        });
     }
 
     clearCache(): void {
