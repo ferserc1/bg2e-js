@@ -46,7 +46,13 @@ class MyAppController extends SceneAppController {
         // bg2ioPath is the path from the html file to the distribution files of the bg2io library, if
         // this path is different from the compiled js file (generated from this file, in this case, 
         // using Rollup)
-        registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "dist/" }));
+        // When using Vite, the copyBg2eAssets plugin copy the bg2io WebAssembly and JavaScript files to
+        // the appropiate location in the output directory. If you use this plugin with the default
+        // configuration, you can create the VitscnjLoaderPlugin with default bg2ioPath configuration.
+        // Otherwise, you should specify the bg2ioPath parameter in the VitscnjLoaderPlugin constructor to
+        // match the path where the bg2io assets are located
+        // Example: new VitscnjLoaderPlugin({ bg2ioPath: "/bg2io" })
+        registerLoaderPlugin(new VitscnjLoaderPlugin());
         registerComponents();
 
         // Load scene

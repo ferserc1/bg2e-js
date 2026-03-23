@@ -58,14 +58,14 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
     }
 
     constructor({
-        bg2ioPath,
+        bg2ioPath = "/bg2io",
         preferedDrawableFormat = DrawableFormat.BG2,
         materialImportCallback
     }: {
-        bg2ioPath: string | null
+        bg2ioPath?: string | null
         preferedDrawableFormat?: DrawableFormatValue
         materialImportCallback?: MaterialImportCallback
-    } = { bg2ioPath: null }) {
+    } = { }) {
         super();
 
         this._bg2ioPath = bg2ioPath;
