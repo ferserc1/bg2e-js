@@ -80,11 +80,8 @@ class MyAppController extends SceneAppController {
     
     async loadModelFile(file: File, dependencies: File[] = []) {
         const buffer = await file.arrayBuffer();
-        console.log(buffer);
         const loader = new Loader();
         return await loader.loadDrawableBuffer(buffer, "bg2", dependencies );
-        //const data = loader.loadDrawable(file.);
-        //console.log(file);
     }
 
     setupDropZone() {
@@ -113,7 +110,7 @@ class MyAppController extends SceneAppController {
                 console.log(result);
                 const modelNode = new Node(modelFile.name);
                 modelNode.addComponent(result);
-                modelNode.addComponent(new Transform(Mat4.MakeTranslation(4, 0, -5)));
+                modelNode.addComponent(new Transform(Mat4.MakeTranslation(0, 0, 0).scale(10, 10, 10)));
                 this.sceneRoot!.addChild(modelNode);
             }
         });

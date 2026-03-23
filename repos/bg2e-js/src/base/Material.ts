@@ -45,7 +45,7 @@ export const textureTypeLoader: TypeLoader = {
                 return textureCache.getTexture(texturePath);
             }
             else {
-                console.log(`Texture not found in cache. Loading texture '${ texturePath }'`);
+                console.debug(`Texture not found in cache. Loading texture '${ texturePath }'`);
                 const tex = new Texture(canvas);
                 tex.fileName = relativePath + obj;
                 tex.dataType = TextureDataType.IMAGE;
@@ -72,27 +72,29 @@ export const textureTypeLoader: TypeLoader = {
         }
         else if (typeof(obj) === "string") {
             // TODO: search obj (path) in dependencies and load the texture from the file instead of creating a new one.
-            // TODO: Search the texture in cache before loading it from the file.
-
-            console.warn("TODO: Implement  deserializeWithDependencies for textureTypeLoader. Currently, the dependencies parameter is ignored and the texture is loaded from the path specified in the obj parameter.");
-            // const texturePath = relativePath + obj;
-            // const textureCache = TextureCache.Get(canvas);
-            // if (textureCache.findTexture(texturePath)) {
-            //     console.debug(`Texture '${ texturePath }' already loaded. Reusing texture.`);
-            //     return textureCache.getTexture(texturePath);
-            // }
-            // else {
-            //     console.log(`Texture not found in cache. Loading texture '${ texturePath }'`);
-            //     const tex = new Texture(canvas);
-            //     tex.fileName = relativePath + obj;
-            //     tex.dataType = TextureDataType.IMAGE;
-            //     tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-            //     tex.magFilter = TextureFilter.LINEAR;
-            //     tex.wrapModeX = TextureWrap.REPEAT;
-            //     tex.wrapModeY = TextureWrap.REPEAT;
-            //     textureCache.registerTexture(tex);
-            //     return tex;
-            // }
+            const file = dependencies.find(d => d.name === obj);
+            if (file) {
+                const textureCache = TextureCache.Get(canvas);
+                if (textureCache.findTexture(obj)) {
+                    console.debug(`Texture '${ obj }' already loaded. Reusing texture.`);
+                    return textureCache.getTexture(obj);
+                }
+                else {
+                    console.log(`Texture not found in cache. Loading texture '${ obj }' from dependencies.`);
+                    const text = new Texture(canvas);
+                    text.imageFile = file;
+                    text.dataType = TextureDataType.IMAGE;
+                    text.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+                    text.magFilter = TextureFilter.LINEAR;
+                    text.wrapModeX = TextureWrap.REPEAT;
+                    text.wrapModeY = TextureWrap.REPEAT;
+                    textureCache.registerTexture(text);
+                    return text;
+                }
+            }
+            else {
+                console.warn(`Texture file '${ obj }' not found in dependencies.`);
+            }
         }
         else {
             throw new Error(`Invalid parameter found in material deserialization. The required parameter type is string (file path)`);

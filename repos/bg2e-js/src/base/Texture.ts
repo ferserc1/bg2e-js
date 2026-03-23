@@ -172,16 +172,16 @@ type TextureImageData = ExtendedHTMLImageElement | RenderTargetImageData | null;
 const g_loadedImages: Record<string, Promise<HTMLImageElement> | null> = {};
 let g_resource: Resource | null = null;
 const g_loadPromises: Record<string, Promise<HTMLImageElement> | null> = {};
-const loadImageFromFile = async (fileUrl: string): Promise<HTMLImageElement> => {
+const loadImageFromFileUrl = async (fileUrl: string): Promise<HTMLImageElement> => {
     if (!g_resource) {
         g_resource = new Resource();
     }
 
     if (g_loadPromises[fileUrl]) {
-        console.log(`Image already loaded or loading: ${fileUrl}`);
+        console.debug(`Image already loaded or loading: ${fileUrl}`);
     }
     else {
-        console.log(`Loading image: ${fileUrl}`);
+        console.debug(`Loading image: ${fileUrl}`);
         g_loadPromises[fileUrl] = new Promise(async (resolve, reject) => {
             const image = await g_resource?.load(fileUrl);
             // Flip image Y coord
@@ -213,6 +213,49 @@ const loadImageFromFile = async (fileUrl: string): Promise<HTMLImageElement> => 
 
     return g_loadPromises[fileUrl];
 }
+const loadImageFromFile = async (file: File): Promise<HTMLImageElement> => {
+    
+    if (!g_resource) {
+        g_resource = new Resource();
+    }
+
+    if (g_loadPromises[file.name]) {
+        console.debug(`Image already loaded or loading: ${file.name}`);
+    }
+    else {
+        console.debug(`Loading image: ${file.name}`);
+        g_loadPromises[file.name] = new Promise(async (resolve, reject) => {
+            const image = await createImageBitmap(file);
+            // Flip image Y coord
+            const canvas = document.createElement("canvas");
+            canvas.width = image.width;
+            canvas.height = image.height;
+    
+            const ctx = canvas.getContext('2d');
+            ctx!.fillStyle = '#00000000';
+            ctx!.clearRect(0, 0, canvas.width, canvas.height);
+            ctx!.fillRect(0, 0, canvas.width, canvas.height);
+            ctx!.scale(1, -1);
+            ctx!.drawImage(image, 0, 0, canvas.width, -canvas.height);
+            const flipImage = new Image();
+            const loadFlipImage = () => {
+                return new Promise<void>(resolve => {
+                    flipImage.onload = () => {
+                        (flipImage as any)._hash = generateImageHash(flipImage);
+                        resolve();
+                    }
+                    flipImage.src = canvas.toDataURL();
+                })
+            } 
+            await loadFlipImage();    
+            
+            resolve(flipImage);
+        })
+    }
+
+    return g_loadPromises[file.name]!;
+}
+
 const loadBase64Image = async (base64Img: string): Promise<HTMLImageElement> => {
     const loadImage = () => {
         return new Promise<HTMLImageElement>(resolve => {
@@ -292,6 +335,7 @@ export default class Texture {
     private _minFilter: TextureFilter;
     private _target: TextureTarget;
     private _size: Vec;
+    private _imageFile: File | null;
     private _fileName: string;
     private _proceduralFunction: ProceduralTextureFunction;
     private _proceduralParameters: any;
@@ -321,6 +365,7 @@ export default class Texture {
         this._minFilter = TextureFilter.LINEAR;
         this._target = TextureTarget.TEXTURE_2D;
         this._size = new Vec(64, 64);
+        this._imageFile = null;
         this._fileName = "";
         this._proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
         this._proceduralParameters = {};
@@ -369,6 +414,7 @@ export default class Texture {
         this._target = other._target;
         this._size = new Vec(other._size);
         this._fileName = other._fileName;
+        this._imageFile = other._imageFile;
         this._proceduralFunction = other._proceduralFunction;
         this._proceduralParameters = other._proceduralParameters;
         this._imageData = other._imageData;
@@ -432,6 +478,14 @@ export default class Texture {
         }
         this._size = new Vec(v[0],v[1]);
         this._dirty = true; 
+    }
+    get imageFile(): File | null { return this._imageFile; }
+    set imageFile(f: File | null) {
+        this._imageFile = f;
+        this._dirty = true;
+        this._imageData = null;
+        this._fileName = f ? f.name : "";
+        this._name = f ? f.name : "";
     }
     get fileName(): string { return this._fileName; }
     set fileName(v: string) { this._fileName = v; this._dirty = true; this._imageData = null; this._name = v; }
@@ -503,6 +557,9 @@ export default class Texture {
     }
 
     async serialize(sceneData: any): Promise<void> {
+        if (this._imageFile) {
+            throw new Error("Error serializing texture. Serialization of textures created from image files is not supported yet.");
+        }
         sceneData.dataType = TextureDataType[this.dataType];
         sceneData.wrapModeX = TextureWrap[this.wrapModeX];
         sceneData.wrapModeY = TextureWrap[this.wrapModeY];
@@ -519,14 +576,32 @@ export default class Texture {
     }
 
     async loadImageData(refresh: boolean = false): Promise<void> {
-        if (this.fileName) {
+        if (this.imageFile) {
+            if (g_loadedImages[this.fileName] && refresh) {
+                delete g_loadedImages[this.fileName];
+            }
+            let loadPromise = g_loadedImages[this.fileName];
+            if (!loadPromise) {
+                loadPromise = loadImageFromFile(this.imageFile);
+                g_loadedImages[this.fileName] = loadPromise;
+            }
+            else {
+                console.debug(`Texture: loadImageData(): image already loaded or is loading: ${this.fileName}`)
+            }
+            this._imageData = await loadPromise;
+
+            this._size = new Vec((this._imageData as HTMLImageElement).width, (this._imageData as HTMLImageElement).height);
+
+            this._dirty = true; 
+        }
+        else if (this.fileName) {
             if (g_loadedImages[this.fileName] && refresh) {
                 delete g_loadedImages[this.fileName];
             }
 
             let loadPromise = g_loadedImages[this.fileName];
             if (!loadPromise) {
-                loadPromise = loadImageFromFile(this.fileName);
+                loadPromise = loadImageFromFileUrl(this.fileName);
                 g_loadedImages[this.fileName] = loadPromise;
             }
             else {
