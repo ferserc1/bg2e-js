@@ -1,17 +1,16 @@
-import type { ViteDevServer } from "vite";
 import path from "node:path";
 import fs from "node:fs/promises";
 
 export function copyBg2eAssets({
     nodeModulesPath = "./node_modules",
     dstSubdir = "bg2io"
-} : { nodeModulesPath?: string, dstSubdir?: string } = {}) {
+} = {}) {
     const bg2ioPath = path.join(nodeModulesPath, "bg2io");
     
     return {
         name: 'copy-bg2e-assets',
 
-        async writeBundle(options: { dir?: string }) {
+        async writeBundle(options) {
             const baseSrcDir = path.resolve(bg2ioPath);
             const destDir = path.resolve(options.dir || "", dstSubdir);
             
@@ -27,7 +26,7 @@ export function copyBg2eAssets({
             )
         },
 
-        async configureServer(server: ViteDevServer) {
+        async configureServer(server) {
             const dstDir = dstSubdir !== "" ? `/${dstSubdir}` : "";
             server.middlewares.use(`${dstDir}/bg2io.wasm`, async (req, res) => {
                 const wasmPath = path.resolve(bg2ioPath, 'bg2io.wasm');
