@@ -1,6 +1,6 @@
 {
   "name": "bg2e-js",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "description": "a graphics engine for productivity applications",
   "main": "./dist/bg2e-js.js",
   "types": "./src/index.ts",
@@ -41,7 +41,7 @@
     "engine"
   ],
   "author": "Fernando Serrano Carpena",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "bugs": {
     "url": "https://github.com/ferserc1/bg2e-js/issues"
   },
