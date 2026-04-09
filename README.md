@@ -15,7 +15,13 @@ The repository contains directories with bg2 engine base packages, which can be 
 
 ## License
 
-bg2e is distributed under a MIT license: you can use it for free, for any purpose, in all the universe (and also in other parallel universes, if they exists), with only two conditions: you can't claim that this work is yours (for example, fork this repository and change my name by yours), and you use this library as is (you can't sue me if this software does something wrong). You can see the full license [here](LICENSE.md)
+bg2e is distributed under the GNU General Public License v3.0 (GPLv3).
+
+You are free to use, modify, and redistribute this software under the terms of the GPLv3. Any derivative work or distribution must also be licensed under GPLv3 and must make the source code available under the same terms.
+
+This software is provided without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose.
+
+See the full license text in [LICENSE.md].
 
 ## Note about distribution
 
