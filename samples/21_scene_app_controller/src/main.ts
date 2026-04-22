@@ -27,6 +27,8 @@ class MyAppController extends SceneAppController {
     protected _camera: CameraComponent | null = null;
 
     async loadScene() {
+        console.log(this.renderer.clearColor);
+        this.renderer.clearColor = new Color([0.8, 0.8, 0.8, 1]);
         registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist/" }));
         registerLoaderPlugin(new ObjLoaderPlugin());
 
