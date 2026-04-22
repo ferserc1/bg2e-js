@@ -1,5 +1,11 @@
 
-import { math } from "bg2e-js";
+import { Axis } from "bg2e-js/ts/math/constants.ts";
+import * as functions from "bg2e-js/ts/math/functions.ts";
+import * as mathConst from "bg2e-js/ts/math/constants.ts";
+import Vec from "bg2e-js/ts/math/Vec.ts";
+import Mat3 from "bg2e-js/ts/math/Mat3.ts";
+import Mat4 from "bg2e-js/ts/math/Mat4.ts";
+import Quat from "bg2e-js/ts/math/Quat.ts";
 
 const container: HTMLElement | null = document.getElementById('app');
 
@@ -11,23 +17,22 @@ function log(...args: any[]): void {
     }
 }
 
-const xAxis: number = math.Axis.X;
-const yAxis: number = math.Axis.Y;
-const zAxis: number = math.Axis.Z;
-log(`Axis: ${math.Axis.name(xAxis)}, ${math.Axis.name(yAxis)}, ${math.Axis.name(zAxis)}`);
+const xAxis: number = Axis.X;
+const yAxis: number = Axis.Y;
+const zAxis: number = Axis.Z;
+log(`Axis: ${Axis.name(xAxis)}, ${Axis.name(yAxis)}, ${Axis.name(zAxis)}`);
 
 const deg: number = 90;
-log(`${deg}º = ${math.degreesToRadians(deg)} radians`);
-const rad: number = math.PI_4;
-log(`${rad} radians = ${math.radiansToDegrees(rad)}º`);
+log(`${deg}º = ${functions.degreesToRadians(deg)} radians`);
+const rad: number = mathConst.PI_4;
+log(`${rad} radians = ${functions.radiansToDegrees(rad)}º`);
 
 // Convert degrees and radians using numeric constants. See that using RAD_TO_DEG, the converted
-// value is 44.999999999999986, instead of 45, because math.radiansToDegrees(rad) takes into account
+// value is 44.999999999999986, instead of 45, because radiansToDegrees(rad) takes into account
 // the EPSILON constant.
-log(`${deg}º = ${math.DEG_TO_RAD * deg} radians.`);
-log(`${rad} radians = ${math.RAD_TO_DEG * rad} degrees.`);
+log(`${deg}º = ${mathConst.DEG_TO_RAD * deg} radians.`);
+log(`${rad} radians = ${mathConst.RAD_TO_DEG * rad} degrees.`);
 
-const { Vec, Mat3, Mat4, Quat } = math;
 
 const a = new Vec(5, 2, 4);
 const b = new Vec(2, 3, 1);
@@ -189,14 +194,14 @@ log("(M2^-1)^t:");
 log(M2.traspose().toString());
 
 const trx = Mat4.MakeIdentity();
-trx.rotate(math.PI_4, 0, 1, 0);
+trx.rotate(mathConst.PI_4, 0, 1, 0);
 log(trx.forwardVector);
 
 M2[0] = Math.sqrt(-1);
 log(M2.toString());
 log("M2 isNaN: ", Mat4.IsNan(M2));
 
-const quat = new Quat(math.PI_4, 0, 1, 0);
+const quat = new Quat(mathConst.PI_4, 0, 1, 0);
 log(quat);
 const m3q = Mat3.MakeWithQuaternion(quat);
 log(m3q.toString());
@@ -232,11 +237,11 @@ log(color32);
 (() => {
     const v1 = Vec.Vec2();
     const v2 = Vec.Vec2();
-    v1[0] = math.EPSILON * 0.5; // Half of Epsilon is in practice zero.
+    v1[0] = mathConst.EPSILON * 0.5; // Half of Epsilon is in practice zero.
     log(Vec.Equals(v1, v2)); // true
     log(Vec.IsZero(v1));
 
-    v2[1] = math.sqrt(-1);
+    v2[1] = functions.sqrt(-1);
     log(Vec.IsNaN(v2)); // v2 is NaN because v2[1] = sqrt(-1);
 
     log(JSON.stringify(Array.from(v1)));
