@@ -1,50 +1,33 @@
 # MaterialRenderer
 
-This object is responsible for loading and managing the specific graphical API objects that are related to the materials.
+Wraps a [`Material`](../base/Material.md) for rendering. One material renderer per material instance manages the material data binding to shaders during render operations.
 
-## Constructor
+```ts
+import MaterialRenderer from "bg2e-js/ts/render/MaterialRenderer.js";
 
-The `MaterialRenderer` constructor is never invoked directly. Instances of `MaterialRenderer` are created through the factory in [`Renderer`](Renderer.md):
-
-```js
-import Material from 'bg2e/base/Material';
-...
-
-const material = new Material();
-... // Initialize material data
-const materialRenderer = myRenderer.factory.material(material);
+const material = await Material.Deserialize({
+    diffuse: [0.4, 0.3, 0.1],
+    roughness: 0.5,
+    metallic: 0.8
+});
+const matRenderer = myRenderer.factory.material(material);
 ```
 
-Normally you use `MaterialRenderer` together with [`PolyListRenderer`](PolyListRenderer.md) to create a [`RenderState`](RenderState.md) object:
+## Properties (Read)
 
-```javascript
-import RenderState from 'bg2e/render/RenderState';
-...
-const renderStates = [];
-const shader = await loadShader();  // render.Shader
-...
-const myPolyList = await getAPolyList(); // base.PolyList
-const myMaterial = getAMaterial();  // base.Material
-const viewMatrix = getViewMatrix(); // Mat4
-const modelMatrix = getModelMatrix();   // Mat4
-const projectionMatrix = getProjectionMatrix(); // Mat4
-renderStates.push(new RenderState({
-    shader,
-    materialRenderer: renderer.factory.material(myMaterial),
-    polyListRenderer: renderer.factory.polyList(myPolyList),
-    modelMatrix,
-    viewMatrix,
-    projectionMatrix
-}))
+| Property | Type | Description |
+|----------|------|-------------|
+| `renderer` | Renderer | The base renderer (WebGLRenderer). |
+| `material` | Material | The wrapped material with its properties and textures. |
 
-...
+## getTextureRenderer(materialAttribute: keyof Material): TextureRenderer \| null
 
-renderStates.forEach(rs => rs.draw());
+Returns a `TextureRenderer` if the specified material attribute (e.g., "albedoTexturer", normalMap, roughness) is a texture. Returns null otherwise or if the attribute is not a texture:
+
+```ts
+const texRenderer = matRenderer.getTextureRenderer("albedoTexture");
+if (texRenderer) {
+    texRenderer.activeTexture(0);
+    texRenderer.bindTexture();
+}
 ```
-
-## Functions
-
-**`getTextureRenderer(attribName)`**: Returns the [`TextureRenderer`](TextureRenderer.md) object associated with the attribute described by `attribName`, assuming it contains a texture. For example, the `diffuse` and `normal` attributes may contain a texture or a color (math.Vec[4]), and the `metallic`, `roughness`, `lightEmission` and `ambientOcclusion` attributes may contain a texture or a numeric value. If the requested attribute does not contain a texture, the `getTextureRenderer()` function will return `null`.
-
-**`deleteTextures()`**: is invoked when it is necessary to delete all the textures contained in the material.
-

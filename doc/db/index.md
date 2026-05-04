@@ -1,50 +1,35 @@
-# bg2e DB package
+# bg2e-db
 
-## Introduction
+Module file loading API. Provides a plugin-based system for loading 3D models, textures, materials and scene files from disk or network.
 
-The bg2e db package is the one to be used to perform read and write operations on resources. It relies on other bg2 engine packages for this purpose.
+## Overview
 
-The purpose of this package is to present a generic way to perform format and location independent writing and reading of resources.
+The db module uses a two-level architecture:
 
-To provide format independence, several resource types are established. Resource types are translated into objects in the graphics engine. A given file format can be loaded as one or several resource types: for example, a 3D model can be loaded as a mesh list, a drawable element or a scene node. The ability to handle different file formats, and translate them into certain resource types, is implemented by read and write plugins.
+1. **Plugins** declare which file extensions and resource types they handle via `supportedExtensions`
+2. A **global plugin database** routes load calls by extension to the matching plugin
 
-Location independence consists of allowing the loading of resources from various sources: for example, the file system, a server REST API or an HTTP file server.
-
-## Resource types
-
-The `ResourceType` object is a basic type of the graphics engine, so it is implemented in the base package:
+Plugins are registered at startup. The `Loader` class maintains a cache and delegates to plugins based on file extension.
 
 ```js
-import { ResourceType } from 'bg2e/tools/Resource';
+import Loader, { registerLoaderPlugin } from 'bg2e-js/ts/db/Loader.ts';
+import VitscnjLoaderPlugin from 'bg2e-js/ts/db/VitscnjLoaderPlugin.ts';
+import ObjLoaderPlugin from 'bg2e-js/ts/db/ObjLoaderPlugin.ts';
 
-ResourceType.PolyList
-ResourceType.Drawable
-ResourceType.Node
-ResourceType.Texture
-ResourceType.Material
+registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "dist/" }));
+registerLoaderPlugin(new ObjLoaderPlugin());
+
+const loader = new Loader();
+const root = await loader.loadNode("../resources/test-scene.vitscnj");
 ```
 
-These resource types are translated into the following graphic engine objects:
+## Plugin database
 
-- **`ResourceType.PolyList`**: bg2e/base/PolyList
-- **`ResourceType.Drawable`**: bg2e/scene/Drawable
-- **`ResourceType.Node`**: bg2e/scene/Node
-- **`ResourceType.Texture`**: bg2e/base/Texture
-- **`ResourceType.Material`**: bg2e/base/Material
+The plugin database maps file extensions and resource types to plugins. There are two databases: one for reading (used by the `Loader`) and one for writing (not documented — the write API is deprecated).
 
-## Loader and writer
-
-The Loader and Writer classes are the link between file loading plugins, resource types and data sources. Both classes are very similar: they are used through one or several instances and their functionality is implemented through plugins.
-
-The main differences between the two classes are that the Loader class includes a resource cache (which is stored in the instance, then there is a cache for each instance) and in the parameterization of the functions:
-
-- Load functions receive a path or URL as a parameter, and return the object associated with the resource type.
-- Write functions receive a path or URL as a parameter, and the object associated with the resource type.
-
-Otherwise, all load or write functions are asynchronous.
-
-- [`Loader`](loader.md)
-- [`Writer`](writer.md)
-
-
-
+- [loader-plugin.md](loader-plugin.md) — `LoaderPlugin` base class for reading plugins
+- [bg2-loader-plugin.md](bg2-loader-plugin.md) — Loads `.bg2` and `.vwglb` models
+- [obj-loader-plugin.md](obj-loader-plugin.md) — Loads `.obj` text files  
+- [vitscnj-loader-plugin.md](vitscnj-loader-plugin.md) — Loads `.vitscnj` scene files
+- [obj-parser.md](obj-parser.md) — OBJ text file parser (internal tool used by `ObjLoaderPlugin`)
+- [loader.md](loader.md) — `Loader` class, facade for loading resources

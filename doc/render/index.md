@@ -1,22 +1,126 @@
-# bg2 engine render package
+# bg2e-render Module
 
-It provides the APIs needed to generate graphs from bg2 engine data structures. This package contains two sets of APIS:
+The `render` module provides the 3D rendering engine and associated utilities for bg2e.
 
-- Low level APIs: these are the APIs that interact directly with the specific rendering technology. There can be as many sets of low-level APIs as there are rendering technologies available. For example, there is a rendering API for WebGL 1, but another one could be added for WebGL 2 or for WebGPU.
-- High level APIs: these are APIs independent of the underlying rendering layer, working with native structures of the graphics engine and without going into implementation details. 
+## Overview
 
-The high-level APIs provide a front end to access the specific low-level APIs that you want to use for a given application. Thus, the workflow to create a bg2 engine application consists of:
-  * Determine which rendering technology we are going to use: with this we determine which set of low-level APIs we want to use, based on their availability.
-  * Load or create data structures and scene objects: these data structures are independent of the rendering part, they are only used to store the data we want to represent.
-  * Use the high-level APIs to render the scene from the loaded data structures.
+The render module consists of several abstractions that work together to render 3D scenes:
 
-## Renderer
+- **Renderer** — The top-level rendering target. Implements the WebGL rendering state, viewport, and factory pattern for creating render-specific objects.
+- **RendererFactory** — A factory interface that creates PolyListRenderers, MaterialRenderers, TextureRenderers, RenderBuffers, Pipelines, SkySpheres/Cubes, Environments, and SceneRenderers.
+- **PolyListRenderer** — Renderer for a PolyList (geometry buffers, vertex/index data). One per PolyList.
+- **MaterialRenderer** — Renderer for a Material (material properties bound to the current shader).
+- **RenderState** — A render invocation unit: a combination of Shader, PolyListRenderer, MaterialRenderer, and transformation matrices (model/view/projection).
+- **Shader** — Base class for custom GLSL shaders. Subclass and implement `load()`, `setup()`, and `destroy()`.
+- **Pipeline** — Configureable render pipeline settings (blend states, depth test, cull face). Activates before drawing a group of objects.
+- **RenderQueue** — Queue system that batches RenderStates per layer (opaque, transparent) with begin/end callbacks.
+- **SceneRenderer** — High-level component that renders a scene graph: processes camera, lights, transforms, and render queue automatically.
+- **SceneAppController** — An AppController derivative designed for SceneRenderer-based apps; handles the app lifecycle, input forwarding, and automatic frame rendering.
+- **Environment** — Auto-generates cubemap lighting from an equirectangular texture (environmentMap, specularMap, irradianceMap).
+- **SkySphere / SkyCube** — Render sky/scene background using spheric/cubemap textures via a sky shader.
 
-The [`Renderer`](Renderer.md) class is an abstract class that provides the access to all low-level rendering commands. By creating a concrete implementation of `Renderer`, we are specifying which low-level API to use. For example, if we create a `webgl.Renderer` object, the low-level API we will use will be that of `WebGL`.
+## Rendering Flow (Low-level)
 
-The programmer of a bg2 engine application only interacts with the `Renderer` class to create an instance and store it. The `renderer` object that has been created will be used by the high-level APIs to access the rendering-specific APIs. Exceptionally, we can use the APIs of a `renderer` object to access the low-level APIs, but note that the resulting code will only work for that particular rendering technology.
+The basic rendering loop follows this pattern:
 
-## Rendering APIs
+1. Create a `WebGLRenderer` and wrap it in a `Canvas`.
+2. For each object to render: create a geometry PolyList, wrap it with `renderer.factory.polyList()`, and a Material wrapped with `renderer.factory.material()`.
+3. Create a Shader subclass instance, call `shader.load()`, and pass it to a new `RenderState` along with the renderers, model/view/projection matrices.
+4. In the `display()` callback: clear the frame buffer, activate any `Pipeline`, and call `renderState.draw()`.
 
-**[WebGL](webgl/index.md):** Contains the low-level APIs for rendering using WebGL.
+```ts
+import Pipeline, { BlendFunction } from "bg2e-js/ts/render/Pipeline.ts";
+import RenderState from "bg2e-js/ts/render/RenderState.ts";
 
+// Create opaque pipeline
+const opaquePipeline = renderer.factory.pipeline();
+opaquePipeline.setBlendState({ enabled: false });
+opaquePipeline.create();
+
+// For each frame, rebuild render states:
+renderStates = [];
+plistRenderers.forEach((pr) => {
+    const rs = new RenderState({
+        shader,
+        polyListRenderer: pr.plistRenderer,
+        materialRenderer: pr.materialRenderer,
+        modelMatrix,
+        viewMatrix,
+        projectionMatrix
+    });
+    renderStates.push(rs);
+});
+
+// In display():
+renderer.frameBuffer.clear();
+
+for (const rs of renderStates) {
+    if (rs.isLayerEnabled(RenderLayer.OPAQUE_DEFAULT)) {
+        opaquePipeline.activate();
+    }
+    rs.draw();
+}
+```
+
+## Rendering Flow (Scene-based, Recommended)
+
+For scene-graph based applications:
+
+1. Create a `WebGLRenderer` and wrap it in a `Canvas`.
+2. Use `SceneAppController` or create a `SceneRenderer`: build scene nodes with components (Transform, Drawable, Camera, Light).
+3. Initialize the `SceneRenderer` with an Environment for PBR lighting.
+4. Forward app events (keyDown, mouseDown, mouseDrag, etc.) to `sceneRenderer.onKey...()`, `sceneRenderer.onMouse...()` methods.
+5. Call `sceneRenderer.frame(sceneRoot, delta)` in the frame callback and no explicit draw is needed — rendering is automatic.
+
+```ts
+import SceneAppController from "bg2e-js/ts/render/SceneAppController.ts";
+
+class MyController extends SceneAppController {
+    async init() {
+        // ... custom setup
+        await this.loadScene(); // or scene.init(sceneRoot)
+    }
+
+    protected async frame(delta: number): Promise<void> {
+        await super.frame(delta);
+        // ... custom frame updates after rendering
+    }
+}
+
+// Setup:
+const canvas = new Canvas(canvasElem, new WebGLRenderer());
+const appController = new MyController();
+const mainLoop = new MainLoop(canvas, appController);
+await mainLoop.run();
+```
+
+## Module Structure
+
+- [Renderer](Renderer.md) — Renderer base class, factory pattern, WebGL implementation
+- [State](State.md) — WebGL rendering state wrapper (clear color, viewport, depth test)
+- [Pipeline](Pipeline.md) — Render pipeline: blend states, depth test, cull face
+- [RenderState](RenderState.md) — Single render invocation (shader + geometry + matrices)
+- [RenderQueue](RenderQueue.md) — Layer-aware render batching system
+- [FrameBuffer](FrameBuffer.md) — Frame buffer clear operations
+- [RenderBuffer](RenderBuffer.md) — Texture attachment / render-to-texture management
+- [TextureMergerRenderer](TextureMergerRenderer.md) — Merge multiple textures into a single output texture
+- [PolyListRenderer](PolyListRenderer.md) — Geometry buffer management for PolyLists
+- [MaterialRenderer](MaterialRenderer.md) — Material rendering state per renderer type
+- [Shader](Shader.md) — Base class for custom render shaders
+- [SceneRenderer](SceneRenderer.md) — High-level scene graph rendering system
+- [SceneAppController](SceneAppController.md) — App controller for SceneRenderer-based apps
+- [Environment](Environment.md) — Environment map and IBL (environment, specular, irradiance maps)
+- [SkySphere](SkySphere.md) — Spherical sky rendering from equirectangular textures
+- [SkyCube](SkyCube.md) — Cubemap sky rendering from environment/sky textures
+
+## WebGL Namespace
+
+The `render.webgl` namespace provides direct access to the WebGL-specific implementations:
+
+```ts
+import { webgl } from "bg2e-js/ts/render/webgl/index.ts";
+
+// Or import individually:
+import WebGLRenderer from "bg2e-js/ts/render/webgl/Renderer.js";
+import ShaderProgram from "bg2e-js/ts/render/webgl/ShaderProgram.ts";
+```

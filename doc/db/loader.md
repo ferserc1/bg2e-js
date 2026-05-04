@@ -1,17 +1,62 @@
-# bg2e.db.Loader
+# Loader
 
-It is used to load resources independently of the type of application (browser, node or electron). Each loader instance maintains a cache of elements that have been loaded, indexed by resource type and by load path. Note that this cache is not shared between loader instances, so two different loaders will load the same resource twice.
-
-Depending on the environment, a loader will load resources in one way or another. For example, in a node application, texture images are loaded as byte arrays, while in a browser they are loaded as an `Image` object (which is the same as a `<img>` DOM element). Note that the data type loaded with `loadTexture` is always [textures](../base/texture.md), but the internal object representing the image will be of one type or another depending on the environment.
+Main facade for loading resources. Maintains a cache keyed by path and resource type, and dispatches to registered plugins based on file extension.
 
 ```js
-import Loader from 'bg2e/db/Loader';
+import Loader from 'bg2e-js/ts/db/Loader';
+```
 
-const myLoader = new Loader();
-const plistArray = await myLoader.loadPolyList('model.bg2');
-const drawable = await myLoader.loadDrawable('model.bg2');
-const prefab = await myLoader.loadNode('model.bg2');
-const scene = await myLoader.loadNode('myScene.vitscnj');
-const textImg = await myLoader.loadTexture('texture.jpg');
-const matArray = await myLoader.loadMaterial('materials.bg2mat');
+See also: [about.md](about.md), [loader-plugin.md](loader-plugin.md)
+
+## Basic usage
+
+```js
+import Loader, { registerLoaderPlugin } from 'bg2e-js/ts/db/Loader.ts';
+import VitscnjLoaderPlugin from 'bg2e-js/ts/db/VitscnjLoaderPlugin.ts';
+import ObjLoaderPlugin from 'bg2e-js/ts/db/ObjLoaderPlugin.ts';
+
+registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "dist/" }));
+registerLoaderPlugin(new ObjLoaderPlugin());
+
+const loader = new Loader();
+const root = await loader.loadNode("../resources/test-scene.vitscnj");
+```
+
+## Constructor
+
+**`Loader(canvas?: Canvas \| null)`** — Creates a loader associated with a canvas. Falls back to the global first canvas if omitted.
+
+## Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `canvas` | `Canvas` (get) | The canvas associated with this loader. |
+| `currentPath` | `string` (get/set) | Base path used for resolving relative resource paths. Loaders change this automatically when processing nested resources (e.g., `VitscnjLoaderPlugin` sets it to the directory of the scene file). |
+
+## Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `clearCache()` | — | Wipes the resource cache. Call when resources on disk have changed and stale data must be invalidated. |
+| `findCache(path, type)` | `any` | Checks if a resource of the given `ResourceType` is cached for the specified path. Returns `undefined` if not found. |
+| `loadResource(path, type)` | `Promise\<any\>` | Core load method: resolves path against `currentPath`, checks cache, delegates to the matching registered plugin by file extension. |
+| `loadPolyList(path)` | `Promise\<PolyList\>` | Convenience method for loading PolyList resources. |
+| `loadDrawable(path)` | `Promise\<any\>` | Convenience method for loading Drawable resources. |
+| `loadDrawableBuffer(buffer, format, dependencies)` | `Promise\<any\>` | Convenience method for loading Drawable from an ArrayBuffer (used by drag-and-drop). |
+| `loadNode(path)` | `Promise\<any\>` | Convenience method for loading a Node tree from `.vitscnj` scene files. |
+| `loadTexture(path)` | `Promise\<Texture\>` | Convenience method for loading texture assets. |
+| `loadMaterial(path)` | `Promise\<any\>` | Convenience method for loading material assets. |
+| `setupModelDropZone(dropZone, fileFormats, cb)` | — | Sets up drag-and-drop loading for models on a DOM element. Accepts an array of file formats (e.g., `["bg2","vwglb"]`) and a callback that receives the loaded Drawable for each dropped file. See example below. |
+
+## Drag and drop example
+
+```js
+import Loader from 'bg2e-js/ts/db/Loader.ts';
+
+const loader = new Loader();
+loader.setupModelDropZone(document.body, ["bg2", "vwglb"], drawable => {
+    const modelNode = new Node("Dropped model");
+    modelNode.addComponent(drawable);
+    this.sceneRoot.appendChild(modelNode);
+});
 ```
