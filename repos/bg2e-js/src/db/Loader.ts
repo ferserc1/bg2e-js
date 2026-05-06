@@ -134,7 +134,7 @@ export default class Loader {
         return result;
     }
 
-    async loadPolyList(path: string): Promise<PolyList> {
+    async loadPolyList(path: string): Promise<PolyList[]> {
         return await this.loadResource(path, ResourceType.PolyList);
     }
 

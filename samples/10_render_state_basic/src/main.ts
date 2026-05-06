@@ -141,7 +141,7 @@ class MyAppController extends AppController {
         this._shader = new MyWebGLShader(this.renderer);
         await this._shader.load();
 
-        registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist" }));
+        registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "bg2io" }));
         registerComponents();
         const loader = new Loader();
         const drawable = await loader.loadDrawable("../resources/cubes.bg2");

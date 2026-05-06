@@ -1,8 +1,6 @@
 import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-
-// Configured to be used in this workspace structure
-const bg2ioPath = '../../node_modules/bg2io/';
+import { copyBg2eAssets } from 'bg2e-js/ts/bg2e-vite.js';
 
 export default defineConfig({
   assetsInclude: ["**/*.glsl"],
@@ -14,16 +12,9 @@ export default defineConfig({
     },
   },
   plugins: [
+    copyBg2eAssets({ nodeModulesPath: "../../node_modules" }),
     viteStaticCopy({
       targets: [
-        {
-          src: `${bg2ioPath}/bg2io.js`,
-          dest: 'dist'
-        },
-        {
-          src: `${bg2ioPath}/bg2io.wasm`,
-          dest: 'dist'
-        },
         {
             src: "../resources/**",
             dest: "resources"

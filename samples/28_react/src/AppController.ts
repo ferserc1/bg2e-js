@@ -16,7 +16,7 @@ export default class MyAppController extends SceneAppController {
     }
 
     async loadScene() {
-        registerLoaderPlugin(new VitscnjLoaderPlugin({ bg2ioPath: "dist/" }));
+        registerLoaderPlugin(new VitscnjLoaderPlugin());
         registerComponents();
 
         // Load scene

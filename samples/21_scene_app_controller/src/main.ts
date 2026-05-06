@@ -29,7 +29,7 @@ class MyAppController extends SceneAppController {
     async loadScene() {
         console.log(this.renderer.clearColor);
         this.renderer.clearColor = new Color([0.8, 0.8, 0.8, 1]);
-        registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "dist/" }));
+        registerLoaderPlugin(new Bg2LoaderPlugin({ bg2ioPath: "bg2io/" }));
         registerLoaderPlugin(new ObjLoaderPlugin());
 
         const root = new Node("scene root");
