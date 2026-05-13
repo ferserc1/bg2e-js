@@ -1,0 +1,5 @@
+packages:
+  - "repos/*"
+  - "samples/*"
+allowBuilds:
+  esbuild: true

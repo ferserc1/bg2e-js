@@ -7,7 +7,7 @@
     "doc": "doc",
     "example": "examples"
   },
-  "packageManager": "npm@10.9.3",
+  "packageManager": "pnpm@11.0.0",
   "scripts": {
     "build": "npm --prefix repos/bg2e-js run build",
     "dev:math": "npm --prefix samples/00_math run dev",
