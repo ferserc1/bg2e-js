@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import BoundingBox from './BoundingBox';
 import Color from './Color';
 import Environment from './Environment';
 import Light, {
@@ -58,6 +59,7 @@ import Texture, {
 } from './Texture';
 
 export default {
+    BoundingBox,
     Color,
     Environment,
     Light,

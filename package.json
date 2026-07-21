@@ -38,7 +38,8 @@
     "dev:model_load": "npm --prefix samples/26_model_load run dev",
     "dev:material_modifier": "npm --prefix samples/27_material_modifier run dev",
     "dev:react": "npm --prefix samples/28_react run dev",
-    "dev:custom_component": "npm --prefix samples/29_custom_component run dev"
+    "dev:custom_component": "npm --prefix samples/29_custom_component run dev",
+    "dev:bounding_box": "npm --prefix samples/30_bounding_box run dev"
   },
   "repository": {
     "type": "git",

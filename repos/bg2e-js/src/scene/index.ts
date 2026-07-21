@@ -18,6 +18,7 @@
 
 
 
+import AABoundingBoxComponent from "./AABoundingBox";
 import DrawableComponent from "./Drawable";
 import TransformComponent from "./Transform";
 import ChainComponent from "./Chain";
@@ -57,6 +58,7 @@ export const registerComponents = () => {
 }
 
 export default {
+    AABoundingBoxComponent,
     Component,
     DrawableComponent,
     TransformComponent,
