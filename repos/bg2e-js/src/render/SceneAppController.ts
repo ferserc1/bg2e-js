@@ -19,6 +19,7 @@
 import AppController from "../app/AppController";
 import SelectionHighlight from "../manipulation/SelectionHighlight";
 import SelectionManager from "../manipulation/SelectionManager";
+import GizmoManager from "../manipulation/GizmoManager";
 import { registerComponents } from "../scene";
 import Camera from "../scene/Camera";
 import DebugRenderer from "../debug/DebugRenderer";
@@ -36,6 +37,7 @@ export default class SceneAppController extends AppController {
     protected _environment: Environment | null = null;
     protected _selectionManager: SelectionManager | null = null;
     protected _selectionHighlight: SelectionHighlight | null = null;
+    protected _gizmoManager: GizmoManager | null = null;
     protected _updateOnInputEvents: boolean | undefined;
     protected _debugRenderer: DebugRenderer | null = null;
     protected _updateInputEventsFrameCount: number = 60;
@@ -60,11 +62,19 @@ export default class SceneAppController extends AppController {
         return this._selectionHighlight;
     }
 
+    get gizmoManager(): GizmoManager | null {
+        return this._gizmoManager;
+    }
+
     get selectionManagerEnabled(): boolean {
         return true;
     }
 
     get selectionHighlightEnabled(): boolean {
+        return true;
+    }
+
+    get gizmoManagerEnabled(): boolean {
         return true;
     }
 
@@ -137,6 +147,17 @@ export default class SceneAppController extends AppController {
             await this._selectionHighlight.init();
         }
 
+        if (this.gizmoManagerEnabled) {
+            if (!this._selectionManager) {
+                console.warn("SceneAppController.init(): gizmoManagerEnabled is true but selectionManagerEnabled is false. GizmoManager needs a SelectionManager to resolve which node to show a gizmo for, so it will not be created.");
+            }
+            else {
+                this._gizmoManager = new GizmoManager(this.renderer, this._selectionManager);
+                await this._gizmoManager.init();
+                this._gizmoManager.sceneRoot = this.sceneRoot;
+            }
+        }
+
         this._debugRenderer = DebugRenderer.Get(this.renderer);
         await this._debugRenderer?.init();
 
@@ -151,6 +172,7 @@ export default class SceneAppController extends AppController {
         this.sceneRenderer.resize(this.sceneRoot,width,height);
         this.selectionManager?.setViewportSize(width,height);
         this.selectionHighlight?.setViewportSize(width,height);
+        this.gizmoManager?.setViewportSize(width,height);
         this._debugRenderer?.setViewportSize(width,height);
     }
 
@@ -174,6 +196,7 @@ export default class SceneAppController extends AppController {
         const camera = Camera.GetMain(this.sceneRoot);
         if (camera) {
             this.selectionHighlight && this.selectionHighlight.draw(this.sceneRoot, camera);
+            this.gizmoManager && this.gizmoManager.draw(this.sceneRoot, camera);
         }
     }
 
@@ -181,6 +204,9 @@ export default class SceneAppController extends AppController {
         this.sceneRenderer?.destroy();
         if (this.selectionManagerEnabled) {
             this.selectionManager?.destroy();
+        }
+        if (this.gizmoManagerEnabled) {
+            this.gizmoManager?.destroy();
         }
     }
 
@@ -199,23 +225,37 @@ export default class SceneAppController extends AppController {
     }
 
     mouseUp(evt: Bg2MouseEvent): void {
-        this.sceneRoot && this.sceneRenderer?.mouseUp(this.sceneRoot, evt);
-        this.selectionManager?.mouseUp(evt);
+        // Read this before gizmoManager.mouseUp() clears it, so the scene graph (and
+        // SelectionManager) only misses this event when the gizmo actually claimed the drag.
+        const wasInteractingWithGizmo = this.gizmoManager?.isInteracting ?? false;
+        if (!wasInteractingWithGizmo) {
+            this.sceneRoot && this.sceneRenderer?.mouseUp(this.sceneRoot, evt);
+            this.selectionManager?.mouseUp(evt);
+        }
+        this.gizmoManager?.mouseUp(evt);
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     mouseDown(evt: Bg2MouseEvent): void {
-        this.sceneRoot && this.sceneRenderer?.mouseDown(this.sceneRoot, evt);
-        this.selectionManager?.mouseDown(evt);
+        // gizmoManager.mouseDown() performs the gizmo hit-test synchronously, so
+        // isInteracting is already up to date once it returns: if it claimed this click,
+        // the scene graph (e.g. OrbitCameraController) must not see it at all.
+        this.gizmoManager?.mouseDown(evt);
+        if (!this.gizmoManager?.isInteracting) {
+            this.sceneRoot && this.sceneRenderer?.mouseDown(this.sceneRoot, evt);
+            this.selectionManager?.mouseDown(evt);
+        }
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     mouseMove(evt: Bg2MouseEvent): void {
-        this.sceneRoot && this.sceneRenderer?.mouseMove(this.sceneRoot, evt);
+        if (!this.gizmoManager?.isInteracting) {
+            this.sceneRoot && this.sceneRenderer?.mouseMove(this.sceneRoot, evt);
+        }
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
@@ -229,14 +269,21 @@ export default class SceneAppController extends AppController {
     }
 
     mouseDrag(evt: Bg2MouseEvent): void {
-        this.sceneRoot && this.sceneRenderer?.mouseDrag(this.sceneRoot, evt);
+        if (this.gizmoManager?.isInteracting) {
+            this.gizmoManager.mouseDrag(evt);
+        }
+        else {
+            this.sceneRoot && this.sceneRenderer?.mouseDrag(this.sceneRoot, evt);
+        }
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }
     }
 
     mouseWheel(evt: Bg2MouseEvent): void {
-        this.sceneRoot && this.sceneRenderer?.mouseWheel(this.sceneRoot, evt);
+        if (!this.gizmoManager?.isInteracting) {
+            this.sceneRoot && this.sceneRenderer?.mouseWheel(this.sceneRoot, evt);
+        }
         if (this.updateOnInputEvents) {
             this.mainLoop.postRedisplay({ frames: this._updateInputEventsFrameCount });
         }

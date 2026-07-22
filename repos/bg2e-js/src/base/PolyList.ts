@@ -62,7 +62,9 @@ export enum RenderLayer {
     LAYER_15 = 0x1 << 15,
     TRANSPARENT_DEFAULT = 0x1 << 15, // Layer 15 is the default layer for transparent objects
     LAYER_16 = 0x1 << 16,
+    GIZMO_DEFAULT = 0x1 << 16, // Layer 16 is the default layer for gizmo overlay drawing
     LAYER_17 = 0x1 << 17,
+    GIZMO_PICK = 0x1 << 17,    // Layer 17 is used for gizmo handle color-picking (mouse hit-test)
     LAYER_18 = 0x1 << 18,
     LAYER_19 = 0x1 << 19,
     LAYER_20 = 0x1 << 20,

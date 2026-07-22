@@ -40,7 +40,7 @@ export default class FrameBuffer {
     }
 
     clearDepth(): void {
-        this.clear({ color: true, depth: true, stencil: false });
+        this.clear({ color: false, depth: true, stencil: false });
     }
 
     clearStencil(): void {

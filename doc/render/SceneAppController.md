@@ -71,6 +71,46 @@ This method:
 1. Sets default state on the renderer (`enableDepth`, `viewport` synced to canvas, clear color dark gray).
 2. Binds key/mouse input handlers: `keydown`, `keyup`, `mousedown`, `mousemove`, `dragstart`, `wheel`.
 3. Initializes the scene renderer (load camera, load environment, set render root + cameras).
+4. Initializes `SelectionManager`, `SelectionHighlight` and `GizmoManager` (in that order — see [Selection and gizmos](#selection-and-gizmos) below).
+
+## Selection and gizmos
+
+`SceneAppController` wires up three collaborating pieces, all optional and independently toggleable by overriding a `*Enabled` getter (like `createCamera()`/`setCamera()`, they follow the "override a getter, read the instance" pattern):
+
+```ts
+class MyApp extends SceneAppController {
+    get selectionManagerEnabled() { return true; }   // default: true
+    get selectionHighlightEnabled() { return true; } // default: true
+    get gizmoManagerEnabled() { return true; }        // default: true
+}
+```
+
+- **`this.selectionManager`** ([`SelectionManager`](../manipulation/SelectionManager.md)) — picks `PolyList`/`Drawable` objects on click.
+- **`this.selectionHighlight`** ([`SelectionHighlight`](../manipulation/SelectionHighlight.md)) — draws an outline around the current selection.
+- **`this.gizmoManager`** (`GizmoManager`) — draws translate/rotate/scale handles over the last selected node (or the only one, if a single item is selected) and lets the user drag them to modify its `Transform`. It requires `selectionManagerEnabled` to be `true`, since it resolves its target node from `this.selectionManager.selection`.
+
+For a node to display a gizmo when selected, it needs both a `Transform` and a `Gizmo` component:
+
+```ts
+import GizmoComponent from "bg2e-js/ts/manipulation/GizmoComponent.js";
+
+node.addComponent(new Transform());
+node.addComponent(new GizmoComponent());
+```
+
+`GizmoManager` draws a single shared gizmo `Drawable` (a plain cube by default, wired to the `TranslateXZ` action) for every gizmo-enabled node in the scene — only one is visible at a time, following the current selection. It can be configured directly on the instance:
+
+```ts
+this.gizmoManager!.transparency = 0.75;     // alpha applied to the gizmo material
+this.gizmoManager!.fixedScreenSize = 0.2;   // constant on-screen size, independent of camera distance
+this.gizmoManager!.setGizmoDrawable(myDrawable); // replace the default cube with a custom gizmo mesh
+this.gizmoManager!.setAction(GizmoActionLabel.TranslateX, ({ node, transform, translation }) => {
+    // override the default behavior for one action label
+});
+this.gizmoManager!.disable(); // hide the gizmo and ignore its mouse events
+```
+
+A custom gizmo `Drawable` can contain any subset of the `GizmoActionLabel` names as `PolyList` names (`TranslateX/Y/Z`, `TranslateXY/XZ/YZ`, `RotateX/Y/Z`, `Scale`, `ScaleX/Y/Z`); each labeled `PolyList` becomes a draggable handle for that action.
 
 ### frame(delta: number): Promise<void> | void
 

@@ -20,6 +20,7 @@ import BasicDiffuseColorShader from "./BasicDiffuseColorShader";
 import BasicPBRLightShader from "./BasicPBRLightShader";
 import DebugRenderShader from "./DebugRenderShader";
 import DepthRenderShader from "./DepthRenderShader";
+import GizmoShader from "./GizmoShader";
 import IrradianceMapCubeShader from "./IrradianceMapCubeShader";
 import PBRLightIBLShader from "./PBRLightIBLShader";
 import PickSelectionShader from "./PickSelectionShader";
@@ -38,6 +39,7 @@ export default {
     BasicPBRLightShader,
     DebugRenderShader,
     DepthRenderShader,
+    GizmoShader,
     IrradianceMapCubeShader,
     PBRLightIBLShader,
     PickSelectionShader,

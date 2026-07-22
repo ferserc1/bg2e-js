@@ -39,7 +39,8 @@
     "dev:material_modifier": "npm --prefix samples/27_material_modifier run dev",
     "dev:react": "npm --prefix samples/28_react run dev",
     "dev:custom_component": "npm --prefix samples/29_custom_component run dev",
-    "dev:bounding_box": "npm --prefix samples/30_bounding_box run dev"
+    "dev:bounding_box": "npm --prefix samples/30_bounding_box run dev",
+    "dev:gizmo_manager": "npm --prefix samples/31_gizmo_manager run dev"
   },
   "repository": {
     "type": "git",

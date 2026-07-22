@@ -34,6 +34,7 @@ import CameraComponent, {
 import OrbitCameraControllerComponent from "./OrbitCameraController";
 import SmoothOrbitCameraControllerComponent from "./SmoothOrbitCameraController";
 import EnvironmentComponent from "./EnvironmentComponent";
+import GizmoComponent from "../manipulation/GizmoComponent";
 import Component, { registerComponent } from "./Component";
 import Node from "./Node";
 import NodeVisitor from "./NodeVisitor";
@@ -42,6 +43,7 @@ import FindNodeVisitor from "./FindNodeVisitor";
 export const registerComponents = () => {
     registerComponent("Drawable", DrawableComponent);
     registerComponent("Transform", TransformComponent);
+    registerComponent("Gizmo", GizmoComponent);
 
     // Retrocompatibility: the light is registered with both "Light" and "LightComponent" names, but only "LightComponent" should be used in the future
     registerComponent("Light", LightComponent);
@@ -73,6 +75,7 @@ export default {
     OrbitCameraControllerComponent,
     SmoothOrbitCameraControllerComponent,
     EnvironmentComponent,
+    GizmoComponent,
     registerComponents,
     registerComponent,
     Node,
