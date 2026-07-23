@@ -16,13 +16,61 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import Vec from "../math/Vec";
 import Mat4 from "../math/Mat4";
+import Vec from "../math/Vec";
 import PolyList from "../base/PolyList";
 import BoundingBox from "../base/BoundingBox";
 import Drawable from "./Drawable";
 import Node from "./Node";
-import Transform from "./Transform";
+import NodeVisitor from "./NodeVisitor";
+
+class BoundingBoxVisitor extends NodeVisitor {
+    private _matrixStack: Mat4[];
+    private _localBox: BoundingBox;
+    private _worldBox: BoundingBox;
+
+    constructor() {
+        super();
+        this._matrixStack = [Mat4.MakeIdentity()];
+        this._localBox = new BoundingBox();
+        this._worldBox = new BoundingBox();
+    }
+
+    get localBox(): BoundingBox { return this._localBox; }
+    get worldBox(): BoundingBox { return this._worldBox; }
+
+    visit(node: Node): void {
+        const parentMatrix = this._matrixStack[this._matrixStack.length - 1];
+        let currentMatrix = parentMatrix;
+
+        if (node.transform) {
+            // El orden importa: debe coincidir con la composición que usa el
+            // motor de render (Transform.update / TransformVisitor), donde la
+            // matriz local del nodo se aplica a la izquierda de la matriz ya
+            // acumulada del padre. Con el orden inverso, las traslaciones de
+            // nodos anidados dejan de escalarse por la transformación de sus
+            // ancestros (p.ej. la escala del stage), desincronizando el
+            // bounding box calculado respecto a lo que realmente se renderiza.
+            currentMatrix = Mat4.Mult(parentMatrix, node.transform.matrix);
+        }
+        this._matrixStack.push(currentMatrix);
+
+        const drawable = node.drawable;
+        if (drawable) {
+            drawable.items.forEach(item => {
+                this._localBox.expandByPolyList(item.polyList);
+                const combined = Mat4.Mult(item.transform, currentMatrix);
+                const localBox = BoundingBox.FromPolyList(item.polyList);
+                const transformedBox = localBox.transform(combined);
+                this._worldBox.expandByBoundingBox(transformedBox);
+            });
+        }
+    }
+
+    didVisit(node: Node): void {
+        this._matrixStack.pop();
+    }
+}
 
 export default class AABoundingBox {
     private _localBox: BoundingBox;
@@ -74,18 +122,10 @@ export default class AABoundingBox {
     update(): void {
         if (!this._node) return;
 
-        const drawable = this._node.drawable;
-        if (drawable) {
-            const polyLists = drawable.items.map(item => item.polyList);
-            this._localBox = BoundingBox.FromPolyLists(polyLists);
-
-            const worldMatrix = Transform.GetWorldMatrix(this._node);
-            this._worldBox = this._localBox.transform(worldMatrix);
-        }
-        else {
-            this._localBox = new BoundingBox();
-            this._worldBox = new BoundingBox();
-        }
+        const visitor = new BoundingBoxVisitor();
+        this._node.accept(visitor);
+        this._localBox = visitor.localBox;
+        this._worldBox = visitor.worldBox;
     }
 
     static FromPolyList(plist: PolyList): AABoundingBox {
@@ -106,23 +146,10 @@ export default class AABoundingBox {
 
     static FromScene(root: Node): AABoundingBox {
         const box = new AABoundingBox();
-        const collectPolyLists = (node: Node, lists: PolyList[]): void => {
-            const drawable = node.drawable;
-            if (drawable) {
-                drawable.items.forEach(item => lists.push(item.polyList));
-            }
-            node.children.forEach(child => collectPolyLists(child, lists));
-        };
-
-        const polyLists: PolyList[] = [];
-        collectPolyLists(root, polyLists);
-
-        if (polyLists.length > 0) {
-            box._localBox = BoundingBox.FromPolyLists(polyLists);
-            const worldMatrix = Transform.GetWorldMatrix(root);
-            box._worldBox = box._localBox.transform(worldMatrix);
-        }
-
+        const visitor = new BoundingBoxVisitor();
+        root.accept(visitor);
+        box._localBox = visitor.localBox;
+        box._worldBox = visitor.worldBox;
         return box;
     }
 }
