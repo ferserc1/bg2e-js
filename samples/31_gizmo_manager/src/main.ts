@@ -58,13 +58,6 @@ class MyAppController extends SceneAppController {
         const loader = new Loader();
         const root = await loader.loadNode("../resources/test-scene/test-scene.vitscnj");
 
-        // Load cubes model and add to root
-        const drawable = await loader.loadDrawable("../resources/cubes.bg2");
-        const modelNode = new Node("Cubes model");
-        modelNode.addComponent(drawable);
-        modelNode.addComponent(new Transform(Mat4.MakeTranslation(0, 0, -5)));
-        root.addChild(modelNode);
-
         // Every node with a Drawable component gets a Transform (if it doesn't already have
         // one) and a Gizmo component, so GizmoManager can show a gizmo on it once selected.
         const findVisitor = new FindNodeVisitor();
@@ -76,6 +69,17 @@ class MyAppController extends SceneAppController {
             }
             node.addComponent(new GizmoComponent());
         });
+
+        // Load cubes model and add to root
+        const cubesParent = new Node("cubesParent");
+        cubesParent.addComponent(new Transform(Mat4.MakeTranslation(0, 0, -5)));
+        cubesParent.addComponent(new GizmoComponent());
+        root.addChild(cubesParent);
+
+        const drawable = await loader.loadDrawable("../resources/cubes.bg2");
+        const modelNode = new Node("Cubes model");
+        modelNode.addComponent(drawable);
+        cubesParent.addChild(modelNode);
 
         // Get main camera
         const mainCamera = CameraComponent.GetMain(root)!;
@@ -117,6 +121,8 @@ class MyAppController extends SceneAppController {
                 this.printText(`&nbsp;<b>${item.drawable.name}</b>`);
             });
         });
+
+        (globalThis as any).selectionManager = this.selectionManager;
     }
 }
 

@@ -15,3 +15,5 @@ bg2e-base/package-lock.json
 .DS_Store
 
 .turbo
+
+.idea

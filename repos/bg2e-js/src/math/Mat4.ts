@@ -656,8 +656,8 @@ export default class Mat4 extends NumericArray {
 
     static GetScale(m: ArrayLike<number>): Vec {
 		return new Vec(
-            Vec.Magnitude([m[1], m[5], m[9]]),
-			Vec.Magnitude([m[0], m[4], m[8]]),
+            Vec.Magnitude([m[0], m[4], m[8]]),
+			Vec.Magnitude([m[1], m[5], m[9]]),
 			Vec.Magnitude([m[2], m[6], m[10]])
 		);
 	}

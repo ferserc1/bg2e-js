@@ -234,15 +234,24 @@ export default class GizmoManager {
 
     // Resolves which node's gizmo must be shown: the last selected item when multi-selection
     // is enabled, or the single selected item otherwise — both reduce to "last in selection".
-    // The node also needs Transform and Gizmo components to be eligible.
+    // The node needs Transform and Gizmo components to be eligible. If it isn't, but its
+    // immediate parent has both, the parent's gizmo is used instead (e.g. selecting a mesh
+    // child of a group node still lets the group be manipulated).
     resolveTargetNode(): Node | null {
         const selection = this._selectionManager.selection;
         if (!selection.length) {
             return null;
         }
         const node = selection[selection.length - 1].drawable?.node;
-        if (node && node.component("Transform") && node.component("Gizmo")) {
+        if (!node) {
+            return null;
+        }
+        if (node.component("Transform") && node.component("Gizmo")) {
             return node;
+        }
+        const parent = node.parent;
+        if (parent && parent.component("Transform") && parent.component("Gizmo")) {
+            return parent;
         }
         return null;
     }
@@ -326,7 +335,7 @@ export default class GizmoManager {
         const pixelRatio = window.devicePixelRatio || 1;
         return Ray.FromScreenPoint(
             evt.x * pixelRatio, evt.y * pixelRatio,
-            this._viewportSize[0] * pixelRatio, this._viewportSize[1] * pixelRatio,
+            this._viewportSize[0], this._viewportSize[1],
             viewMatrix, projectionMatrix
         );
     }
@@ -469,6 +478,14 @@ export default class GizmoManager {
         const translateAction: GizmoActionCallback = ({ node, transform, translation }) => {
             if (!translation) return;
             const localDelta = inverseParentRotation(node).multVector(translation.xyz).xyz;
+            // A world-space delta only maps 1:1 onto the parent's local axes when the parent
+            // is unscaled. inverseParentRotation() strips rotation but not scale, so undo the
+            // parent's scale here too — otherwise dragging under a scaled ancestor moves the
+            // node faster or slower than the mouse, proportionally to that scale.
+            const parentScale = Mat4.GetScale(worldMatrixOf(node.parent));
+            localDelta.x /= Math.max(parentScale.x, 1e-6);
+            localDelta.y /= Math.max(parentScale.y, 1e-6);
+            localDelta.z /= Math.max(parentScale.z, 1e-6);
             const m = transform.matrix;
             m.m30 += localDelta.x;
             m.m31 += localDelta.y;

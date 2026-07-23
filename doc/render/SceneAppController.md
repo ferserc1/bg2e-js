@@ -75,7 +75,11 @@ This method:
 
 ## Selection and gizmos
 
-`SceneAppController` wires up three collaborating pieces, all optional and independently toggleable by overriding a `*Enabled` getter (like `createCamera()`/`setCamera()`, they follow the "override a getter, read the instance" pattern):
+`SceneAppController` wires up three collaborating pieces from the [`manipulation` module](../manipulation/index.md): [`SelectionManager`](../manipulation/SelectionManager.md) (click-to-select), [`SelectionHighlight`](../manipulation/SelectionHighlight.md) (outline the selection) and `GizmoManager` (draggable translate/rotate/scale handles on the selection). This section is a practical, task-oriented guide to using them together through `SceneAppController`; see each class's own reference page for the full API. The samples [`23_selection`](../../samples/23_selection), [`30_bounding_box`](../../samples/30_bounding_box) and [`31_gizmo_manager`](../../samples/31_gizmo_manager) are working, runnable versions of what's shown here (`pnpm dev:selection`, `pnpm dev:bounding_box`, `pnpm dev:gizmo_manager`).
+
+### Enabling and disabling each piece
+
+Each piece is created — or not — once, during `init()`, based on a `*Enabled` getter you can override (like `createCamera()`/`setCamera()`, this follows the "override a getter, read the instance" pattern). This is a **startup** decision, not a live toggle:
 
 ```ts
 class MyApp extends SceneAppController {
@@ -85,11 +89,64 @@ class MyApp extends SceneAppController {
 }
 ```
 
-- **`this.selectionManager`** ([`SelectionManager`](../manipulation/SelectionManager.md)) — picks `PolyList`/`Drawable` objects on click.
-- **`this.selectionHighlight`** ([`SelectionHighlight`](../manipulation/SelectionHighlight.md)) — draws an outline around the current selection.
-- **`this.gizmoManager`** (`GizmoManager`) — draws translate/rotate/scale handles over the last selected node (or the only one, if a single item is selected) and lets the user drag them to modify its `Transform`. It requires `selectionManagerEnabled` to be `true`, since it resolves its target node from `this.selectionManager.selection`.
+- **`this.selectionManager`** — created if `selectionManagerEnabled`. Picks `PolyList`/`Drawable` objects on click.
+- **`this.selectionHighlight`** — created if `selectionHighlightEnabled`. Draws an outline around whatever `.selected` flags `selectionManager` set — it has no runtime enable/disable of its own; not calling `selectionHighlight.draw()` (which only happens if it was created) is the only way to turn it off, so use the getter for that.
+- **`this.gizmoManager`** — created if `gizmoManagerEnabled` **and** `selectionManagerEnabled` (it resolves its target node from `this.selectionManager.selection`, so without a `SelectionManager` it logs a warning and is left `null`).
 
-For a node to display a gizmo when selected, it needs both a `Transform` and a `Gizmo` component:
+Once created, `selectionManager` and `gizmoManager` (but not `selectionHighlight`) additionally expose a **runtime** enabled flag, independent of the getters above — useful for temporarily suspending picking/gizmo interaction without tearing anything down:
+
+```ts
+this.selectionManager?.disable(); // stop picking; also clears the current selection
+this.gizmoManager?.disable();     // hide the gizmo and ignore its mouse events
+this.gizmoManager?.enable();
+```
+
+### Selection modes and multi-select
+
+`selectionManager.selectionMode` ([`SelectionMode`](../manipulation/SelectionMode.md)) controls click granularity:
+
+```ts
+import SelectionMode from "bg2e-js/ts/manipulation/SelectionMode.js";
+
+this.selectionManager!.selectionMode = SelectionMode.POLY_LIST; // default — selects one mesh part
+this.selectionManager!.selectionMode = SelectionMode.OBJECT;    // selects the whole Drawable
+```
+
+`selectionManager.multiSelectMode` controls whether a click replaces the selection or accumulates it:
+
+```ts
+this.selectionManager!.multiSelectMode = true;
+```
+
+- **Single-select** (default) — clicking an item replaces the selection; clicking empty space clears it.
+- **Multi-select** — clicking a new item adds it; clicking an already-selected item removes it; clicking empty space leaves the selection untouched.
+
+Not every object needs to be pickable — only `PolyList`s with `isSelectable` true (the default) participate. Restrict selection to specific nodes with `Drawable.makeSelectable()`:
+
+```ts
+findVisitor.result.forEach(node => {
+    node.drawable?.makeSelectable(node.name === "Ball"); // ground stays unselectable, balls don't
+});
+```
+
+React to selection changes anywhere with `onSelectionChanged`:
+
+```ts
+this.selectionManager!.onSelectionChanged("myApp", (selection) => {
+    selection.forEach(item => console.log(item.drawable.name));
+});
+```
+
+Style the outline drawn by `selectionHighlight`:
+
+```ts
+this.selectionHighlight!.borderColor = new Vec(0.0, 0.8, 0.3, 1.0);
+this.selectionHighlight!.borderWidth = 6;
+```
+
+### The gizmo system
+
+For a node to display a gizmo when selected, it needs both a `Transform` and a [`GizmoComponent`](../manipulation/GizmoComponent.md):
 
 ```ts
 import GizmoComponent from "bg2e-js/ts/manipulation/GizmoComponent.js";
@@ -98,19 +155,60 @@ node.addComponent(new Transform());
 node.addComponent(new GizmoComponent());
 ```
 
-`GizmoManager` draws a single shared gizmo `Drawable` (a plain cube by default, wired to the `TranslateXZ` action) for every gizmo-enabled node in the scene — only one is visible at a time, following the current selection. It can be configured directly on the instance:
+`GizmoManager` draws a single **shared** gizmo `Drawable` (a plain cube by default, wired to the `TranslateXZ` action) — never one per node — reused for whichever gizmo-eligible node is currently resolved as the target. Target resolution always follows **the last item added to the selection**: with a single selected item that's simply that item; with `selectionManager.multiSelectMode = true`, the gizmo follows whichever object was most recently added.
 
 ```ts
-this.gizmoManager!.transparency = 0.75;     // alpha applied to the gizmo material
-this.gizmoManager!.fixedScreenSize = 0.2;   // constant on-screen size, independent of camera distance
-this.gizmoManager!.setGizmoDrawable(myDrawable); // replace the default cube with a custom gizmo mesh
-this.gizmoManager!.setAction(GizmoActionLabel.TranslateX, ({ node, transform, translation }) => {
-    // override the default behavior for one action label
-});
-this.gizmoManager!.disable(); // hide the gizmo and ignore its mouse events
+this.selectionManager!.multiSelectMode = true; // gizmo follows the last-added item
 ```
 
-A custom gizmo `Drawable` can contain any subset of the `GizmoActionLabel` names as `PolyList` names (`TranslateX/Y/Z`, `TranslateXY/XZ/YZ`, `RotateX/Y/Z`, `Scale`, `ScaleX/Y/Z`); each labeled `PolyList` becomes a draggable handle for that action.
+Basic configuration:
+
+```ts
+this.gizmoManager!.transparency = 0.75;     // alpha applied to the gizmo material (default 0.85)
+this.gizmoManager!.fixedScreenSize = 0.2;   // constant on-screen size, independent of camera distance (default 0.15)
+```
+
+#### Custom gizmo models
+
+Replace the default cube with any `Drawable` — programmatic or loaded from a file. A custom `Drawable` can contain any subset of the `GizmoActionLabel` names as `PolyList` names (`TranslateX/Y/Z`, `TranslateXY/XZ/YZ`, `RotateX/Y/Z`, `Scale`, `ScaleX/Y/Z`, see [`GizmoActionLabel`](../manipulation/GizmoActionLabel.md)) — each labeled `PolyList` becomes a draggable handle for that action, and back-face culling is always forced on for gizmo geometry regardless of the source material:
+
+```ts
+this.gizmoManager!.setGizmoDrawable(myDrawable); // any Drawable you already built
+```
+
+Or load one from a model file with `loadGizmo()`. Since most modeling tools won't name meshes after a `GizmoActionLabel`, pass a `labelMap` to rename a `PolyList` (keyed by its original name) into one:
+
+```ts
+import GizmoActionLabel from "bg2e-js/ts/manipulation/GizmoActionLabel.js";
+
+// PlaneGizmo.bg2's single PolyList is named "Cube.0010" in the source file
+await this.gizmoManager!.loadGizmo("../resources/PlaneGizmo.bg2", {
+    "Cube.0010": GizmoActionLabel.TranslateXZ
+});
+```
+
+#### Custom actions
+
+Override what dragging a given handle does with `setAction()`. Callbacks receive distilled, world-space parameters (never raw mouse/viewport data) computed via ray-plane intersection against the handle for maximum drag precision:
+
+```ts
+this.gizmoManager!.setAction(GizmoActionLabel.TranslateX, ({ node, transform, translation }) => {
+    // translation: Vec — this frame's world-space delta, only set for Translate* labels
+    // override the default behavior for one action label
+});
+```
+
+`Rotate*` callbacks receive `axis`/`angle` instead, and `Scale*`/`Scale` receive `scale`; see [`GizmoManager.setAction()`](../manipulation/GizmoManager.md#setactionlabel-gizmoactionlabel-cb-gizmoactioncallback-void) for the full parameter shape and the built-in default behavior each label falls back to when not overridden.
+
+### Input event gating during a drag
+
+While a gizmo handle is being dragged, mouse events must **not** reach the rest of the scene graph — otherwise components like `OrbitCameraController`/`SmoothOrbitCameraController` would move the camera at the same time the gizmo is being manipulated. `SceneAppController` handles this automatically by checking `gizmoManager.isInteracting` in its mouse handlers:
+
+- **`mouseDown`** — always forwarded to `gizmoManager` first (it performs the hit-test synchronously); only forwarded to `sceneRenderer`/`selectionManager` afterwards if the gizmo did **not** claim the click.
+- **`mouseMove` / `mouseDrag` / `mouseWheel`** — forwarded to the scene graph only while `!gizmoManager.isInteracting`; forwarded to `gizmoManager` instead while a drag is active.
+- **`mouseUp`** — whether the gizmo was interacting is captured *before* calling `gizmoManager.mouseUp()` (which clears the flag), so the same click that ends a drag is still correctly excluded from `sceneRenderer`/`selectionManager`.
+
+This blocking is scoped exactly to the duration of a gizmo interaction (`isInteracting`) — at every other time, input reaches the scene graph exactly as if `gizmoManager` weren't there.
 
 ### frame(delta: number): Promise<void> | void
 
