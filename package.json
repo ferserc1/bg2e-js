@@ -40,7 +40,8 @@
     "dev:react": "npm --prefix samples/28_react run dev",
     "dev:custom_component": "npm --prefix samples/29_custom_component run dev",
     "dev:bounding_box": "npm --prefix samples/30_bounding_box run dev",
-    "dev:gizmo_manager": "npm --prefix samples/31_gizmo_manager run dev"
+    "dev:gizmo_manager": "npm --prefix samples/31_gizmo_manager run dev",
+    "dev:joints": "npm --prefix samples/32_joints run dev"
   },
   "repository": {
     "type": "git",

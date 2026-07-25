@@ -100,7 +100,6 @@ const createNode = async (jsonData: any, filePath: string, loader: Loader, depen
             console.warn(err.message);
         }
     }
-    console.log(jsonData);
     return node;
 }
 

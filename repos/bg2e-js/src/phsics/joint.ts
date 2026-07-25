@@ -133,6 +133,15 @@ export class LinkJoint extends Joint {
     }
 
     serialize(sceneData: any): void {
+        sceneData.type = 'LinkJoint';
+        sceneData.offset = Array.from(this._offset);
+        sceneData.yaw = this.yaw;
+        sceneData.pitch = this.pitch;
+        sceneData.roll = this.roll;
+        sceneData.order = this.transformOrder;
+    }
+
+    deserialize(sceneData: any): void {
         if (sceneData.offset && sceneData.offset.length >= 3) {
             this._offset = new Vec(sceneData.offset);
         }
@@ -142,14 +151,6 @@ export class LinkJoint extends Joint {
             sceneData.roll || 0
         );
         this._transformOrder = sceneData.order !== undefined ? sceneData.order : LinkTransformOrder.TRANSLATE_ROTATE;
-    }
-
-    deserialize(sceneData: any): void {
-        sceneData.type = 'LinkJoint';
-        sceneData.offset = Array.from(this._offset);
-        sceneData.yaw = this.yaw;
-        sceneData.pitch = this.pitch;
-        sceneData.roll = this.roll;
-        sceneData.order = this.transformOrder;
+        this.calculateTransform();
     }
 }
