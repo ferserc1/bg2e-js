@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bg2e - Instances</title>
+    <script type="module" src="src/main.ts"></script>
+    <style>
+        html, body {
+            margin: 0px;
+            padding: 0px;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #albedo-panel {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.55);
+            color: white;
+            font-family: sans-serif;
+            font-size: 13px;
+            user-select: none;
+        }
+
+        #albedo-panel h3 {
+            margin: 0px 0px 8px 0px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        #albedo-panel label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        #albedo-panel label span:first-child {
+            width: 12px;
+        }
+
+        #albedo-panel input {
+            width: 180px;
+        }
+
+        #albedo-panel .value {
+            width: 30px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gl-canvas" width="800" height="600"></canvas>
+    <div id="albedo-panel">
+        <h3>Source drawable albedo</h3>
+        <label>
+            <span>R</span>
+            <input id="albedo-r" type="range" min="0" max="255" step="1" value="255">
+            <span class="value" id="albedo-r-value">255</span>
+        </label>
+        <label>
+            <span>G</span>
+            <input id="albedo-g" type="range" min="0" max="255" step="1" value="255">
+            <span class="value" id="albedo-g-value">255</span>
+        </label>
+        <label>
+            <span>B</span>
+            <input id="albedo-b" type="range" min="0" max="255" step="1" value="255">
+            <span class="value" id="albedo-b-value">255</span>
+        </label>
+    </div>
+</body>
+</html>

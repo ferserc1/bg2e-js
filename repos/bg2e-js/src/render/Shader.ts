@@ -19,6 +19,7 @@
 import type Renderer from "./Renderer";
 import type PolyListRenderer from "./PolyListRenderer";
 import type MaterialRenderer from "./MaterialRenderer";
+import type { SelectionState } from "./RenderState";
 import Mat4 from "../math/Mat4";
 
 export default class Shader {
@@ -34,12 +35,17 @@ export default class Shader {
 
     }
     
+    // The selectionState parameter is only used by the shaders involved in the picking
+    // system (see PickSelectionShader): it allows the object that filled the render queue
+    // to override the color code and the selection flag stored in the PolyList. Shaders
+    // that don't take part in the picking process can simply omit this parameter.
     setup(
         plistRenderer: PolyListRenderer,
         materialRenderer: MaterialRenderer,
         modelMatrix: Mat4 = Mat4.MakeIdentity(),
         viewMatrix: Mat4 = Mat4.MakeIdentity(),
-        projectionMatrix: Mat4 = Mat4.MakeIdentity()
+        projectionMatrix: Mat4 = Mat4.MakeIdentity(),
+        selectionState: SelectionState | null = null
     ): void {
         throw new Error("Error: using an abstract implementation of render.Shader.");
     }

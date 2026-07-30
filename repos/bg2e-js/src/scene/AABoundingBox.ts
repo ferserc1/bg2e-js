@@ -57,14 +57,25 @@ class BoundingBoxVisitor extends NodeVisitor {
 
         const drawable = node.drawable;
         if (drawable) {
-            drawable.items.forEach(item => {
-                this._localBox.expandByPolyList(item.polyList);
-                const combined = Mat4.Mult(item.transform, currentMatrix);
-                const localBox = BoundingBox.FromPolyList(item.polyList);
-                const transformedBox = localBox.transform(combined);
-                this._worldBox.expandByBoundingBox(transformedBox);
-            });
+            this.expandByDrawable(drawable, currentMatrix);
         }
+
+        // An Instance component renders the drawable of another component in this node, so
+        // it contributes to the bounding box exactly like a Drawable of this node would do
+        const instance = node.instance;
+        if (instance?.sourceDrawable) {
+            this.expandByDrawable(instance.sourceDrawable, currentMatrix);
+        }
+    }
+
+    private expandByDrawable(drawable: Drawable, currentMatrix: Mat4): void {
+        drawable.items.forEach(item => {
+            this._localBox.expandByPolyList(item.polyList);
+            const combined = Mat4.Mult(item.transform, currentMatrix);
+            const localBox = BoundingBox.FromPolyList(item.polyList);
+            const transformedBox = localBox.transform(combined);
+            this._worldBox.expandByBoundingBox(transformedBox);
+        });
     }
 
     didVisit(node: Node): void {

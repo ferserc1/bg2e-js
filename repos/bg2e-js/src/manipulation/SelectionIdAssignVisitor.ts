@@ -22,12 +22,25 @@ import Color from "../base/Color";
 import Node from "../scene/Node";
 import PolyList from "../base/PolyList";
 import Drawable from "../scene/Drawable";
+import Instance from "../scene/Instance";
 
 const getColor = (comps: number[]) => "" + comps[0] + comps[1] + comps[2];
+
+const getColorKey = (color: Color) => getColor([
+    Math.round(color[0] * 255),
+    Math.round(color[1] * 255),
+    Math.round(color[2] * 255)
+]);
 
 export type SelectionElement = {
     polyList: PolyList;
     drawable: Drawable;
+    // Index of the polyList in the drawable items array
+    itemIndex: number;
+    // If the element has been picked through an Instance component, this is the instance
+    // that has been picked, and `drawable` is the drawable referenced by the instance.
+    // Note that the same polyList and drawable may be picked from several instances.
+    instance?: Instance;
 }
 
 export default class SelectionAssignVisitor extends NodeVisitor {
@@ -95,28 +108,57 @@ export default class SelectionAssignVisitor extends NodeVisitor {
     }
 
     visit(node: Node) {
-        const { drawable } = node;
+        const { drawable, instance } = node;
         if (drawable) {
-            let color = this.getNextColor();
-            drawable.items.forEach(({polyList}, i, array) => {
-                if (polyList.isSelectable) {
-                    polyList.colorCode = color;
-                    polyList.selected = false;
-                    const colorCode = getColor([
-                        Math.round(color[0] * 255),
-                        Math.round(color[1] * 255),
-                        Math.round(color[2] * 255)
-                    ]);
-                    this._elements[colorCode] = { polyList, drawable };
-                }
-
-                // Get new color code for the next polyList, only if this is not the
-                // last item, and the selection mode is POLY_LIST, otherwise we'll
-                // use the same color code for all polyList in the drawable
-                if (i<array.length-1 && this._selectionMode == SelectionMode.POLY_LIST) {
-                    color = this.getNextColor();
-                }
-            });
+            this.assignDrawableColorCodes(drawable);
         }
+
+        // A node may contain both a Drawable and an Instance component, so both cases
+        // are processed independently
+        if (instance) {
+            this.assignInstanceColorCodes(instance);
+        }
+    }
+
+    protected assignDrawableColorCodes(drawable: Drawable) {
+        let color = this.getNextColor();
+        drawable.items.forEach(({polyList}, i, array) => {
+            if (polyList.isSelectable) {
+                polyList.colorCode = color;
+                polyList.selected = false;
+                this._elements[getColorKey(color)] = { polyList, drawable, itemIndex: i };
+            }
+
+            // Get new color code for the next polyList, only if this is not the
+            // last item, and the selection mode is POLY_LIST, otherwise we'll
+            // use the same color code for all polyList in the drawable
+            if (i<array.length-1 && this._selectionMode == SelectionMode.POLY_LIST) {
+                color = this.getNextColor();
+            }
+        });
+    }
+
+    // The color codes and the selection flags of an instance are stored in the Instance
+    // component, instead of in the PolyList objects, because those objects are shared
+    // with the source drawable and with any other instance of it. This is what makes it
+    // possible to pick and highlight each instance separately.
+    protected assignInstanceColorCodes(instance: Instance) {
+        const drawable = instance.sourceDrawable;
+        if (!drawable || !instance.selectable) {
+            return;
+        }
+
+        let color = this.getNextColor();
+        drawable.items.forEach(({polyList}, i, array) => {
+            if (polyList.isSelectable) {
+                instance.setColorCode(i, color);
+                instance.setSelected(i, false);
+                this._elements[getColorKey(color)] = { polyList, drawable, itemIndex: i, instance };
+            }
+
+            if (i<array.length-1 && this._selectionMode == SelectionMode.POLY_LIST) {
+                color = this.getNextColor();
+            }
+        });
     }
 }

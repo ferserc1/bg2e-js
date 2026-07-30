@@ -19,17 +19,16 @@
 import Vec from "../math/Vec";
 import SelectionBuffer from "./SelectionBuffer";
 import Camera from "../scene/Camera";
-import SelectionIdAssignVisitor from "./SelectionIdAssignVisitor";
+import SelectionIdAssignVisitor, { type SelectionElement } from "./SelectionIdAssignVisitor";
 import SelectionMode from "./SelectionMode";
 import Renderer from "../render/Renderer";
 import Node from "../scene/Node";
 import Bg2MouseEvent from "../app/Bg2MouseEvent";
 import Bg2TouchEvent from "../app/Bg2TouchEvent";
 
-export type SelectionChangedData = {
-    polyList: any;
-    drawable: any;
-}
+// The picked element. If it has been picked through an Instance component, the `instance`
+// attribute is the picked instance, and `drawable` is the drawable referenced by it.
+export type SelectionChangedData = SelectionElement;
 export type SelectionChangedCallback = (selection: SelectionChangedData[]) => void;
 
 export default class SelectionManager {
@@ -38,7 +37,7 @@ export default class SelectionManager {
     protected _camera: Camera | null;
     protected _selectionMode: SelectionMode;
     protected _multiSelect: boolean;
-    protected _selection: Array<{ polyList: any; drawable: any }>;
+    protected _selection: SelectionElement[];
     protected _selectionChangedCallbacks: Record<string, SelectionChangedCallback>;
     protected _selectionBuffer: SelectionBuffer | null = null;
     protected _selectionIdVisitor: SelectionIdAssignVisitor | null = null;
@@ -93,11 +92,43 @@ export default class SelectionManager {
     }
 
     clearSelection() {
-        this._selection.forEach(item => {
-            item.drawable.items.forEach((it: any) => it.polyList.selected = false);
-        });
+        this._selection.forEach(item => this.clearItemSelection(item));
         this._selection = [];
         this.triggerSelectionChanged();
+    }
+
+    // Clears the selection flags of a picked element. All the items of the element are
+    // cleared, whatever the current selection mode is, because the selection mode may
+    // have changed since the element was selected.
+    protected clearItemSelection(item: SelectionElement) {
+        if (item.instance) {
+            item.instance.clearSelection();
+        }
+        else {
+            item.drawable.items.forEach((it: any) => it.polyList.selected = false);
+        }
+    }
+
+    // Marks a picked element as selected. When the element has been picked through an
+    // Instance component, the selection flag is stored in the instance, instead of in the
+    // polyList, because the polyList is shared by the source drawable and by all its
+    // instances: otherwise, selecting one instance would highlight all of them.
+    protected applyItemSelection(item: SelectionElement) {
+        const wholeObject = this.selectionMode === SelectionMode.OBJECT;
+        if (item.instance) {
+            if (wholeObject) {
+                item.instance.selectAll();
+            }
+            else {
+                item.instance.setSelected(item.itemIndex, true);
+            }
+        }
+        else if (wholeObject) {
+            item.drawable.items.forEach((it: any) => it.polyList.selected = true);
+        }
+        else {
+            item.polyList.selected = true;
+        }
     }
 
     set sceneRoot(root) {
@@ -178,8 +209,11 @@ export default class SelectionManager {
             this._selectionBuffer?.reshape(this._viewportSize[0], this._viewportSize[1]);
             const pickedColor = this._selectionBuffer!.draw(this.sceneRoot, this.camera, evt.x * pixelRatio, evt.y * pixelRatio);
             const item = this._selectionIdVisitor.findElement(pickedColor);
+            // The instance is part of the comparison because the same polyList of the same
+            // drawable, picked from two different instances, are two different elements
             const isSelected = () => this._selection.find(s => {
-                return item && s.polyList === item.polyList && s.drawable === item.drawable
+                return item && s.polyList === item.polyList && s.drawable === item.drawable &&
+                    s.instance === item.instance
             });
 
             if (item && this._multiSelect && !isSelected()) {
@@ -191,7 +225,7 @@ export default class SelectionManager {
                 this.triggerSelectionChanged();
             }
             else if (item && this._multiSelect && isSelected()) {
-                this._selection = this._selection.filter(s => !(s.polyList === item.polyList));
+                this._selection = this._selection.filter(s => !(s.polyList === item.polyList && s.instance === item.instance));
                 this.triggerSelectionChanged();
             }
             else if (!item && this._selection.length > 0) {
@@ -199,14 +233,9 @@ export default class SelectionManager {
                 this.triggerSelectionChanged();
             }
 
-            if (this.selectionMode === SelectionMode.OBJECT) {
-                this._selection.forEach(item => {
-                    item.drawable.items.forEach((it: any) => it.polyList.selected = true);
-                });
-                //item.drawable.items.forEach(it => it.polyList.selected = true);
-            }
-
-            this._selection.forEach(item => item.polyList.selected = true);
+            // The selection flags are rebuilt on every pick: the SelectionIdAssignVisitor
+            // has cleared all of them at the beginning of this function
+            this._selection.forEach(item => this.applyItemSelection(item));
         }
     }
 

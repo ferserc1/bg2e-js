@@ -20,6 +20,7 @@
 
 import AABoundingBoxComponent from "./AABoundingBox";
 import DrawableComponent from "./Drawable";
+import InstanceComponent from "./Instance";
 import TransformComponent from "./Transform";
 import ChainComponent from "./Chain";
 import {
@@ -42,6 +43,7 @@ import FindNodeVisitor from "./FindNodeVisitor";
 
 export const registerComponents = () => {
     registerComponent("Drawable", DrawableComponent);
+    registerComponent("Instance", InstanceComponent);
     registerComponent("Transform", TransformComponent);
     registerComponent("Gizmo", GizmoComponent);
 
@@ -63,6 +65,7 @@ export default {
     AABoundingBoxComponent,
     Component,
     DrawableComponent,
+    InstanceComponent,
     TransformComponent,
     ChainComponent,
     InputChainJointComponent,

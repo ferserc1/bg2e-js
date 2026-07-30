@@ -23,6 +23,7 @@ import Renderer from '../render/Renderer';
 import Camera from './Camera';
 import Transform from './Transform';
 import Drawable from './Drawable';
+import Instance from './Instance';
 import LightComponent from './LightComponent';
 
 export function bindRenderer(node: Node, renderer: Renderer): void {
@@ -76,6 +77,12 @@ export default class Node {
     set steady(s: boolean) { this._steady = s; }
 
     get components(): ComponentMap { return this._components; }
+
+    // The renderer bound to this node, if the node is part of an initialized scene.
+    // It is used by components that need to bind the renderer to resources that are not
+    // part of the scene graph when they are added to an already initialized node
+    // (see Instance.addedToNode).
+    get bindedRenderer(): Renderer | undefined { return this._bindedRenderer; }
 
     get parent(): Node | null { return this._parent; }
     get children(): Node[] { return this._children; }
@@ -261,6 +268,10 @@ export default class Node {
 
     get drawable(): Drawable | undefined {
         return this.component("Drawable") as Drawable;
+    }
+
+    get instance(): Instance | undefined {
+        return this.component("Instance") as Instance;
     }
 
     get camera(): Camera | undefined {

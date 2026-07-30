@@ -20,7 +20,7 @@
 import { getLayers, RenderLayer } from "../base/PolyList";
 import Mat4 from "../math/Mat4";
 import { BlendFunction } from "./Pipeline";
-import RenderState from "./RenderState";
+import RenderState, { type SelectionState } from "./RenderState";
 import type Renderer from "./Renderer";
 import type Shader from "./Shader";
 import type PolyListRenderer from "./PolyListRenderer";
@@ -162,7 +162,11 @@ export default class RenderQueue {
         this._lights = [];
     }
 
-    addPolyList(polyListRenderer: PolyListRenderer, materialRenderer: MaterialRenderer, modelMatrix: Mat4): void {
+    // The selectionState parameter is optional: if it isn't specified, the picking system
+    // will use the color code and selection flag stored in the polyList. It is used by
+    // components that draw polyLists owned by another component, so the same polyList can
+    // be added to the queue several times with a different selection state (see Instance).
+    addPolyList(polyListRenderer: PolyListRenderer, materialRenderer: MaterialRenderer, modelMatrix: Mat4, selectionState: SelectionState | null = null): void {
         const plistLayers = getLayers(polyListRenderer.polyList, materialRenderer.material);
         this._queues.forEach(({ layer, shader, queue, pipelines }) => {
             if (plistLayers & layer) {
@@ -182,7 +186,8 @@ export default class RenderQueue {
                     modelMatrix,
                     viewMatrix: this.viewMatrix,
                     projectionMatrix: this.projectionMatrix,
-                    pipeline
+                    pipeline,
+                    selectionState
                 }))
             }
         });

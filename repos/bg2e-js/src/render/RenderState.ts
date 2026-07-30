@@ -24,6 +24,18 @@ import type PolyListRenderer from "./PolyListRenderer";
 import type MaterialRenderer from "./MaterialRenderer";
 import type Renderer from "./Renderer";
 import type Pipeline from "./Pipeline";
+import type Color from "../base/Color";
+
+// The selection state of a draw call. Usually, the selection state (the color code used
+// by the picking system and the selection flag) is stored in the PolyList, but a PolyList
+// can be drawn several times in the same frame with a different selection state: this is
+// the case of the Instance component, that draws the polyLists of another Drawable
+// component. In that case, the object that adds the polyList to the render queue provides
+// its own selection state, that takes precedence over the one stored in the PolyList.
+export interface SelectionState {
+    colorCode: Color;
+    selected: boolean;
+}
 
 export interface RenderStateOptions {
     shader?: Shader | null;
@@ -33,6 +45,7 @@ export interface RenderStateOptions {
     viewMatrix?: Mat4;
     projectionMatrix?: Mat4;
     pipeline?: Pipeline | null;
+    selectionState?: SelectionState | null;
 }
 
 export interface DrawOptions {
@@ -49,6 +62,7 @@ export default class RenderState {
     protected _viewMatrix: Mat4;
     protected _projectionMatrix: Mat4;
     protected _pipeline: Pipeline | null;
+    protected _selectionState: SelectionState | null;
 
     constructor({
         shader = null,
@@ -57,7 +71,8 @@ export default class RenderState {
         modelMatrix = Mat4.MakeIdentity(),
         viewMatrix = Mat4.MakeIdentity(),
         projectionMatrix = Mat4.MakeIdentity(),
-        pipeline = null
+        pipeline = null,
+        selectionState = null
     }: RenderStateOptions = {}) {
         this._shader = shader;
         this._polyListRenderer = polyListRenderer;
@@ -66,6 +81,7 @@ export default class RenderState {
         this._viewMatrix = viewMatrix;
         this._projectionMatrix = projectionMatrix;
         this._pipeline = pipeline;
+        this._selectionState = selectionState;
     }
 
     get valid(): boolean {
@@ -88,6 +104,8 @@ export default class RenderState {
     get projectionMatrix(): Mat4 { return this._projectionMatrix; }
     get pipeline(): Pipeline | null { return this._pipeline; }
     set pipeline(pl: Pipeline | null) { this._pipeline = pl; }
+    get selectionState(): SelectionState | null { return this._selectionState; }
+    set selectionState(state: SelectionState | null) { this._selectionState = state; }
 
     isLayerEnabled(layer: RenderLayer): boolean {
         const { polyList } = this._polyListRenderer || {};
@@ -124,7 +142,8 @@ export default class RenderState {
             this.materialRenderer,
             this.modelMatrix,
             viewMatrix,
-            projectionMatrix
+            projectionMatrix,
+            this.selectionState
         );
         this.polyListRenderer.draw();
         if ((this.renderer as any)?.debugMode) {

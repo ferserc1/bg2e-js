@@ -20,6 +20,7 @@ import Shader from "../render/Shader";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import PolyListRenderer from '../render/PolyListRenderer';
 import MaterialRenderer from '../render/MaterialRenderer';
+import type { SelectionState } from "../render/RenderState";
 import Mat4 from "../math/Mat4";
 import Renderer from "../render/Renderer";
 import WebGLRenderer from "../render/webgl/Renderer";
@@ -91,21 +92,29 @@ export default class PickSelectionShader extends Shader {
         materialRenderer: MaterialRenderer,
         modelMatrix: Mat4,
         viewMatrix: Mat4,
-        projectionMatrix: Mat4
+        projectionMatrix: Mat4,
+        selectionState: SelectionState | null = null
     ) {
         if (!this._program) {
             throw new Error("PickSelectionShader: shader program is not loaded");
         }
+
+        const { polyList } = plistRenderer;
+
+        // The selection state of the draw call takes precedence over the one stored in the
+        // polyList: this is what makes it possible to pick each Instance component
+        // separately, even if all the instances share the same polyList objects.
+        const selected = selectionState ? selectionState.selected : polyList.isSelected;
+        const colorCode = selectionState ? selectionState.colorCode : polyList.colorCode;
 
         const rend = this.renderer as WebGLRenderer;
         rend.state.shaderProgram = this._program;
         this._program.uniformMatrix4fv('mWorld', false, modelMatrix);
         this._program.uniformMatrix4fv('mView', false, viewMatrix);
         this._program.uniformMatrix4fv('mProj', false, projectionMatrix);
-        this._program.uniform1i('uSelected', (this._forceDraw || plistRenderer.polyList.isSelected) ? 1 : 0);
+        this._program.uniform1i('uSelected', (this._forceDraw || selected) ? 1 : 0);
 
-        const { polyList } = plistRenderer;
-        this._program.uniform4fv('uPickColor', polyList.colorCode);
+        this._program.uniform4fv('uPickColor', colorCode);
 
         this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams("vertPosition"));
     }
