@@ -41,6 +41,8 @@ import Node from "./Node";
 import NodeVisitor from "./NodeVisitor";
 import FindNodeVisitor from "./FindNodeVisitor";
 
+export type { ChildPosition } from "./Node";
+
 export const registerComponents = () => {
     registerComponent("Drawable", DrawableComponent);
     registerComponent("Instance", InstanceComponent);

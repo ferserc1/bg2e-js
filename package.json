@@ -42,7 +42,8 @@
     "dev:bounding_box": "npm --prefix samples/30_bounding_box run dev",
     "dev:gizmo_manager": "npm --prefix samples/31_gizmo_manager run dev",
     "dev:joints": "npm --prefix samples/32_joints run dev",
-    "dev:instances": "npm --prefix samples/33_instances run dev"
+    "dev:instances": "npm --prefix samples/33_instances run dev",
+    "dev:sofa_reorder": "npm --prefix samples/34_sofa_reorder run dev"
   },
   "repository": {
     "type": "git",

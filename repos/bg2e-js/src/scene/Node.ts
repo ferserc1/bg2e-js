@@ -26,6 +26,13 @@ import Drawable from './Drawable';
 import Instance from './Instance';
 import LightComponent from './LightComponent';
 
+// Position of a child in the children list. It can be specified as:
+// - An integer index: the final index the child will occupy. Negative values
+//   count from the end of the list, -1 being the last position.
+// - The strings 'first' or 'last'
+// - { before: Node } or { after: Node } to place the child relative to a sibling
+export type ChildPosition = number | 'first' | 'last' | { before: Node } | { after: Node };
+
 export function bindRenderer(node: Node, renderer: Renderer): void {
     (node as any)._bindedRenderer = renderer;
     node.components.forEach(comp => {
@@ -155,13 +162,39 @@ export default class Node {
         }
     }
 
-    addChild(node: Node): void {
-        if (node._parent) {
+    // Adds the specified node to the children list at the given position
+    // (defaults to the end of the list). Returns the final index of the node.
+    addChild(node: Node, position: ChildPosition = 'last'): number {
+        if (!node) {
+            throw new Error(`Node.addChild() - the specified node is null.`);
+        }
+        const wasChild = node._parent === this;
+        const oldIndex = wasChild ? this._children.indexOf(node) : -1;
+        if (wasChild && oldIndex === -1) {
+            console.warn(`Scene inconsistency found adding node '${node.name}' to node '${this.name}'. The parent node is valid, but the child is not present in the children array.`);
+        }
+
+        // The position is resolved before any mutation, as resolving it can throw
+        const newIndex = this.resolveChildPosition(node, position, "Node.addChild()");
+
+        if (wasChild) {
+            // Reinsertion: the parent does not change, so removeChild() is bypassed
+            // to avoid firing removedFromNode/addedToNode and flagging the scene
+            // as changed unless the position effectively changes
+            if (oldIndex !== -1) {
+                this._children.splice(oldIndex, 1);
+            }
+        }
+        else if (node._parent) {
             node._parent.removeChild(node);
         }
+
         node._parent = this;
-        this._children.push(node);
-        node.addedToNode(this);
+        this._children.splice(newIndex, 0, node);
+
+        if (!wasChild) {
+            node.addedToNode(this);
+        }
 
         // If this node has been binded to a renderer, we need to bind
         // the same renderer to any node that is added as child
@@ -169,7 +202,16 @@ export default class Node {
             bindRenderer(node, this._bindedRenderer);
         }
 
-        this.setSceneChanged();
+        if (!wasChild || oldIndex === -1 || newIndex !== oldIndex) {
+            this.setSceneChanged();
+        }
+
+        return newIndex;
+    }
+
+    // Adds the specified node to the start of the children list
+    addChildFirst(node: Node): number {
+        return this.addChild(node, 'first');
     }
 
     removeChild(node: Node): void {
@@ -197,6 +239,137 @@ export default class Node {
         });
         this._children = [];
         this.setSceneChanged();
+    }
+
+    // Moves the specified child to the given position in the children list.
+    // Returns the new index of the child.
+    moveChild(node: Node, position: ChildPosition): number {
+        if (!node) {
+            throw new Error(`Node.moveChild() - the specified node is null.`);
+        }
+        if (node._parent !== this) {
+            throw new Error(`Node.moveChild() - the specified node is not a child of this node.`);
+        }
+        const oldIndex = this._children.indexOf(node);
+        if (oldIndex === -1) {
+            console.warn(`Scene inconsistency found moving node '${node.name}' in node '${this.name}'. The parent node is valid, but the child is not present in the children array.`);
+        }
+
+        // The position is resolved before any mutation, as resolving it can throw
+        const newIndex = this.resolveChildPosition(node, position, "Node.moveChild()");
+
+        if (newIndex !== oldIndex) {
+            if (oldIndex !== -1) {
+                this._children.splice(oldIndex, 1);
+            }
+            this._children.splice(newIndex, 0, node);
+            this.setSceneChanged();
+        }
+
+        return newIndex;
+    }
+
+    // Moves the specified child to the start of the children list
+    moveChildFirst(node: Node): number {
+        return this.moveChild(node, 'first');
+    }
+
+    // Moves the specified child to the end of the children list
+    moveChildLast(node: Node): number {
+        return this.moveChild(node, 'last');
+    }
+
+    // Shifts the specified child by the given number of positions in the
+    // children list. Positive deltas move the child towards the end of the
+    // list, negative deltas towards the start. The resulting position is
+    // clamped to the valid range. Returns the new index of the child.
+    shiftChild(node: Node, delta: number): number {
+        if (!node) {
+            throw new Error(`Node.shiftChild() - the specified node is null.`);
+        }
+        if (node._parent !== this) {
+            throw new Error(`Node.shiftChild() - the specified node is not a child of this node.`);
+        }
+        if (!Number.isInteger(delta)) {
+            throw new Error(`Node.shiftChild() - the specified delta must be a finite integer.`);
+        }
+        const currentIndex = this._children.indexOf(node);
+        if (currentIndex === -1) {
+            console.warn(`Scene inconsistency found shifting node '${node.name}' in node '${this.name}'. The parent node is valid, but the child is not present in the children array.`);
+            return -1;
+        }
+        let targetIndex = currentIndex + delta;
+        if (targetIndex < 0) {
+            targetIndex = 0;
+        }
+        else if (targetIndex > this._children.length - 1) {
+            targetIndex = this._children.length - 1;
+        }
+        if (targetIndex !== currentIndex) {
+            this._children.splice(currentIndex, 1);
+            this._children.splice(targetIndex, 0, node);
+            this.setSceneChanged();
+        }
+        return targetIndex;
+    }
+
+    // Moves the specified child one position towards the start of the children list
+    moveChildUp(node: Node): number {
+        return this.shiftChild(node, -1);
+    }
+
+    // Moves the specified child one position towards the end of the children list
+    moveChildDown(node: Node): number {
+        return this.shiftChild(node, 1);
+    }
+
+    // Returns the index of the specified child in the children list, or -1 if it is not a child
+    indexOfChild(node: Node): number {
+        return this._children.indexOf(node);
+    }
+
+    // Resolves a ChildPosition to the final index the child will occupy in the
+    // children list. The position is resolved against the list as the child is not
+    // counted in it, so for a child already present in the list (moveChild) the list
+    // is taken as it would be after removing the child. Out-of-range numeric positions
+    // are clamped to the first or last position; unresolvable positions throw an error.
+    private resolveChildPosition(node: Node, position: ChildPosition, method: string): number {
+        const currentIndex = this._children.indexOf(node);
+        const length = this._children.length - (currentIndex >= 0 ? 1 : 0);
+        if (typeof position === 'number') {
+            if (!Number.isInteger(position)) {
+                throw new Error(`${method} - the specified position must be an integer.`);
+            }
+            let index = position < 0 ? length + 1 + position : position;
+            if (index < 0 || index > length) {
+                index = index < 0 ? 0 : length;
+                console.warn(`${method} - the specified position ${position} is out of range for this children list, clamped to position ${index}.`);
+            }
+            return index;
+        }
+        if (position === 'first') {
+            return 0;
+        }
+        if (position === 'last') {
+            return length;
+        }
+        if (position !== null && typeof position === 'object') {
+            const before = 'before' in position;
+            const reference = before ? position.before : position.after;
+            if (reference === node) {
+                throw new Error(`${method} - the reference node is the node being inserted or moved.`);
+            }
+            let referenceIndex = this._children.indexOf(reference);
+            if (referenceIndex === -1) {
+                const name = reference?.name ?? String(reference);
+                throw new Error(`${method} - the reference node '${name}' is not a child of this node.`);
+            }
+            if (currentIndex >= 0 && referenceIndex > currentIndex) {
+                referenceIndex--;
+            }
+            return before ? referenceIndex : referenceIndex + 1;
+        }
+        throw new Error(`${method} - invalid position. Expected an integer index, 'first', 'last', or { before: Node } / { after: Node }.`);
     }
 
     haveChild(node: Node): boolean {
