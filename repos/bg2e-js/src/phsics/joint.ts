@@ -91,27 +91,32 @@ export class LinkJoint extends Joint {
     set transformOrder(t: number) { this._transformOrder = t; this.calculateTransform(); }
 
     applyTransform(matrix: Mat4): void {
-        matrix.mult(this.transform);
+        this.appendTransform(matrix, this.transform);
+    }
+
+    private appendTransform(dst: Mat4, transform: Mat4): void {
+        dst.assign(Mat4.Mult(dst, transform));
     }
 
     multTransform(dst: Mat4): void {
         const offset = this.offset;
+        const translation = Mat4.MakeTranslation(offset.x, offset.y, offset.z);
         switch (this.transformOrder) {
         case LinkTransformOrder.TRANSLATE_ROTATE:
-            dst.translate(offset.x, offset.y, offset.z);
+            this.appendTransform(dst, translation);
             this.multRotation(dst);
             break;
         case LinkTransformOrder.ROTATE_TRANSLATE:
             this.multRotation(dst);
-            dst.translate(offset.x, offset.y, offset.z);
+            this.appendTransform(dst, translation);
             break;
         }
     }
 
     multRotation(dst: Mat4): void {
-        dst .rotate(this.eulerRotation.z, 0, 0, 1)
-            .rotate(this.eulerRotation.y, 0, 1, 0)
-            .rotate(this.eulerRotation.x, 1, 0, 0);
+        this.appendTransform(dst, Mat4.MakeRotation(this.eulerRotation.z, 0, 0, 1));
+        this.appendTransform(dst, Mat4.MakeRotation(this.eulerRotation.y, 0, 1, 0));
+        this.appendTransform(dst, Mat4.MakeRotation(this.eulerRotation.x, 1, 0, 0));
     }
 
     calculateTransform(): void {
@@ -138,7 +143,7 @@ export class LinkJoint extends Joint {
         sceneData.yaw = this.yaw;
         sceneData.pitch = this.pitch;
         sceneData.roll = this.roll;
-        sceneData.order = this.transformOrder;
+        sceneData.transformOrder = this.transformOrder;
     }
 
     deserialize(sceneData: any): void {
@@ -150,7 +155,11 @@ export class LinkJoint extends Joint {
             sceneData.pitch || 0,
             sceneData.roll || 0
         );
-        this._transformOrder = sceneData.order !== undefined ? sceneData.order : LinkTransformOrder.TRANSLATE_ROTATE;
+        // `order` was used by bg2e 1.4. Prefer the current property when both
+        // are present, but continue accepting old assets.
+        this._transformOrder = sceneData.transformOrder
+            ?? sceneData.order
+            ?? LinkTransformOrder.TRANSLATE_ROTATE;
         this.calculateTransform();
     }
 }
