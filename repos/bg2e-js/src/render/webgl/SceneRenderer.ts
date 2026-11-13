@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import Vec from '../../math/Vec';
 import PBRLightIBLShader from "../../shaders/PBRLightIBLShader";
 import SceneRenderer from "../SceneRenderer";
 import { RenderLayer } from "../../base/PolyList";
@@ -25,7 +26,7 @@ import Transform from "../../scene/Transform";
 import type Renderer from "../Renderer";
 import type Node from "../../scene/Node";
 import type Environment from "../Environment";
-import type Vec from "../../math/Vec";
+
 
 export default class WebGLSceneRenderer extends SceneRenderer {
     _shader: PBRLightIBLShader;
@@ -60,7 +61,7 @@ export default class WebGLSceneRenderer extends SceneRenderer {
         this._shader.environment = env;
     }
 
-    async init(params?: { shadowMapSize?: Vec | number }): Promise<void> {
+    async init(params?: { shadowMapSize?: Vec | number; softShadows?: boolean }): Promise<void> {
         await super.init(params);
 
         await this.shader.load();
@@ -77,7 +78,10 @@ export default class WebGLSceneRenderer extends SceneRenderer {
 
         const mainCamera = Camera.GetMain(sceneRoot);
 
+        this.shader.softShadows = this.softShadows;
         this.shader.lightTransforms = this.renderQueue.lights.map(({transform}) => transform);
+        this.shader.solarAtmosphereLight = this._sceneEnvironment?.solarState ? this._sceneEnvironment.node.lightComponent?.light ?? null : null;
+        this.shader.ambientIntensity = this._sceneEnvironment?.irradianceIntensity ?? 1;
         this.shader.lights = this.renderQueue.lights.map(({light}) => light);
         const cameraMatrix: Mat4 = mainCamera ? Transform.GetWorldMatrix(mainCamera.node) : Mat4.MakeIdentity();
         const pos = Mat4.GetPosition(cameraMatrix);

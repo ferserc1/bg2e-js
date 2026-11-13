@@ -185,7 +185,9 @@ interface ProceduralBase64Parameters {
     imageData?: string;
 }
 
-type TextureImageData = ExtendedHTMLImageElement | RenderTargetImageData | null;
+interface FloatImageData { width: number; height: number; data: Float32Array; }
+
+type TextureImageData = ExtendedHTMLImageElement | RenderTargetImageData | FloatImageData | null;
 
 const g_loadedImages: Record<string, Promise<HTMLImageElement> | null> = {};
 let g_resource: Resource | null = null;
@@ -707,6 +709,18 @@ export default class Texture {
             // TODO: load other classes of procedural image data
             throw new Error("Texture: loadImageData(): not implemented");
         }
+    }
+
+    /** Assign linear RGBA float pixels without routing them through an SDR canvas. */
+    setFloatImageData(width: number, height: number, data: Float32Array): void {
+        if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 ||
+            data.length !== width * height * 4 || !data.every(Number.isFinite)) throw new Error('Invalid float image data');
+        this._imageData = { width, height, data };
+        this._size = new Vec(width, height);
+        this._componentFormat = TextureComponentFormat.FLOAT32;
+        this._dataType = TextureDataType.IMAGE_DATA;
+        this.linearData = true;
+        this._dirty = true;
     }
 
     async updateImageData(): Promise<void> {

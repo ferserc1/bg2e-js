@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { evaluateSolarLight } from './SolarLight';
 import BoundingBox from './BoundingBox';
 import Color from './Color';
 import Environment from './Environment';
@@ -59,6 +60,7 @@ import Texture, {
 } from './Texture';
 
 export default {
+    evaluateSolarLight,
     BoundingBox,
     Color,
     Environment,
@@ -99,3 +101,6 @@ export default {
     textureChannelString,
 }
 
+
+export { evaluateSolarLight } from './SolarLight';
+export type { SolarState } from './SolarLight';

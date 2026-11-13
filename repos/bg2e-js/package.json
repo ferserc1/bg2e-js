@@ -28,7 +28,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite build --watch --emptyOutDir",
-    "build": "vite build --emptyOutDir"
+    "build": "vite build --emptyOutDir",
+    "test": "node tests/run.mjs"
   },
   "repository": {
     "type": "git",

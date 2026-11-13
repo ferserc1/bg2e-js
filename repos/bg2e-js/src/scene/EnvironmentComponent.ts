@@ -18,9 +18,27 @@
 
 import { jointUrl } from "../tools/Resource";
 import Component from "./Component";
+import { LightType } from '../base/Light';
+import { evaluateSolarLight, type SolarState } from '../base/SolarLight';
+import Vec from '../math/Vec';
+import Transform from './Transform';
+
+function readSkyColor(value: any, fallback: number[]): number[] {
+    if (value == null) return [...fallback];
+    if (!Array.isArray(value) || value.length < 3 || !value.slice(0, 3).every(v => Number.isFinite(v) && v >= 0 && v <= 1)) {
+        throw new Error('Procedural sky colors require finite RGB components in [0, 1]');
+    }
+    return value.slice(0, 3);
+}
 import EnvironmentRenderer from "../render/Environment";
 
 export default class EnvironmentComponent extends Component {
+    skyHorizonColor: number[] = [0.55, 0.65, 0.8];
+    skyZenithColor: number[] = [0.06, 0.22, 0.6];
+    groundColor: number[] = [0.04, 0.035, 0.025];
+    skyboxBlur = 0;
+    private _generationKey = '';
+
     private _equirectangularTexture: string;
     private _irradianceIntensity: number;
     private _showSkybox: boolean;
@@ -112,6 +130,10 @@ export default class EnvironmentComponent extends Component {
     }
 
     assign(other: EnvironmentComponent): void {
+        this.skyHorizonColor = [...other.skyHorizonColor];
+        this.skyZenithColor = [...other.skyZenithColor];
+        this.groundColor = [...other.groundColor];
+        this.skyboxBlur = other.skyboxBlur;
         this.equirectangularTexture = other.equirectangularTexture;
         this.irradianceIntensity = other.irradianceIntensity;
         this.showSkybox = other.showSkybox;
@@ -124,7 +146,11 @@ export default class EnvironmentComponent extends Component {
     async deserialize(sceneData: any, loader: any): Promise<void> {
         super.deserialize(sceneData, loader);
         const image = sceneData.equirectangularTexture ?? sceneData.environmentImage;
-        if (image) this.equirectangularTexture = jointUrl(loader.currentPath || '', image);
+        this.equirectangularTexture = image ? jointUrl(loader.currentPath || '', image) : '';
+        this.skyHorizonColor = readSkyColor(sceneData.skyHorizonColor, [0.55, 0.65, 0.8]);
+        this.skyZenithColor = readSkyColor(sceneData.skyZenithColor, [0.06, 0.22, 0.6]);
+        this.groundColor = readSkyColor(sceneData.groundColor, [0.04, 0.035, 0.025]);
+        this.skyboxBlur = sceneData.skyboxBlur ?? 0;
         this.irradianceIntensity = sceneData.irradianceIntensity ?? this.irradianceIntensity;
         this.showSkybox = sceneData.skyboxVisible ?? sceneData.showSkybox ?? this.showSkybox;
         this.cubemapSize = sceneData.cubemapSize || this.cubemapSize;
@@ -135,21 +161,49 @@ export default class EnvironmentComponent extends Component {
 
     async serialize(sceneData: any, writer: any): Promise<void> {
         await super.serialize(sceneData, writer);
-        throw Error("EnvironmentComponent.serialize(): not implemented");
+        Object.assign(sceneData, {
+            equirectangularTexture: this.equirectangularTexture,
+            skyHorizonColor: [...this.skyHorizonColor], skyZenithColor: [...this.skyZenithColor],
+            groundColor: [...this.groundColor], skyboxBlur: this.skyboxBlur,
+            skyboxVisible: this.showSkybox, irradianceIntensity: this.irradianceIntensity,
+            cubemapSize: this.cubemapSize, irradianceMapSize: this.irradianceMapSize,
+            specularMapSize: this.specularMapSize, specularMapL2Size: this.specularMapL2Size
+        });
+    }
+
+    get solarState(): SolarState | null {
+        const light = this.node?.lightComponent?.light;
+        if (this.equirectangularTexture || !light?.enabled || light.type !== LightType.SUN) return null;
+        const ray = Transform.GetWorldMatrix(this.node).multVector(new Vec(0, 0, 1, 0)).xyz;
+        return evaluateSolarLight(light, ray);
+    }
+
+    /** Called only for the active environment, after scene transforms have updated. */
+    async synchronize(): Promise<void> {
+        if (!this._environment) return;
+        const solar = this.solarState;
+        const key = JSON.stringify([this.equirectangularTexture, this.skyHorizonColor, this.skyZenithColor,
+            this.groundColor, this.cubemapSize, this.irradianceMapSize, solar]);
+        if (key === this._generationKey) return;
+        await this._environment.load({
+            textureUrl: this.equirectangularTexture || null,
+            environmentMapSize: [this.cubemapSize, this.cubemapSize],
+            irradianceMapSize: [this.irradianceMapSize, this.irradianceMapSize],
+            specularMapSize: [this.specularMapSize, this.specularMapSize],
+            skyHorizonColor: readSkyColor(this.skyHorizonColor, []),
+            skyZenithColor: readSkyColor(this.skyZenithColor, []),
+            groundColor: readSkyColor(this.groundColor, []), solar
+        });
+        this._generationKey = key;
     }
 
     async init(): Promise<void> {
+        if (this._environment) return;
         this._environment = this.renderer?.factory.environment()!;
         if (!this._environment) {
             throw new Error("EnvironmentComponent.init(): unexpected error. Unable to create environment object from renderer factory");
         }
 
-        await this._environment.load({
-            // @ts-ignore TODO: convert render/Environment.js to TS
-            textureUrl: this.equirectangularTexture || null,
-            environmentMapSize: [ this.cubemapSize, this.cubemapSize ],
-            specularMapSize: [ this.specularMapSize, this.specularMapSize ],
-            irradianceMapSize: [ this.irradianceMapSize, this.irradianceMapSize ]
-        });
+        await this.synchronize();
     }
 }

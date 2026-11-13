@@ -29,7 +29,7 @@ import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
 
 const g_code = {
     webgl: {
-        vertex: `precision mediump float;
+        vertex: `precision highp float;
         
         attribute vec3 vertPosition;
         attribute vec2 t0Position;
@@ -44,17 +44,18 @@ const g_code = {
             gl_Position = mProj * mView * vec4(vertPosition, 1.0);
         }`,
 
-        fragment: `precision mediump float;
+        fragment: `precision highp float;
         
         varying vec2 fragT0Pos;
         
-        uniform sampler2D uTexture;
+        uniform highp sampler2D uTexture;
         uniform bool uLinearOutput;
+        uniform bool uLinearInput;
         
         void main() {
             vec4 texColor = texture2D(uTexture, fragT0Pos);
             vec3 linearColor = mix(texColor.rgb / 12.92, pow((texColor.rgb + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), texColor.rgb));
-            gl_FragColor = vec4(uLinearOutput ? linearColor : texColor.rgb, 1.0);
+            gl_FragColor = vec4(uLinearOutput && !uLinearInput ? linearColor : texColor.rgb, 1.0);
         }`
     }
 };
@@ -106,6 +107,7 @@ export default class SkySphereShader extends Shader {
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uTexture', 0);
         this._program.uniform1i('uLinearOutput', this.linearOutput ? 1 : 0);
+        this._program.uniform1i('uLinearInput', material.albedoTexture.linearData ? 1 : 0);
 
         const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer)?.getApiObject();
         const target = TextureTargetName[material.albedoTexture.target];

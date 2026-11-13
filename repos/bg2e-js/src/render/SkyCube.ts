@@ -50,6 +50,8 @@ export default class SkyCube {
         this._renderState = null;
     }
 
+    get shader(): Shader | null { return this._shader; }
+
     get renderer(): Renderer { return this._renderer; }
 
     set texture(texture: Texture) {
@@ -65,6 +67,9 @@ export default class SkyCube {
 
     async load(cubemapTexture: Texture, Shader: (new (renderer: Renderer) => any) | null = null, shaderParams: any[] = []): Promise<void> {
         
+        this._shader?.destroy();
+        this._material?.destroy();
+        this._renderState = null;
         this._texture = cubemapTexture;
 
         this._material = new Material();

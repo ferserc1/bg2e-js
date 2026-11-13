@@ -91,7 +91,7 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
         this._materialImportCallback = materialImportCallback;
     }
 
-    get supportedExtensions(): string[] { return ["vitscnj"]; }
+    get supportedExtensions(): string[] { return ["vitscnj", "json"]; }
 
     get resourceTypes(): ResourceType[] {
         return [
@@ -111,15 +111,20 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
 
         const root = new Node("Scene Root");
 
-        const { scene } = await resource.load(path);
-        for (const nodeData of scene) {
-            const node = await deserializeNode(nodeData, loader);
-            root.addChild(node);
+        try {
+            const data = await resource.load(path);
+            if (!Array.isArray(data.scene) || (path.split('?')[0].endsWith('.json') && data.fileType !== 'bg2e::scene')) {
+                throw new Error('Expected a bg2e scene document');
+            }
+            const { scene } = data;
+            for (const nodeData of scene) {
+                const node = await deserializeNode(nodeData, loader);
+                root.addChild(node);
+            }
+
+            return root;
         }
-
-        loader.currentPath = prevPath;
-
-        return root;
+        finally { loader.currentPath = prevPath; }
     }
 
     get dependencies(): LoaderPlugin[] {

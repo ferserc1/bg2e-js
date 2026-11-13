@@ -33,6 +33,7 @@ import ShaderFunction from "./ShaderFunction";
 import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
+import { evaluateSolarLight } from '../base/SolarLight';
 import Light, { LightType } from "../base/Light";
 import { createNormalTexture, normalTexture } from "../tools/TextureResourceDatabase";
 import PolyListRenderer from '../render/PolyListRenderer';
@@ -133,7 +134,7 @@ function getShaderProgramForLights(this: BasicPBRLightShader, renderer: Renderer
                             uLightPositions[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
                             albedo, roughness, metallic, vec3(1.0));
                     }
-                    else if (uLightTypes[i] == ${ LightType.DIRECTIONAL }) {
+                    else if ((uLightTypes[i] == ${ LightType.DIRECTIONAL } || uLightTypes[i] == ${ LightType.SUN })) {
                         Lo += pbrDirectionalLight(
                             uLightDirections[i], uLightColors[i] * uLightIntensities[i], fragPos, N, V,
                             albedo, roughness, metallic, vec3(1.0), vec3(1.0));
@@ -193,12 +194,17 @@ export default class BasicPBRLightShader extends Shader {
         this._lightDirections = [];
         this._lightColors = [];
         this._lightIntensities = [];
-        this._lights.forEach(light => {
+        this._lights.forEach((light, i) => {
             this._lightTypes.push(light.type);
             this._lightPositions.push(new Vec(light.position));
-            this._lightDirections.push(new Vec(light.direction));
+            this._lightDirections.push(light.type === LightType.SUN ? new Vec(0, 0, 1) : new Vec(light.direction));
             this._lightColors.push(new Vec(light.color));
-            this._lightIntensities.push(light.intensity);
+            this._lightIntensities.push(light.enabled ? light.intensity : 0);
+            if (light.type === LightType.SUN) {
+                const solar = evaluateSolarLight(light, this._lightDirections[i], false);
+                this._lightColors[i] = solar.color;
+                this._lightIntensities[i] = light.enabled ? solar.intensity : 0;
+            }
         });
         this._program = getShaderProgramForLights.apply(this, [this.renderer, this._lights.length]);
     }
@@ -211,20 +217,12 @@ export default class BasicPBRLightShader extends Shader {
         if (index >= this._lights.length) {
             throw new Error("BasicPBRLightShader: Invalid light index updating light data");
         }
-        this._lightTypes[index] = light.type;
-        this._lightPositions[index] = new Vec(light.position);
-        this._lightDirections[index] = new Vec(light.direction);
-        this._lightColors[index] = new Vec(light.color);
-        this._lightIntensities[index] = light.intensity;
+        this._lights[index] = light;
+        this.lights = this._lights;
     }
 
     updateLights(lights: Light[]) {
-        if (this._lights.length !== lights.length) {
-            this.lights = lights;
-        }
-        else {
-            lights.forEach((l,i) => this.updateLight(l,i));
-        }
+        this.lights = lights;
     }
 
     setup(

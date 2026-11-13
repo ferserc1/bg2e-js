@@ -33,6 +33,8 @@ interface WebGLProgramWithExtras extends WebGLProgram {
     __id__?: symbol;
 }
 
+const g_enabledAttribs = new WeakMap<WebGLRenderingContext, Set<number>>();
+
 const g_programId = new WeakMap<WebGLProgram, symbol>();
 
 function getProgramId(program: WebGLProgram): symbol {
@@ -52,6 +54,7 @@ export default class ShaderProgram {
     private _attribLocations: { [key: string]: number };
     private _uniformLocations: { [key: string]: WebGLUniformLocation | null };
     private _failed: boolean;
+    private _activeAttribs = new Set<number>();
     
     protected destroy(): void {
         delete (this._program as WebGLProgramWithExtras).__shaderProgram__;
@@ -148,10 +151,26 @@ export default class ShaderProgram {
         if (!gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
             throw new Error(`Error linking program: \n${gl.getProgramInfoLog(this._program)}`);
         }
+        this._activeAttribs.clear();
+        const count = gl.getProgramParameter(this._program, gl.ACTIVE_ATTRIBUTES);
+        for (let i = 0; i < count; ++i) {
+            const attribute = gl.getActiveAttrib(this._program, i);
+            if (attribute) this._activeAttribs.add(gl.getAttribLocation(this._program, attribute.name));
+        }
     }
 
     useProgram(): void {
-        this._gl.useProgram(this._program);
+        const gl = this._gl;
+        gl.useProgram(this._program);
+        // Environment rebuilds release generation meshes. Do not leave their
+        // enabled arrays pointing at deleted buffers when the next shader uses fewer attributes.
+        const enabled = g_enabledAttribs.get(gl);
+        if (enabled) for (const location of enabled) {
+            if (!this._activeAttribs.has(location)) {
+                gl.disableVertexAttribArray(location);
+                enabled.delete(location);
+            }
+        }
     }
 
     getAttribLocation(name: string): number {
@@ -185,6 +204,9 @@ export default class ShaderProgram {
     enableVertexAttribArray(name: string): void {
         const location = this.getAttribLocation(name);
         this._gl.enableVertexAttribArray(location);
+        let enabled = g_enabledAttribs.get(this._gl);
+        if (!enabled) { enabled = new Set(); g_enabledAttribs.set(this._gl, enabled); }
+        enabled.add(location);
     }
 
     positionAttribPointer({ name, stride, size = 3, offset = 0, enable = false, bytesPerElement = Float32Array.BYTES_PER_ELEMENT }: {

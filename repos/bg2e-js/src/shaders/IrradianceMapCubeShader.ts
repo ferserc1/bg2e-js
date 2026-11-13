@@ -43,10 +43,10 @@ const g_code = {
         }
         `,
 
-        fragment: (sampleDelta: number) => `precision mediump float;
+        fragment: (sampleDelta: number) => `precision highp float;
         varying vec3 fragNormal;
         
-        uniform samplerCube uCubemap;
+        uniform highp samplerCube uCubemap;
         
         void main() {
             vec3 normal = normalize(fragNormal);

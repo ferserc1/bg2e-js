@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type Texture from '../base/Texture';
+import SkyCubeShader from '../shaders/SkyCubeShader';
 import { RenderLayer } from "../base/PolyList";
 import { BlendFunction } from "./Pipeline";
 import RenderQueue from "./RenderQueue";
@@ -32,7 +34,7 @@ import Node from "../scene/Node";
 import type Pipeline from "./Pipeline";
 import type SkyCube from "./SkyCube";
 import type ShadowRenderer from "./ShadowRenderer";
-import type EnvironmentRenderer from "../render/Environment";
+import EnvironmentRenderer from "../render/Environment";
 import type EnvironmentComponent from "../scene/EnvironmentComponent";
 import KeyboardEvent from "../app/Bg2KeyboardEvent"
 import MouseEvent from "../app/Bg2MouseEvent"
@@ -126,6 +128,7 @@ export class EventCallbackVisitor extends NodeVisitor {
 }
 
 export default class SceneRenderer {
+    softShadows = false;
     _renderer: Renderer;
     _keyDownVisitor: EventCallbackVisitor;
     _keyUpVisitor: EventCallbackVisitor;
@@ -149,6 +152,8 @@ export default class SceneRenderer {
     _skyCube: SkyCube | null = null;
     _shadowRenderer: ShadowRenderer | null = null;
     _environment: EnvironmentRenderer | null = null;
+    private _boundEnvironmentMap: Texture | null = null;
+    private _fallbackEnvironment: EnvironmentRenderer | null = null;
     _defaultViewMatrix: Mat4 = Mat4.MakeIdentity();
     _defaultProjectionMatrix: Mat4 = Mat4.MakeIdentity();
     _sceneRoot: Node | null = null;
@@ -189,7 +194,8 @@ export default class SceneRenderer {
         return this._frameVisitor ? this._frameVisitor.postRedisplayFrames : 0;
     }
 
-    async init({ shadowMapSize = new Vec(1024, 1024) }: { shadowMapSize?: Vec | number } = {}): Promise<void> {
+    async init({ shadowMapSize = new Vec(1024, 1024), softShadows = false }: { shadowMapSize?: Vec | number; softShadows?: boolean } = {}): Promise<void> {
+        this.softShadows = softShadows;
         if (typeof(shadowMapSize) === "number") {
             shadowMapSize = new Vec(shadowMapSize, shadowMapSize);
         }
@@ -224,9 +230,11 @@ export default class SceneRenderer {
     }
 
     async setEnvironment(env: EnvironmentRenderer): Promise<void> {
+        if (env !== this._sceneEnvironment?.environment) this._fallbackEnvironment = env;
         this._environment = env;
+        this._boundEnvironmentMap = env.environmentMap;
         if (this._environment?.environmentMap) {
-            await this._skyCube?.load(this._environment?.environmentMap);
+            await this._skyCube?.load(this._environment?.backgroundMap ?? this._environment.environmentMap);
         }
     }
 
@@ -261,8 +269,8 @@ export default class SceneRenderer {
         sceneRoot.accept(findVisitor);
         if (findVisitor.result.length) {
             const comp = findVisitor.result[0].component("Environment") as EnvironmentComponent;
-            if (comp?.environment) await this.setEnvironment(comp.environment);
             this._sceneEnvironment = comp;
+            if (comp?.environment) await this.setEnvironment(comp.environment);
         }
     }
 
@@ -302,6 +310,31 @@ export default class SceneRenderer {
         this._renderQueue.projectionMatrix = projectionMatrix;
 
         sceneRoot.accept(this._frameVisitor);
+        // Only an enabled environment found in this traversal may drive solar filtering.
+        const environments = new FindNodeVisitor();
+        environments.hasComponents('Environment');
+        environments.ignoreDisabled = true;
+        sceneRoot.accept(environments);
+        this._sceneEnvironment = environments.result[0]?.component('Environment') as EnvironmentComponent ?? null;
+        if (this._sceneEnvironment) {
+            await this._sceneEnvironment.synchronize();
+            const env = this._sceneEnvironment.environment;
+            if (env && (env !== this.environment || env.environmentMap !== this._boundEnvironmentMap)) await this.setEnvironment(env);
+        }
+        else if (this.environment !== this._fallbackEnvironment || !this.environment) {
+            if (!this._fallbackEnvironment) {
+                this._fallbackEnvironment = this.renderer.factory.environment();
+                await this._fallbackEnvironment.load();
+            }
+            await this.setEnvironment(this._fallbackEnvironment);
+        }
+        const skyShader = this._skyCube?.shader;
+        if (skyShader instanceof SkyCubeShader && this.environment) {
+            const blur = Math.max(0, Math.min(1, this._sceneEnvironment?.skyboxBlur ?? 0));
+            if (this._skyCube && this.environment.environmentMap) this._skyCube.texture = blur > 0 ? this.environment.environmentMap : this.environment.backgroundMap!;
+            skyShader.lod = blur * this.environment.maxSpecularLod;
+            skyShader.solar = this.environment.solar;
+        }
 
         this._skyCube?.updateRenderState({
             viewMatrix: viewMatrix,

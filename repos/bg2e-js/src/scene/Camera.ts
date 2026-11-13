@@ -453,6 +453,16 @@ export default class Camera extends Component {
 
     async deserialize(sceneData: CameraSceneData = {}, loader: unknown): Promise<void> {
         await super.deserialize(sceneData, loader);
+        const native = (sceneData as CameraSceneData & { cameraData?: any }).cameraData;
+        if (native) {
+            const types: Record<string, string> = {
+                PerspectiveProjection: 'PerspectiveProjectionMethod',
+                OpticalProjection: 'OpticalProjectionMethod',
+                OrthographicProjection: 'OrthographicProjectionStrategy'
+            };
+            sceneData = { ...sceneData, ...native,
+                projectionMethod: native.projection ? { ...native.projection, type: types[native.projection.type] ?? native.projection.type } : sceneData.projectionMethod };
+        }
         this.focusDistance = sceneData.focusDistance ?? this._focusDistance;
         if (sceneData.projectionMethod) {
             const strategy = ProjectionStrategy.Factory(sceneData.projectionMethod);

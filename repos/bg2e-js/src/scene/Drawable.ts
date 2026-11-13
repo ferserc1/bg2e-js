@@ -139,7 +139,8 @@ export default class Drawable extends Component {
         }
 
         const drwFormat = VitscnjLoaderPlugin.PreferredDrawableFormat();
-        const drw = drwFormat === DrawableFormat.BG2
+        const nativePath = (sceneData as DrawableSceneData & { path?: string }).path;
+        const drw = nativePath ? await tryload(nativePath) : drwFormat === DrawableFormat.BG2
             ? (await tryload(sceneData.name + '.bg2') || await tryload(sceneData.name + '.vwglb'))
             :   (await tryload(sceneData.name + '.vwglb') || await tryload(sceneData.name + '.bg2'));
 

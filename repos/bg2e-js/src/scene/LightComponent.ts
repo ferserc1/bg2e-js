@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import Vec from '../math/Vec';
 import Component from "./Component";
 import Light, { LightType } from "../base/Light";
 import FindNodeVisitor from "./FindNodeVisitor";
@@ -24,30 +25,20 @@ import Node from "./Node";
 
 export default class LightComponent extends Component {
     static GetLights(sceneRoot: Node): LightComponent[] {
-        if (sceneRoot.sceneChanged || !(sceneRoot as any).__lights) {
-            (sceneRoot as any).__lights = [];
-            let findLights = new FindNodeVisitor();
-            findLights.hasComponents(["Light"]);
-            sceneRoot.accept(findLights);
-            (sceneRoot as any).__lights = findLights.result.map(n => n.lightComponent);
-        }
-        return (sceneRoot as any).__lights;
+        const visitor = new FindNodeVisitor();
+        visitor.hasComponents('Light');
+        sceneRoot.accept(visitor);
+        return visitor.result.map(n => n.lightComponent!);
     }
 
     static GetFirstShadowCastingLight(sceneRoot: Node): LightComponent | undefined {
-        if (sceneRoot.sceneChanged || !(sceneRoot as any).__mainDirectionalLight) {
-            (sceneRoot as any).__mainDirectionalLight = LightComponent.GetLights(sceneRoot)
-                .find(l => l.light.type === LightType.DIRECTIONAL || l.light.type === LightType.SPOT);
-        }
-        return (sceneRoot as any).__mainDirectionalLight;
+        return this.GetLights(sceneRoot).find(l => l.light.enabled && l.light.castShadows &&
+            [LightType.DIRECTIONAL, LightType.SUN, LightType.SPOT].includes(l.light.type));
     }
 
     static GetMainDirectionalLight(sceneRoot: Node): LightComponent | undefined {
-        if (sceneRoot.sceneChanged || !(sceneRoot as any).__mainDirectionalLight) {
-            (sceneRoot as any).__mainDirectionalLight = LightComponent.GetLights(sceneRoot)
-                .find(l => l.light.type === LightType.DIRECTIONAL);
-        }
-        return (sceneRoot as any).__mainDirectionalLight || LightComponent.GetFirstShadowCastingLight(sceneRoot);
+        return this.GetLights(sceneRoot).find(l => l.light.enabled && l.light.castShadows &&
+            [LightType.DIRECTIONAL, LightType.SUN].includes(l.light.type)) ?? this.GetFirstShadowCastingLight(sceneRoot);
     }
 
     _light: Light;
@@ -158,13 +149,24 @@ export default class LightComponent extends Component {
     }
 
     async deserialize(sceneData: any, loader: any): Promise<void> {
-        await this._light.deserialize(sceneData);
+        const data = sceneData.lightData;
+        if (data) {
+            this._light.intensity = data.intensity ?? 1;
+            this._light.color = data.color ?? [1, 1, 1];
+        }
+        await this._light.deserialize(data ?? sceneData);
+        if (data) this._light.direction = new Vec(data.direction ?? [0, 0, 1]);
     }
 
     async serialize(sceneData: any, writer: any): Promise<void> {
         await super.serialize(sceneData,writer);
         await this._light.serialize(sceneData);
-        throw new Error("LightComponent.serialize() not implemented");
+        const native: any = {};
+        await this._light.serialize(native);
+        native.type = native.lightType;
+        delete native.lightType;
+        sceneData.lightData = native;
+        sceneData.type = "LightSource";
     }
 
     draw(renderQueue: any, modelMatrix: any): void {

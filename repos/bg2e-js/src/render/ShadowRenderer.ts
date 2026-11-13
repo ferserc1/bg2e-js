@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import Light, { LightType } from '../base/Light';
+import { evaluateSolarLight } from '../base/SolarLight';
 import { RenderLayer } from "../base/PolyList";
 import Texture, {
     TextureComponentFormat,
@@ -35,6 +37,16 @@ import Renderer from "./Renderer";
 import Node from "../scene/Node";
 import type RenderBuffer from "./RenderBuffer";
 import type RenderQueue from "./RenderQueue";
+
+/** Native directional sourceSize is an angular radius in degrees. */
+export function shadowSourceTangent(light: Light): number {
+    if (light.type === LightType.SUN) {
+        return Math.tan(Math.min(1.4, evaluateSolarLight(light, new Vec(0, 0, 1), false).angularRadius));
+    }
+    if (light.type !== LightType.DIRECTIONAL) return 0;
+    const size = Number.isFinite(light.sourceSize) ? Math.max(0, light.sourceSize) : 0;
+    return Math.tan(Math.min(1.4, size * Math.PI / 180));
+}
 
 // The shadow camera must look along the same world-space ray direction used by lighting.
 export function directionalShadowView(focus: Vec, direction: Vec, distance: number): Mat4 {
@@ -158,7 +170,7 @@ export default class ShadowRenderer {
         const cameraPos = Vec.Add(Mat4.GetPosition(cameraTransform), Vec.Mult(cameraTransform.forwardVector, -focus)); 
 
         const nodeTransform = Transform.GetWorldMatrix(lightNode);
-        const rayDirection = Mat4.GetRotation(nodeTransform).multVector(lightComponent.light.direction).xyz;
+        const rayDirection = Mat4.GetRotation(nodeTransform).multVector(lightComponent.light.type === LightType.SUN ? new Vec(0, 0, 1) : lightComponent.light.direction).xyz;
         const view = directionalShadowView(cameraPos, rayDirection, this._shadowMapRenderDistance);
         const lightTransform = Mat4.GetInverted(view);
         const lightPos = Mat4.GetPosition(lightTransform);

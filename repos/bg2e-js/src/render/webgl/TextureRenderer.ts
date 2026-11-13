@@ -130,7 +130,12 @@ const getWebGLTexture = (gl: WebGLRenderingContext, textureObject: any): void =>
     }
     else {
     
-        gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, dataFormat, textureObject._imageData);
+        if (textureObject._imageData.data instanceof Float32Array) {
+            const { width, height, data } = textureObject._imageData;
+            gl.texImage2D(target, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, data);
+        } else {
+            gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, dataFormat, textureObject._imageData);
+        }
     
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, getClampMode(gl,textureObject.wrapModeX));
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, getClampMode(gl,textureObject.wrapModeY));

@@ -125,7 +125,7 @@ export default class SceneAppController extends AppController {
 
         if (!this._environment) {
             this._environment = this.renderer.factory.environment();
-            await this._environment?.load();   // Load black environment
+            await this._environment?.load();   // Load default procedural environment
         }
 
         this._sceneRenderer = this.renderer.factory.scene();

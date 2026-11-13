@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { decodeRadianceHDR } from '../tools/RadianceHDR';
 import { createSphere } from "../primitives";
 import SkySphereShader from "../shaders/SkySphereShader";
 import RenderState from "./RenderState";
@@ -57,20 +58,8 @@ export default class SkySphere {
     get renderer(): Renderer { return this._renderer; }
 
     async load(equirectangularTextureUrl: string | null, Shader: (new (renderer: Renderer) => any) | null = null): Promise<void> {
-        this._texture = new Texture();
-        if (equirectangularTextureUrl) {
-            this._texture.fileName = equirectangularTextureUrl;
-        }
-        else {
-            // Load black texture
-            this._texture.magFilter = TextureFilter.NEAREST;
-            this._texture.minFilter = TextureFilter.NEAREST;
-            this._texture.wrapModeXY = TextureWrap.REPEAT;
-            this._texture.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
-            this._texture.proceduralParameters = Color.Black();
-            this._texture.size = [2, 2];
-        }
-        await this._texture.loadImageData();
+        this.destroy();
+        this._texture = await this._loadTexture(equirectangularTextureUrl);
 
         this._material = new Material();
         this._material.albedoTexture = this._texture;
@@ -79,15 +68,40 @@ export default class SkySphere {
         await this._shader?.load();
     }
 
-    async setTexture(equirectangularTextureUrl: string): Promise<void> {
-        if (!this._texture || !this._material) {
-            throw new Error("SkySphere: setting texture to an uninitialized sky sphere. Use the load() method instead.");
+    private async _loadTexture(equirectangularTextureUrl: string | null): Promise<Texture> {
+        const texture = new Texture();
+        if (equirectangularTextureUrl) {
+            texture.fileName = equirectangularTextureUrl;
         }
-        this._texture.destroy();
-        this._texture.fileName = equirectangularTextureUrl;
-        await this._texture.loadImageData();
+        else {
+            // Load black texture
+            texture.magFilter = TextureFilter.NEAREST;
+            texture.minFilter = TextureFilter.NEAREST;
+            texture.wrapModeXY = TextureWrap.REPEAT;
+            texture.proceduralFunction = ProceduralTextureFunction.PLAIN_COLOR;
+            texture.proceduralParameters = Color.Black();
+            texture.size = [2, 2];
+        }
+        if (equirectangularTextureUrl && /\.hdr(?:[?#]|$)/i.test(equirectangularTextureUrl)) {
+            const response = await fetch(equirectangularTextureUrl);
+            if (!response.ok) throw new Error(`Cannot load HDR environment: ${response.status}`);
+            const { width, height, data } = decodeRadianceHDR(await response.arrayBuffer());
+            texture.setFloatImageData(width, height, data);
+            texture.wrapModeXY = TextureWrap.CLAMP;
+            texture.minFilter = TextureFilter.LINEAR;
+        } else {
+            await texture.loadImageData();
+        }
 
-        this._material.albedoTexture = this._texture;
+        return texture;
+    }
+
+    async setTexture(equirectangularTextureUrl: string): Promise<void> {
+        if (!this._material) throw new Error('SkySphere: call load() before setTexture()');
+        const texture = await this._loadTexture(equirectangularTextureUrl);
+        this._texture?.destroy();
+        this._texture = texture;
+        this._material.albedoTexture = texture;
     }
 
     updateRenderState({ viewMatrix, projectionMatrix = null }: UpdateRenderStateOptions): RenderState {

@@ -16,9 +16,11 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import ProceduralSkyShader from '../shaders/ProceduralSkyShader';
+import type { SolarState } from '../base/SolarLight';
 import WebGLRenderer from "./webgl/Renderer";
 import WebGLTextureRenderer from "./webgl/TextureRenderer";
-import Texture, { TextureRenderTargetAttachment, TextureTarget } from "../base/Texture";
+import Texture, { TextureRenderTargetAttachment, TextureTarget, TextureComponentFormat } from "../base/Texture";
 import IrradianceMapCubeShader from "../shaders/IrradianceMapCubeShader";
 import SpecularMapCubeShader from "../shaders/SpecularMapCubeShader";
 import RenderBuffer from "./RenderBuffer";
@@ -37,9 +39,10 @@ type TextureResources = {
 const createTextureResources = async (renderer: Renderer, size: [number, number]) : Promise<TextureResources> => {
     const texture = new Texture();
     texture.linearData = true;
+    texture.componentFormat = TextureComponentFormat.FLOAT32;
     texture.renderTargetAttachment = TextureRenderTargetAttachment.COLOR_ATTACHMENT_0;
     texture.target = TextureTarget.CUBE_MAP;
-    
+
     const renderBuffer = renderer.factory.renderBuffer();
     await renderBuffer.attachTexture(texture);
     renderBuffer.size = size;
@@ -48,11 +51,12 @@ const createTextureResources = async (renderer: Renderer, size: [number, number]
 }
 
 const destroyTextureResources = (resources: TextureResources) => {
+    resources.skyShape?.destroy();
     resources.texture.destroy();
     resources.renderBuffer.destroy();
 }
 
-const updateMap = (mapResources: TextureResources) => { 
+const updateMap = (mapResources: TextureResources) => {
     const { renderBuffer, skyShape } = mapResources;
     renderBuffer.update((face,viewMatrix,projectionMatrix) => {
         mapResources.renderer.clearBuffer();
@@ -64,7 +68,22 @@ const updateMap = (mapResources: TextureResources) => {
     })
 }
 
+export interface EnvironmentOptions {
+    textureUrl?: string | null;
+    environmentMapSize?: [number, number];
+    specularMapSize?: [number, number];
+    irradianceMapSize?: [number, number];
+    skyHorizonColor?: number[];
+    skyZenithColor?: number[];
+    groundColor?: number[];
+    solar?: SolarState | null;
+}
+
 export default class Environment {
+    solar: SolarState | null = null;
+    private _loadOptions: EnvironmentOptions = {};
+    private _backgroundResources: TextureResources | null = null;
+    get backgroundMap(): Texture | null { return this._backgroundResources?.texture ?? this.environmentMap; }
     protected _renderer: Renderer;
     protected _updated: boolean = false;
     protected _environmentDataResources: TextureResources | null = null;
@@ -105,34 +124,67 @@ export default class Environment {
         return this._irradianceMapResources?.texture || null;
     }
 
-    async load({ 
+    async load(options: EnvironmentOptions = {}): Promise<void> {
+        const replacement = new Environment(this.renderer);
+        try {
+            await replacement._build(options);
+            replacement.updateMaps();
+        }
+        catch (error) { replacement.destroy(); throw error; }
+        this.destroy();
+        Object.assign(this, replacement);
+        this._loadOptions = { ...options };
+    }
+
+    private async _build({
         textureUrl = null,
         environmentMapSize = [ 512, 512 ],
         specularMapSize = [ 128, 128 ], // Deprecated: accepted for existing callers; levels derive from the two endpoint sizes.
-        irradianceMapSize = [16, 16]
-    } : {
-        textureUrl?: string | null,
-        environmentMapSize?: [number, number],
-        specularMapSize?: [number, number],
-        irradianceMapSize?: [number, number]
-    } = {}): Promise<void> {
+        irradianceMapSize = [16, 16],
+        skyHorizonColor = [0.55, 0.65, 0.8], skyZenithColor = [0.06, 0.22, 0.6],
+        groundColor = [0.04, 0.035, 0.025], solar = null
+    } : EnvironmentOptions = {}): Promise<void> {
         const gl = (this.renderer as WebGLRenderer).gl;
         if (!gl.getExtension("EXT_shader_texture_lod")) throw new Error("IBL requires EXT_shader_texture_lod");
+        if (!gl.getExtension('OES_texture_float') || !gl.getExtension('OES_texture_float_linear') || !gl.getExtension('WEBGL_color_buffer_float')) {
+            throw new Error('Environment generation requires renderable, linearly filtered float textures');
+        }
         const max = environmentMapSize[0], min = irradianceMapSize[0];
         const pot = (n: number) => Number.isInteger(n) && n > 0 && (n & (n - 1)) === 0;
         if (!pot(max) || !pot(min) || environmentMapSize[1] !== max || irradianceMapSize[1] !== min || max / min < 4 || max > gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) {
             throw new Error("Environment sizes must be square powers of two, with maximum >= 4 * minimum and within GPU limits");
         }
+        for (const color of [skyHorizonColor, skyZenithColor, groundColor]) {
+            if (color.length < 3 || !color.slice(0, 3).every(v => Number.isFinite(v) && v >= 0 && v <= 1)) throw new Error("Invalid procedural sky RGB");
+        }
+        this.solar = textureUrl ? null : solar;
         this._envMapSize = environmentMapSize;
         this._environmentDataResources = await createTextureResources(this.renderer, environmentMapSize);
         this._specMapSize = specularMapSize;
         this._irrMapSize = irradianceMapSize;
 
         this._environmentMapResources = await createTextureResources(this.renderer, environmentMapSize);
-        const envShape = this.renderer.factory.skySphere();
-        await envShape.load(textureUrl || null);
-        envShape.linearOutput = true;
-        this._environmentMapResources.skyShape = envShape;
+        if (textureUrl) {
+            const envShape = this.renderer.factory.skySphere();
+            await envShape.load(textureUrl);
+            envShape.linearOutput = true;
+            this._environmentMapResources.skyShape = envShape;
+        }
+        else {
+            const createSky = async (resources: TextureResources, disk: boolean) => {
+                const shape = this.renderer.factory.skyCube();
+                await shape.load(resources.texture, ProceduralSkyShader);
+                const shader = shape.shader as ProceduralSkyShader;
+                shader.horizon = skyHorizonColor; shader.zenith = skyZenithColor; shader.ground = groundColor;
+                shader.solar = solar; shader.includeDisk = disk; shader.size = max;
+                resources.skyShape = shape;
+            };
+            await createSky(this._environmentMapResources, true);
+            if (solar) {
+                this._backgroundResources = await createTextureResources(this.renderer, environmentMapSize);
+                await createSky(this._backgroundResources, false);
+            }
+        }
 
         this._specularMapResources = await createTextureResources(this.renderer, specularMapSize);
         const specShape = this.renderer.factory.skyCube();
@@ -141,7 +193,7 @@ export default class Environment {
 
         this._irradianceMapResources = await createTextureResources(this.renderer, irradianceMapSize);
         const irrShape = this.renderer.factory.skyCube();
-        await irrShape.load(this._environmentMapResources.texture, IrradianceMapCubeShader);
+        await irrShape.load(this._backgroundResources?.texture ?? this._environmentMapResources.texture, IrradianceMapCubeShader);
         this._irradianceMapResources.skyShape = irrShape;
         this._updated = false;
     }
@@ -151,15 +203,28 @@ export default class Environment {
         this._environmentMapResources && destroyTextureResources(this._environmentMapResources);
         this._specularMapResources && destroyTextureResources(this._specularMapResources);
         this._irradianceMapResources && destroyTextureResources(this._irradianceMapResources);
+        if (this._backgroundResources) destroyTextureResources(this._backgroundResources);
+        this._backgroundResources = null;
+        this._environmentDataResources = null;
+        this._environmentMapResources = null;
+        this._specularMapResources = null;
+        this._irradianceMapResources = null;
         this._updated = false;
     }
 
     updateMaps() {
         this._environmentMapResources && updateMap(this._environmentMapResources);
+        if (this._backgroundResources) updateMap(this._backgroundResources);
         const output = this._environmentDataResources;
         const source = this._environmentMapResources;
         if (!output || !source || !this._specularMapResources || !this._irradianceMapResources) return;
         const gl = (this.renderer as WebGLRenderer).gl;
+        // These are spatial averages of source radiance, separate from the output's
+        // authored roughness/irradiance levels. GGX sampling selects their LOD by PDF.
+        const sourceTexture = (this.renderer.factory.texture(source.texture) as WebGLTextureRenderer).getApiObject();
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, sourceTexture);
+        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         const target = (this.renderer.factory.texture(output.texture) as WebGLTextureRenderer).getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, target);
         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
@@ -190,13 +255,7 @@ export default class Environment {
         this._updated = true;
     }
 
-    async reloadImage(imageUrl: string) {
-        if (!this._environmentMapResources) {
-            return;
-        }
-        if (this._environmentMapResources.skyShape instanceof SkySphere) {
-            await this._environmentMapResources.skyShape.setTexture(imageUrl);
-        }
-        this._updated = false;
+    async reloadImage(imageUrl: string | null) {
+        await this.load({ ...this._loadOptions, textureUrl: imageUrl });
     }
 }

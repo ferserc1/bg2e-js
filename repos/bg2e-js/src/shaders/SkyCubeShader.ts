@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { SolarState } from '../base/SolarLight';
+import Vec from '../math/Vec';
 import Mat4 from "../math/Mat4";
 import PolyListRenderer from '../render/PolyListRenderer';
 import MaterialRenderer from '../render/MaterialRenderer';
@@ -28,7 +30,7 @@ import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
 
 const g_code = {
     webgl: {
-        vertex: `precision mediump float;
+        vertex: `precision highp float;
 
         attribute vec3 vertPosition;
 
@@ -47,14 +49,22 @@ const g_code = {
         `,
 
         fragment: `#extension GL_EXT_shader_texture_lod : require
-        precision mediump float;
+        #extension GL_OES_standard_derivatives : enable
+        precision highp float;
         varying vec3 fragNormal;
         
-        uniform samplerCube uCubemap;
+        uniform highp samplerCube uCubemap;
         uniform bool uLinearInput;
+        uniform float uLod, uSunRadius, uSunEnabled;
+        uniform vec3 uSunDirection, uSunIrradiance;
         
         void main() {
-            vec3 color = textureCubeLodEXT(uCubemap, normalize(fragNormal), 0.0).rgb;
+            vec3 color = textureCubeLodEXT(uCubemap, normalize(fragNormal), uLod).rgb;
+            vec3 n = normalize(fragNormal);
+            float angle = acos(clamp(dot(n, uSunDirection), -1.0, 1.0));
+            float edge = max(fwidth(angle), 1e-6);
+            float disk = 1.0 - smoothstep(max(uSunRadius - edge, 0.0), uSunRadius + edge, angle);
+            color += uSunIrradiance * (disk * smoothstep(-max(fwidth(n.y), 1e-6), max(fwidth(n.y), 1e-6), n.y) * uSunEnabled / max(3.14159265 * pow(sin(uSunRadius), 2.0), 1e-12));
             vec3 displayColor = mix(color * 12.92, 1.055 * pow(max(color, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), color));
             gl_FragColor = vec4(uLinearInput ? displayColor : color, 1.0);
         }`
@@ -62,6 +72,8 @@ const g_code = {
 };
 
 export default class SkyCubeShader extends Shader {
+    solar: SolarState | null = null;
+    lod = 0;
     protected _program: ShaderProgram | null = null;
 
     constructor(renderer: Renderer) {
@@ -75,6 +87,7 @@ export default class SkyCubeShader extends Shader {
     async load() {
         const { gl } = (this.renderer as WebGLRenderer);
 
+        gl.getExtension('OES_standard_derivatives');
         this._program = new ShaderProgram(gl, "SkyCubeShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
         this._program.attachFragmentSource(g_code.webgl.fragment);
@@ -101,6 +114,11 @@ export default class SkyCubeShader extends Shader {
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
+        this._program.uniform1f('uLod', this.lod);
+        this._program.uniform1f('uSunEnabled', this.solar && this.lod === 0 ? 1 : 0);
+        this._program.uniform1f('uSunRadius', this.solar?.angularRadius ?? 0.00465);
+        this._program.bindVector('uSunDirection', this.solar?.direction ?? new Vec(0, 1, 0));
+        this._program.bindVector('uSunIrradiance', this.solar ? Vec.Mult(this.solar.color, this.solar.skyIntensity) : new Vec(0, 0, 0));
         this._program.uniform1i('uLinearInput', materialRenderer.material.albedoTexture?.linearData ? 1 : 0);
         const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer)?.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);

@@ -49,3 +49,7 @@ export const scene = bgscene;
 export const tools = bg2tools;
 export const primitives = bgprimitives;
 export const shaders = bgshaders;
+
+export { evaluateSolarLight } from './base/SolarLight';
+export type { SolarState } from './base/SolarLight';
+export type { EnvironmentOptions } from './render/Environment';

@@ -29,7 +29,7 @@ import WebGLPolyListRenderer from "../render/webgl/PolyListRenderer";
 
 const g_code = {
     webgl: {
-        vertex: `precision mediump float;
+        vertex: `precision highp float;
         
         attribute vec3 vertPosition;
         
@@ -42,12 +42,15 @@ const g_code = {
             fragNormal = normalize(vertPosition);
         }`,
 
-        fragment: (sampleCount: number, roughness: number) => `precision mediump float;
+        fragment: (sampleCount: number) => `#extension GL_EXT_shader_texture_lod : require
+        precision highp float;
         
         varying vec3 fragNormal;
         
-        uniform samplerCube uCubemap;
+        uniform highp samplerCube uCubemap;
         uniform float uRoughness;
+        uniform float uSourceSize;
+        uniform float uSourceMaxLod;
         
         float vanDerCorpus(int n, int base) {
             float invBase = 1.0 / float(base);
@@ -73,7 +76,7 @@ const g_code = {
         }
 
         vec3 importanceSampleGGX(vec2 Xi, vec3 N) {
-            // compute roughness^4 outside the gpu
+            // GGX alpha squared (roughness^4).
             float a = uRoughness * uRoughness * uRoughness * uRoughness;
             
             float phi = ${ 2.0 * Math.PI } * Xi.x;
@@ -99,6 +102,10 @@ const g_code = {
             vec3 N = normalize(fragNormal);
             vec3 R = N;
             vec3 V = R;
+            if (uRoughness <= 0.0001) {
+                gl_FragColor = vec4(textureCubeLodEXT(uCubemap, R, 0.0).rgb, 1.0);
+                return;
+            }
 
             float totalWeight = 0.0;
             vec3 prefilteredColor = vec3(0.0);
@@ -111,11 +118,23 @@ const g_code = {
                 float NdotL = max(dot(N,L), 0.0);
                 if (NdotL > 0.0)
                 {
-                    prefilteredColor += textureCube(uCubemap, L).rgb * NdotL;
+                    // Match the native prefilter: integrate each GGX sample over
+                    // its solid angle instead of sampling the HDR solar disk as a point.
+                    float NdotH = max(dot(N, H), 0.0);
+                    float HdotV = max(dot(H, V), 0.000001);
+                    float alpha = uRoughness * uRoughness;
+                    float alpha2 = alpha * alpha;
+                    float denominator = NdotH * NdotH * (alpha2 - 1.0) + 1.0;
+                    float distribution = alpha2 / max(${Math.PI} * denominator * denominator, 0.000001);
+                    float pdf = max(distribution * NdotH / (4.0 * HdotV), 0.000001);
+                    float texelArea = ${4 * Math.PI} / (6.0 * uSourceSize * uSourceSize);
+                    float sampleArea = 1.0 / (float(${sampleCount}) * pdf);
+                    float lod = clamp(0.5 * log2(sampleArea / texelArea), 0.0, uSourceMaxLod);
+                    prefilteredColor += textureCubeLodEXT(uCubemap, L, lod).rgb * NdotL;
                     totalWeight += NdotL;
                 }
             }
-            prefilteredColor = prefilteredColor / totalWeight;
+            prefilteredColor = prefilteredColor / max(totalWeight, 0.000001);
 
             gl_FragColor = vec4(prefilteredColor, 1.0);
         }`
@@ -145,7 +164,7 @@ export default class SpecularMapCubeShader extends Shader {
 
         this._program = new ShaderProgram(gl, "SpecularMapCubeShader");
         this._program.attachVertexSource(g_code.webgl.vertex);
-        this._program.attachFragmentSource(g_code.webgl.fragment(128, this._roughness));
+        this._program.attachFragmentSource(g_code.webgl.fragment(256));
         this._program.link();
     }
 
@@ -171,6 +190,9 @@ export default class SpecularMapCubeShader extends Shader {
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
         this._program.uniform1f('uRoughness', this._roughness);
+        const sourceSize = material.albedoTexture!.size.width;
+        this._program.uniform1f('uSourceSize', sourceSize);
+        this._program.uniform1f('uSourceMaxLod', Math.log2(sourceSize));
         const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer)?.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
 

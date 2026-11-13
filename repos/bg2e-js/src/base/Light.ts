@@ -26,10 +26,27 @@ export enum LightType {
     DIRECTIONAL = 4,
     SPOT = 1,
     POINT = 5,
+    SUN = 6,
     DISABLED = 10
 }
 
 export default class Light {
+    sourceSize = 0.5;
+    shadowSamples = 8;
+    affectsReflections = true;
+    spotAngle = 22;
+    private _solarSize = 1;
+    private _solarDistanceMillionKm = 149.6;
+    get solarSize() { return this._solarSize; }
+    set solarSize(value: number) {
+        if (!Number.isFinite(value) || value <= 0) throw new Error('solarSize must be finite and positive');
+        this._solarSize = value;
+    }
+    get solarDistanceMillionKm() { return this._solarDistanceMillionKm; }
+    set solarDistanceMillionKm(value: number) {
+        if (!Number.isFinite(value) || value <= 0) throw new Error('solarDistanceMillionKm must be finite and positive');
+        this._solarDistanceMillionKm = value;
+    }
     _enabled: boolean;
     _type: LightType;
     _direction: Vec;
@@ -74,6 +91,12 @@ export default class Light {
     }
     
     assign(other: Light) {
+        this.sourceSize = other.sourceSize;
+        this.shadowSamples = other.shadowSamples;
+        this.affectsReflections = other.affectsReflections;
+        this.spotAngle = other.spotAngle;
+        this.solarSize = other.solarSize;
+        this.solarDistanceMillionKm = other.solarDistanceMillionKm;
         this.enabled = other.enabled;
         this.type = other.type;
         this.direction.assign(other.direction);
@@ -147,43 +170,56 @@ export default class Light {
     }
 
     async deserialize(sceneData: any) {
-        switch (sceneData.lightType) {
+        if (!sceneData || typeof sceneData !== 'object' || Array.isArray(sceneData)) return;
+        switch (sceneData.lightType ?? sceneData.type) {
         case 'kTypeDirectional':
         case LightType.DIRECTIONAL:
             this._type = LightType.DIRECTIONAL;
             // Use the predefined shadow bias for directional lights
-            //this._shadowBias = sceneData.shadowBias;
+            //this._shadowBias = sceneData.shadowBias ?? this._shadowBias;
+            break;
+        case 'kTypeSun':
+        case LightType.SUN:
+            this._type = LightType.SUN;
             break;
         case 'kTypeSpot':
         case LightType.SPOT:
             this._type = LightType.SPOT;
-            this._shadowBias = sceneData.shadowBias;
+            this._shadowBias = sceneData.shadowBias ?? this._shadowBias;
             break;
         case 'kTypePoint':
         case LightType.POINT:
             this._type = LightType.POINT;
             break;
         default:
-            this._type = LightType.DIRECTIONAL;
+            if (sceneData.lightType !== undefined || sceneData.type !== undefined) this._type = LightType.DISABLED;
         }
 
-        const defaultIntensity = () => this._type === LightType.DIRECTIONAL ? 1 : 20;
+        const defaultIntensity = () => (this._type === LightType.DIRECTIONAL || this._type === LightType.SUN) ? 1 : 20;
 
-        this._position = sceneData.position || new Vec(0,0,0);
-        this._direction = sceneData.direction || new Vec(0, 0, -1);
+        this._position = new Vec(sceneData.position ?? [0,0,0]);
+        this._direction = new Vec(sceneData.direction ?? [0, 0, this.type === LightType.SUN ? 1 : -1]);
 
         if (sceneData.diffuse) {
             this._color = new Color(sceneData.diffuse);
-            this._intensity = (sceneData.intensity || 1) * defaultIntensity();
+            this._intensity = (sceneData.intensity ?? 1) * defaultIntensity();
         }
         else if (sceneData.color) {
             this._color = new Color(sceneData.color);
-            this._intensity = sceneData.intensity || defaultIntensity();
+            this._intensity = sceneData.intensity ?? defaultIntensity();
         }
         
-        this._spotCutoff = sceneData.spotCutoff || 20;
+        if (!sceneData.diffuse) this._intensity = sceneData.intensity ?? this._intensity;
+        this.solarSize = sceneData.solarSize ?? 1;
+        this.solarDistanceMillionKm = sceneData.solarDistanceMillionKm ?? 149.6;
+        this.sourceSize = sceneData.sourceSize ?? 0.5;
+        this.shadowSamples = sceneData.shadowSamples ?? 8;
+        this.affectsReflections = sceneData.affectsReflections ?? true;
+        this.spotAngle = sceneData.spotAngle ?? 22;
+        this._shadowBias = sceneData.shadowBias ?? this._shadowBias;
+        this._spotCutoff = sceneData.spotCutoff ?? 20;
         this._spotExponent = sceneData.spotExponent || 30;
-        this._shadowStrength = sceneData.shadowStrength || 1;
+        this._shadowStrength = sceneData.shadowStrength ?? 1;
         if (sceneData.projection) {
             this._projection = new Mat4(sceneData.projection);
         }
@@ -195,7 +231,15 @@ export default class Light {
         lightTypes[LightType.DIRECTIONAL] = "kTypeDirectional";
         lightTypes[LightType.SPOT] = "kTypeSpot";
         lightTypes[LightType.POINT] = "kTypePoint";
+        lightTypes[LightType.SUN] = "kTypeSun";
+        lightTypes[LightType.DISABLED] = "kTypeDisabled";
         sceneData.lightType = lightTypes[this._type];
+        sceneData.solarSize = this.solarSize;
+        sceneData.solarDistanceMillionKm = this.solarDistanceMillionKm;
+        sceneData.sourceSize = this.sourceSize;
+        sceneData.shadowSamples = this.shadowSamples;
+        sceneData.affectsReflections = this.affectsReflections;
+        sceneData.spotAngle = this.spotAngle;
         sceneData.position = this._position;
         sceneData.direction = this._direction;
         sceneData.color = this._color;

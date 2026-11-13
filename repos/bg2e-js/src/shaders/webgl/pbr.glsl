@@ -109,14 +109,14 @@ vec3 calcRadiance( Light light, vec3 viewDir, vec3 fragPos, float metallic, floa
     {
         return calcRadiancePoint(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo, sheenIntensity, sheenColor, ambientOcclussion);
     }
-    else if (light.type == LIGHT_TYPE_DIRECTIONAL)
+    else if (light.type == LIGHT_TYPE_DIRECTIONAL || light.type == LIGHT_TYPE_SUN)
     {
         return calcRadianceDirectional(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo, sheenIntensity, sheenColor, ambientOcclussion);
     }
     return vec3(0.0);
 }
 
-vec3 calcAmbientLight( vec3 viewDir, vec3 normal, vec3 F0, vec3 albedo, float metallic, float roughness, samplerCube environmentData, float maxSpecularLod, float irradianceLod, sampler2D brdfLUT, float ambientOcclussion, vec3 lightmap, int indirectMode, float sheenIntensity, vec3 sheenColor, vec3 shadowColor, float ambientIntensity) {
+vec3 calcAmbientLight( vec3 viewDir, vec3 normal, vec3 F0, vec3 albedo, float metallic, float roughness, highp samplerCube environmentData, float maxSpecularLod, float irradianceLod, sampler2D brdfLUT, float ambientOcclussion, vec3 lightmap, int indirectMode, float sheenIntensity, vec3 sheenColor, vec3 shadowColor, float ambientIntensity) {
     vec3 R = reflect(-viewDir, normal);
 
     vec3 F = fresnelSchlickRoughness(max(dot(normal, viewDir), 0.0), F0, roughness);
@@ -144,7 +144,7 @@ vec3 calcAmbientLight( vec3 viewDir, vec3 normal, vec3 F0, vec3 albedo, float me
 }
 
 // TODO: Extract this function to a shadow map shader function
-vec3 getShadowColor(vec4 positionFromLightPov, sampler2D shadowMap, float shadowBias, float shadowStrength) {
+vec3 getShadowColor(vec4 positionFromLightPov, sampler2D shadowMap, float shadowBias, float shadowStrength, vec2 sourceRadius, int samples) {
     // The vertex location rendered from the light source is almost in
     // normalized device coordinates (NDC), but the perspective division
     // has not been performed yet. We need to divide by w to get the
@@ -159,6 +159,34 @@ vec3 getShadowColor(vec4 positionFromLightPov, sampler2D shadowMap, float shadow
         shadowCoord.y >= 0.0 && shadowCoord.y <= 1.0 &&
         shadowCoord.z >= 0.0 && shadowCoord.z <= 1.0)
     {
+        if (samples > 1 && max(sourceRadius.x, sourceRadius.y) > 0.0) {
+            // PCSS for the orthographic shadow camera: sourceRadius converts depth
+            // separation to UV penumbra width. Bounded Vogel disk sampling.
+            float blockerSum = 0.0;
+            float blockers = 0.0;
+            for (int i = 0; i < 32; ++i) {
+                if (i >= samples) break;
+                float angle = float(i) * 2.39996323;
+                vec2 disk = vec2(cos(angle), sin(angle)) * sqrt((float(i) + 0.5) / float(samples));
+                vec2 uv = shadowCoord.xy + disk * min(sourceRadius * shadowCoord.z, vec2(0.25));
+                if (min(uv.x, uv.y) < 0.0 || max(uv.x, uv.y) > 1.0) continue;
+                float depth = texture2D(shadowMap, uv).r;
+                if (depth + shadowBias < shadowCoord.z) { blockerSum += depth; blockers += 1.0; }
+            }
+            if (blockers == 0.0) return vec3(1.0);
+            vec2 radius = min(sourceRadius * max(shadowCoord.z - blockerSum / blockers, 0.0), vec2(0.25));
+            float occluded = 0.0;
+            for (int i = 0; i < 32; ++i) {
+                if (i >= samples) break;
+                float angle = float(i) * 2.39996323;
+                vec2 disk = vec2(cos(angle), sin(angle)) * sqrt((float(i) + 0.5) / float(samples));
+                vec2 uv = shadowCoord.xy + disk * radius;
+                if (min(uv.x, uv.y) >= 0.0 && max(uv.x, uv.y) <= 1.0) {
+                    occluded += step(texture2D(shadowMap, uv).r + shadowBias, shadowCoord.z);
+                }
+            }
+            return vec3(1.0 - shadowStrength * occluded / float(samples));
+        }
         float shadowDepth = texture2D(shadowMap, shadowCoord.xy).r;
         if (shadowCoord.z > shadowDepth + shadowBias) {
             return vec3(1.0 - shadowStrength);

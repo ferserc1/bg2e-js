@@ -52,6 +52,7 @@ export const registerComponents = () => {
     // Retrocompatibility: the light is registered with both "Light" and "LightComponent" names, but only "LightComponent" should be used in the future
     registerComponent("Light", LightComponent);
     registerComponent("LightComponent", LightComponent);
+    registerComponent("LightSource", LightComponent); // Native scene component name
     
     registerComponent("Chain", ChainComponent);
     registerComponent("InputChainJoint", InputChainJointComponent);

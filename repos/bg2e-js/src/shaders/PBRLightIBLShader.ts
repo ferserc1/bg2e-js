@@ -19,6 +19,8 @@
 import Shader from "../render/Shader";
 import ShaderFunction from "./ShaderFunction";
 import ShaderProgram from "../render/webgl/ShaderProgram";
+import { shadowSourceTangent } from '../render/ShadowRenderer';
+import { evaluateSolarLight } from '../base/SolarLight';
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
 import Light, {
@@ -146,13 +148,14 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
 
         uniform float uAlphaTresshold;
         
+        uniform int uShadowLightIndex;
         uniform int uLightTypes[${numLights}];
         uniform vec3 uLightDirections[${numLights}];
         uniform vec3 uLightColors[${numLights}];
         uniform float uLightIntensities[${numLights}];
         
 
-        uniform samplerCube uEnvironmentData;
+        uniform highp samplerCube uEnvironmentData;
         uniform float uMaxSpecularLod;
         uniform float uIrradianceLod;
         uniform sampler2D uLightmapData;
@@ -164,6 +167,8 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
 
         uniform sampler2D uShadowMap;
         uniform float uShadowBias;
+        uniform vec2 uShadowSourceRadius;
+        uniform int uShadowSamples;
         varying vec4 fragPositionFromLightPov;
         uniform float uShadowStrength;
 
@@ -228,6 +233,7 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
                     discard;
                 }
                 else {
+                    vec3 shadowColor = getShadowColor(fragPositionFromLightPov, uShadowMap, uShadowBias, uShadowStrength, uShadowSourceRadius, uShadowSamples);
                     vec3 Lo = vec3(0.0);
                     for (int i = 0; i < ${numLights}; ++i) {
                         Light light;
@@ -237,13 +243,10 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
                         light.direction = uLightDirections[i];
                         light.position = fragLightPositions[i];
 
-                        Lo += calcRadiance(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo.rgb, mat.sheenIntensity, mat.sheenColor.rgb, ambientOcclussion);
+                        Lo += (i == uShadowLightIndex ? shadowColor : vec3(1.0)) * calcRadiance(light, viewDir, fragPos, metallic, roughness, F0, normal, albedo.rgb, mat.sheenIntensity, mat.sheenColor.rgb, ambientOcclussion);
                         
                     }
 
-                    vec3 shadowColor = getShadowColor(fragPositionFromLightPov, uShadowMap, uShadowBias, uShadowStrength);
-                    
-                    Lo = Lo * shadowColor;
 
                     float ambientIntensity = uAmbientIntensity;
                     vec3 ambient = calcAmbientLight(
@@ -279,6 +282,9 @@ export default class PBRLightIBLShader extends Shader {
     protected _brightness: number;
     protected _contrast: number;
     shadowsEnabled = true;
+    softShadows = false;
+    solarAtmosphereLight: Light | null = null;
+    ambientIntensity = 1;
 
     protected _cameraPosition: Vec;
     protected _brdfIntegrationTexture: Texture | null = null;
@@ -346,10 +352,7 @@ export default class PBRLightIBLShader extends Shader {
     }
 
     set lights(l) {
-        if (!l.length) {
-            throw new Error("BasicPBRLightShader: Invalid light array set.");
-        }
-        this._lights = l;
+        this._lights = l.length ? l : [Object.assign(new Light(), { type: LightType.DISABLED, intensity: 0 })];
         this._lightTypes = [];
         this._lightPositions = [];
         this._lightDirections = [];
@@ -360,11 +363,16 @@ export default class PBRLightIBLShader extends Shader {
             const trx = this._lightTransforms[i];
             const rot = trx && Mat4.GetRotation(trx);
             const position = new Vec(light.position);
-            const direction = new Vec(light.direction);
+            const direction = light.type === LightType.SUN ? new Vec(0, 0, 1) : new Vec(light.direction);
             this._lightPositions.push(trx ? trx.multVector(position).xyz : position);
             this._lightDirections.push(rot ? rot.multVector(direction).xyz.normalize() : direction);
             this._lightColors.push(new Vec(light.color));
-            this._lightIntensities.push(light.intensity);
+            this._lightIntensities.push(light.enabled ? light.intensity : 0);
+            if (light.type === LightType.SUN) {
+                const solar = evaluateSolarLight(light, this._lightDirections[i], light === this.solarAtmosphereLight);
+                this._lightColors[i] = solar.color;
+                this._lightIntensities[i] = light.enabled ? solar.intensity : 0;
+            }
         });
         this._program = getShaderProgramForLights.apply(this, [this.renderer, this._lights.length]);
     }
@@ -385,20 +393,12 @@ export default class PBRLightIBLShader extends Shader {
         if (index >= this._lights.length) {
             throw new Error("BasicPBRLightShader: Invalid light index updating light data");
         }
-        this._lightTypes[index] = light.type;
-        this._lightPositions[index] = new Vec(light.position);
-        this._lightDirections[index] = new Vec(light.direction);
-        this._lightColors[index] = new Vec(light.color);
-        this._lightIntensities[index] = light.intensity;
+        this._lights[index] = light;
+        this.lights = this._lights;
     }
 
     updateLights(lights: Light[]) {
-        if (this._lights.length !== lights.length) {
-            this.lights = lights;
-        }
-        else {
-            lights.forEach((l,i) => this.updateLight(l,i));
-        }
+        this.lights = lights;
     }
 
     setup(
@@ -477,13 +477,16 @@ export default class PBRLightIBLShader extends Shader {
         this._program.bindVector('uLightmapScale', material.ambientOcclussionScale);
         this._program.bindTexture("uBRDFIntegrationMap", brdfLut, 5);
         this._program.uniform1f('uShadowStrength', 0);
+        this._program.uniform1i('uShadowSamples', 1);
+        this._program.uniform1i('uShadowLightIndex', -1);
+        this._program.bindVector('uShadowSourceRadius', new Vec(0, 0));
         materialRenderer.bindTexture(this._program, 'ambientOcclussion', 'uShadowMap', 6);
 
         this._program.uniform1f("uBrightness", this._brightness);
         this._program.uniform1f("uContrast", this._contrast);
 
         // TODO: Get the ambient intensity from environment
-        this._program.uniform1f("uAmbientIntensity", 1.0);
+        this._program.uniform1f("uAmbientIntensity", this.ambientIntensity);
 
         let shadowLight: Light | null = this._lights.find(light => light.depthTexture) || null;
         this._lights.forEach((light,i) => {
@@ -495,7 +498,7 @@ export default class PBRLightIBLShader extends Shader {
             this._program?.bindVector(`uLightDirections[${i}]`, this._lightDirections[i]);
             this._program?.bindVector(`uLightColors[${i}]`, this._lightColors[i].rgb);
             this._program?.uniform1f(`uLightIntensities[${i}]`, this._lightIntensities[i]);
-            this._program?.bindMatrix(`uLightTransforms[${i}]`, this._lightTransforms[i]);
+            this._program?.bindMatrix(`uLightTransforms[${i}]`, this._lightTransforms[i] ?? Mat4.MakeIdentity());
         });
 
         if (this.shadowsEnabled && shadowLight?.depthTexture) {
@@ -505,6 +508,16 @@ export default class PBRLightIBLShader extends Shader {
             this._program.bindMatrix("uLightPovMvp", projectionViewMatrix);
             this._program.uniform1f("uShadowBias", shadowLight.shadowBias * 30);
             this._program.uniform1f("uShadowStrength", shadowLight.shadowStrength);
+            this._program.uniform1i('uShadowLightIndex', this._lights.indexOf(shadowLight));
+            // Match native directional degrees and the physical solar angular radius.
+            const tangent = shadowSourceTangent(shadowLight);
+            const projection = shadowLight.projection;
+            const depthRange = 2 / Math.abs(projection[10]);
+            this._program.bindVector('uShadowSourceRadius', new Vec(
+                tangent * depthRange * Math.abs(projection[0]) / 2,
+                tangent * depthRange * Math.abs(projection[5]) / 2));
+            const samples = Number.isFinite(shadowLight.shadowSamples) ? Math.floor(shadowLight.shadowSamples) : 8;
+            this._program.uniform1i('uShadowSamples', this.softShadows ? Math.max(1, Math.min(32, samples)) : 1);
         }
         
         this._program.bindAttribs(plistRenderer, {
