@@ -36,6 +36,7 @@ class MyAppController extends AppController {
     protected _skyCube: SkyCube | null = null;
     protected _rotation: Vec = new Vec();
     protected _downPos: Vec = new Vec();
+    protected _materialControls: HTMLElement | null = null;
 
     async init() {
         if (!(this.renderer instanceof WebGLRenderer)) {
@@ -127,32 +128,28 @@ class MyAppController extends AppController {
             return {
                 plistRenderer: this.renderer.factory.polyList(spherePlist),
                 materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                    diffuse,
+                    albedo: diffuse,
                     roughness,
-                    metallic
+                    metalness: metallic
                 })),
                 transform: Mat4.MakeTranslation(position)
             }
         }));
 
-        const scale = [1, 1];
-        const cube = createCube(1,1,1);
+        // A plain material isolates environment response from authored texture data.
+        const cubeMaterial = await Material.Deserialize({
+            albedo: [1, 1, 1, 1],
+            metalness: 1,
+            roughness: 0.25
+        });
+        const cube = createCube(1, 1, 1);
         cube.enableCullFace = false;
         this._plistRenderers.push({
             plistRenderer: this.renderer.factory.polyList(cube),
-            materialRenderer: this.renderer.factory.material(await Material.Deserialize({
-                diffuse: "../resources/logo_transparent.png",
-                metallic: "../resources/logo.png",
-                roughness: "../resources/logo.png",
-                normal: "../resources/logo_nm.png",
-                diffuseScale:  scale,
-                metallicScale:  scale,
-                roughnessScale:  scale,
-                normalScale: scale,
-                isTransparent: true
-            })),
+            materialRenderer: this.renderer.factory.material(cubeMaterial),
             transform: Mat4.MakeIdentity()
-        })
+        });
+        this.createMaterialControls(cubeMaterial);
         console.log("Scene load done");
 
         this._shader.lights = this._lights;
@@ -205,6 +202,56 @@ class MyAppController extends AppController {
         this._rotation = new Vec();
     }
 
+    private createMaterialControls(material: Material) {
+        this._materialControls?.remove();
+        const panel = document.createElement('section');
+        panel.className = 'material-controls';
+        panel.setAttribute('aria-label', 'Central cube material');
+        panel.innerHTML = `
+            <h1>Central cube</h1>
+            <label>Albedo <input name="albedo" type="color" value="#ffffff"></label>
+            <label>Metalness <output id="metalness-value">1.00</output>
+                <input name="metalness" type="range" min="0" max="1" step="0.01" value="1" aria-describedby="metalness-value">
+            </label>
+            <label>Roughness <output id="roughness-value">0.25</output>
+                <input name="roughness" type="range" min="0" max="1" step="0.01" value="0.25" aria-describedby="roughness-value">
+            </label>
+            <button type="button">Reset</button>
+            <p>Drag to orbit · Scroll to zoom<br>Keys 1–7: environment</p>
+        `;
+        const albedo = panel.querySelector<HTMLInputElement>('[name="albedo"]')!;
+        const metalness = panel.querySelector<HTMLInputElement>('[name="metalness"]')!;
+        const roughness = panel.querySelector<HTMLInputElement>('[name="roughness"]')!;
+        const update = () => {
+            const hex = albedo.value.slice(1);
+            // The browser color picker produces sRGB; material constants are linear.
+            const linear = (value: number) => value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+            material.albedo = new Color([
+                linear(parseInt(hex.slice(0, 2), 16) / 255),
+                linear(parseInt(hex.slice(2, 4), 16) / 255),
+                linear(parseInt(hex.slice(4, 6), 16) / 255),
+                1
+            ]);
+            material.metalness = Number(metalness.value);
+            material.roughness = Number(roughness.value);
+            panel.querySelector('output#metalness-value')!.textContent = material.metalness.toFixed(2);
+            panel.querySelector('output#roughness-value')!.textContent = material.roughness.toFixed(2);
+        };
+        panel.addEventListener('input', update);
+        panel.querySelector('button')!.addEventListener('click', () => {
+            albedo.value = '#ffffff';
+            metalness.value = '1';
+            roughness.value = '0.25';
+            update();
+        });
+        // Keep UI gestures from reaching camera handlers.
+        for (const event of ['pointerdown', 'mousedown', 'wheel', 'keydown', 'keyup']) {
+            panel.addEventListener(event, event => event.stopPropagation());
+        }
+        document.body.append(panel);
+        this._materialControls = panel;
+    }
+
     reshape(width: number,height: number) {
         const { state } = this.renderer;
         state.viewport = new Vec(width, height);
@@ -251,6 +298,8 @@ class MyAppController extends AppController {
     }
 
     destroy() {
+        this._materialControls?.remove();
+        this._materialControls = null;
         this._plistRenderers.forEach(plRenderer => plRenderer.plistRenderer.destroy());
         this._plistRenderers = [];
         this._shader?.destroy();

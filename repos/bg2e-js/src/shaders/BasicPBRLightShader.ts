@@ -53,7 +53,7 @@ function getShaderProgramForLights(this: BasicPBRLightShader, renderer: Renderer
         attribute vec3 inPosition;
         attribute vec3 inNormal;
         attribute vec2 inTexCoord;
-        attribute vec3 inTangent;
+        attribute vec4 inTangent;
 
         uniform mat4 uWorld;
         uniform mat4 uView;
@@ -70,8 +70,9 @@ function getShaderProgramForLights(this: BasicPBRLightShader, renderer: Renderer
             new ShaderFunction('void','main','',`{
                 fragPos = (uWorld * vec4(inPosition, 1.0)).xyz;
                 fragNorm = normalize(uNormMatrix * inNormal);
-                fragTangent = normalize(uNormMatrix * inTangent);
-                fragBitangent = normalize(fragNorm * fragTangent);
+                fragTangent = normalize(mat3(uWorld) * inTangent.xyz);
+                fragTangent = normalize(fragTangent - fragNorm * dot(fragNorm, fragTangent));
+                fragBitangent = cross(fragNorm, fragTangent) * inTangent.w;
                 fragTexCoord = inTexCoord;
                 gl_Position = uProj * uView * uWorld * vec4(inPosition,1.0);
             }`)

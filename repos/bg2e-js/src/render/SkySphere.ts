@@ -50,6 +50,10 @@ export default class SkySphere {
         this._renderState = null;
     }
 
+    set linearOutput(value: boolean) {
+        if (this._shader instanceof SkySphereShader) this._shader.linearOutput = value;
+    }
+
     get renderer(): Renderer { return this._renderer; }
 
     async load(equirectangularTextureUrl: string | null, Shader: (new (renderer: Renderer) => any) | null = null): Promise<void> {

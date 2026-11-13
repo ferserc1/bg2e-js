@@ -4,14 +4,24 @@
 // Convert lineal color to SRGB for shader output
 vec4 lineal2SRGB(vec4 color, float gamma)
 {
-    color = color / (color + vec4(1.0));
-    return vec4(pow(color.rgb, vec3(1.0 / gamma)), color.a);
+    // Alpha is coverage, not radiance. Tone mapping it makes opaque objects translucent.
+    vec3 mapped = max(color.rgb, vec3(0.0));
+    mapped = mapped / (mapped + vec3(1.0));
+    return vec4(pow(mapped, vec3(1.0 / gamma)), color.a);
 }
 
 vec3 lineal2SRGB(vec3 color, float gamma)
 {
     color = color / (color + vec3(1.0));
     return pow(color.rgb, vec3(1.0 / gamma));
+}
+
+// Native drawColorCorrection convention: exposure 1, exponential tone mapping, then gamma.
+// Keep coverage independent of RGB throughout the display conversion.
+vec4 pbrDisplayColor(vec4 color, float gamma)
+{
+    vec3 mapped = vec3(1.0) - exp(-max(color.rgb, vec3(0.0)));
+    return vec4(pow(mapped, vec3(1.0 / max(gamma, 0.0001))), color.a);
 }
 
 // Convert SRGB textures to lineal color

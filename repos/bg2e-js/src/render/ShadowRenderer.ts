@@ -20,7 +20,8 @@ import { RenderLayer } from "../base/PolyList";
 import Texture, {
     TextureComponentFormat,
     TextureRenderTargetAttachment,
-    TextureWrap
+    TextureWrap,
+    TextureFilter
 } from "../base/Texture";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
@@ -34,6 +35,17 @@ import Renderer from "./Renderer";
 import Node from "../scene/Node";
 import type RenderBuffer from "./RenderBuffer";
 import type RenderQueue from "./RenderQueue";
+
+// The shadow camera must look along the same world-space ray direction used by lighting.
+export function directionalShadowView(focus: Vec, direction: Vec, distance: number): Mat4 {
+    const ray = new Vec(direction).normalize();
+    const eye = Vec.Sub(focus, Vec.Mult(ray, distance));
+    const backward = Vec.Mult(ray, -1);
+    const reference = Math.abs(ray.y) < 0.99 ? new Vec(0, 1, 0) : new Vec(0, 0, 1);
+    const right = (Vec.Cross(reference, backward) as Vec).normalize();
+    const up = (Vec.Cross(backward, right) as Vec).normalize();
+    return Mat4.MakeLookAt(eye, focus, up);
+}
 
 export default class ShadowRenderer {
     _renderer: Renderer;
@@ -98,6 +110,9 @@ export default class ShadowRenderer {
         this._depthTexture.componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
         this._depthTexture.wrapModeXY = TextureWrap.CLAMP;
         await this._renderBuffer.attachTexture(this._depthTexture);
+        // Interpolating depth before the comparison produces incorrect edge visibility.
+        this._depthTexture.minFilter = TextureFilter.NEAREST;
+        this._depthTexture.magFilter = TextureFilter.NEAREST;
 
         this._renderBuffer.size = this._size;
 
@@ -142,16 +157,11 @@ export default class ShadowRenderer {
         const cameraTransform = Transform.GetWorldMatrix(cameraNode);
         const cameraPos = Vec.Add(Mat4.GetPosition(cameraTransform), Vec.Mult(cameraTransform.forwardVector, -focus)); 
 
-        // Get the light rotation vector and scale it to the light shadow map render distance
-        const lightTransform = Transform.GetWorldMatrix(lightNode);
-        const lightVector = Mat4.GetRotation(lightTransform).forwardVector;
-        lightVector.scale(this._shadowMapRenderDistance);
-
-        // Get the light render position, adding the camera focus point to the light vector
-        const lightPos = Vec.Add(cameraPos, lightVector);
-
-        // Set the light render position to the light transform matrix
-        lightTransform.setPosition(lightPos);
+        const nodeTransform = Transform.GetWorldMatrix(lightNode);
+        const rayDirection = Mat4.GetRotation(nodeTransform).multVector(lightComponent.light.direction).xyz;
+        const view = directionalShadowView(cameraPos, rayDirection, this._shadowMapRenderDistance);
+        const lightTransform = Mat4.GetInverted(view);
+        const lightPos = Mat4.GetPosition(lightTransform);
 
         if (this._debug) {
             DebugRenderer.Get(this._renderer).drawSphere({ radius: 0.1, color: Color.Red(), position: cameraPos });
@@ -166,7 +176,10 @@ export default class ShadowRenderer {
         const viewMatrix: Mat4 = Mat4.GetInverted(this.getLightTransform(camera, lightComponent));
         
         this._renderBuffer?.update(() => {
-            this._renderBuffer!.renderer.state.clear();
+            const state = this._renderBuffer!.renderer.state;
+            state.depthMask = true;
+            state.clearDepth = 1;
+            state.clear();
             const layer: RenderLayer = RenderLayer.OPAQUE_DEFAULT;
             const queue = renderQueue.getQueue(layer);
             if (queue) {

@@ -37,7 +37,7 @@ export default class EnvironmentComponent extends Component {
         this._irradianceIntensity = 1;
         this._showSkybox = true;
         this._cubemapSize = 512;
-        this._irradianceMapSize = 32;
+        this._irradianceMapSize = 16;
         this._specularMapSize = 32;
         this._specularMapL2Size = 32;
 
@@ -123,11 +123,10 @@ export default class EnvironmentComponent extends Component {
 
     async deserialize(sceneData: any, loader: any): Promise<void> {
         super.deserialize(sceneData, loader);
-        if (loader.currentPath && sceneData.equirectangularTexture) {
-            this.equirectangularTexture = jointUrl(loader.currentPath, sceneData.equirectangularTexture);
-        }
-        this.irradianceIntensity = sceneData.irradianceIntensity || this.irradianceIntensity;
-        this.showSkybox = sceneData.showSkybox ?? this.showSkybox;
+        const image = sceneData.equirectangularTexture ?? sceneData.environmentImage;
+        if (image) this.equirectangularTexture = jointUrl(loader.currentPath || '', image);
+        this.irradianceIntensity = sceneData.irradianceIntensity ?? this.irradianceIntensity;
+        this.showSkybox = sceneData.skyboxVisible ?? sceneData.showSkybox ?? this.showSkybox;
         this.cubemapSize = sceneData.cubemapSize || this.cubemapSize;
         this.irradianceMapSize = sceneData.irradianceMapSize || this.irradianceMapSize;
         this.specularMapSize = sceneData.specularMapSize || this.specularMapSize;
@@ -145,13 +144,9 @@ export default class EnvironmentComponent extends Component {
             throw new Error("EnvironmentComponent.init(): unexpected error. Unable to create environment object from renderer factory");
         }
 
-        if (!this.equirectangularTexture) {
-            return;
-        }
-
         await this._environment.load({
             // @ts-ignore TODO: convert render/Environment.js to TS
-            textureUrl: this.equirectangularTexture,
+            textureUrl: this.equirectangularTexture || null,
             environmentMapSize: [ this.cubemapSize, this.cubemapSize ],
             specularMapSize: [ this.specularMapSize, this.specularMapSize ],
             irradianceMapSize: [ this.irradianceMapSize, this.irradianceMapSize ]

@@ -145,3 +145,25 @@ What does not change is the data that is stored in the material. Each attribute 
 **`material.deserialize(sceneData)`**: see the [serialization/deserialization protocol](serialization.md)
 
 **`material.destroy()`**: Decrements the references of all Texture objects contained in the material.
+
+
+## Baked indirect lighting
+
+Native-compatible JSON uses `indirectTextureMode` (`ao`, `bakedAO`, `bakedGI`),
+`ambientOcclussion`, `ambientOcclussionUV`, `ambientOcclussionScale`,
+`ambientOcclussionChannel` and `ambientOcclussionSettings` (`color: 2` for linear,
+`mipmaps: false` to disable mipmaps). The historical spelling is intentional.
+Missing mode defaults to scalar AO. Baked modes require opaque materials and UV2
+(index 1), sample linear RGB and ignore the channel selector. Baked AO multiplies
+indirect lighting; baked GI multiplies diffuse indirect lighting and sheen while
+preserving specular and direct lighting. Missing maps use neutral white.
+
+Lightmap data is bound independently of the RGBA8 material pack, allowing future
+floating-point formats without changing its interpretation. Height occupies the
+pack alpha but height mapping remains a shader TODO. Native `lightEmission` is a
+numeric intensity; its source texture is `lightEmissionTexture`.
+
+BG2 files store V in the legacy convention. The native mesh loader converts V
+to `1 - V`, while the browser keeps the stored UVs and flips image rows in its
+image loader. These are equivalent: baked maps must not receive an additional
+upload flip. No gamma decoding is applied to baked multipliers.

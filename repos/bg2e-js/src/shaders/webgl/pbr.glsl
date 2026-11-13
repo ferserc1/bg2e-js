@@ -116,37 +116,30 @@ vec3 calcRadiance( Light light, vec3 viewDir, vec3 fragPos, float metallic, floa
     return vec3(0.0);
 }
 
-vec3 getPrefilteredColor(float roughness,vec3 refVec,samplerCube irrMap,samplerCube specMap,samplerCube envMap) {
-    vec3 specMap0 = textureCube(envMap, refVec).rgb;
-    vec3 specMap1 = textureCube(specMap, refVec).rgb;
-    vec3 specMap2 = textureCube(irrMap, refVec).rgb;
-
-    if (roughness < 0.4) {
-        return mix(specMap0, specMap1, roughness / 0.4);
-    }
-    return mix(specMap1, specMap2, (roughness - 0.4) / 0.6);
-}
-
-vec3 calcAmbientLight( vec3 viewDir, vec3 normal, vec3 F0, vec3 albedo, float metallic, float roughness, samplerCube irradianceMap, samplerCube prefilteredEnvMap, samplerCube envMap, sampler2D brdfLUT, float ambientOcclussion, float sheenIntensity, vec3 sheenColor, vec3 shadowColor, float ambientIntensity) {
+vec3 calcAmbientLight( vec3 viewDir, vec3 normal, vec3 F0, vec3 albedo, float metallic, float roughness, samplerCube environmentData, float maxSpecularLod, float irradianceLod, sampler2D brdfLUT, float ambientOcclussion, vec3 lightmap, int indirectMode, float sheenIntensity, vec3 sheenColor, vec3 shadowColor, float ambientIntensity) {
     vec3 R = reflect(-viewDir, normal);
 
-    vec3 F = fresnelSchlickRoughness(max(dot(normal, viewDir), 0.0), F0, roughness)  * max(shadowColor, vec3(0.8));
+    vec3 F = fresnelSchlickRoughness(max(dot(normal, viewDir), 0.0), F0, roughness);
     
     vec3 Ks = F;
     vec3 Kd = 1.0 - Ks;
     Kd *= 1.0 - metallic;
 
-    vec3 irradiance = textureCube(irradianceMap, normal).rgb * ambientIntensity;
+    vec3 irradiance = textureCubeLodEXT(environmentData, normal, irradianceLod).rgb * ambientIntensity;
+    // The WebGL convolution stores irradiance / PI, unlike the native float cubemap.
     vec3 diffuse = irradiance * albedo;
 
-    vec3 prefilteredColor = getPrefilteredColor(roughness, R, irradianceMap, prefilteredEnvMap, envMap);
+    vec3 prefilteredColor = textureCubeLodEXT(environmentData, R, roughness * maxSpecularLod).rgb;
 
     vec2 brdfUV = vec2(clamp(max(dot(normal, viewDir), 0.0), 0.01, 0.99), roughness);
     vec2 envBRDF = texture2D(brdfLUT, brdfUV).rg;
-    vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+    vec3 specular = prefilteredColor * (F0 * envBRDF.x + envBRDF.y);
 
+    if (indirectMode != 0) diffuse *= lightmap;
+    if (indirectMode == 1) specular *= lightmap;
     vec3 base = (Kd * diffuse + specular) * ambientOcclussion;
-    vec3 sheen = calcSheen(normal, viewDir, sheenColor, sheenIntensity) * ambientOcclussion * shadowColor;
+    vec3 sheen = calcSheen(normal, viewDir, sheenColor, sheenIntensity) * irradiance * ambientOcclussion;
+    if (indirectMode != 0) sheen *= lightmap;
     return base + sheen;
 }
 
@@ -156,13 +149,15 @@ vec3 getShadowColor(vec4 positionFromLightPov, sampler2D shadowMap, float shadow
     // normalized device coordinates (NDC), but the perspective division
     // has not been performed yet. We need to divide by w to get the
     // vertex location in range [-1, +1]
+    if (shadowStrength <= 0.0 || positionFromLightPov.w <= 0.0) return vec3(1.0);
     vec3 shadowCoord = positionFromLightPov.xyz / positionFromLightPov.w;
 
     // Convert from NDC to texture coordinates
     shadowCoord = shadowCoord * 0.5 + 0.5;
     
     if (shadowCoord.x >= 0.0 && shadowCoord.x <= 1.0 &&
-        shadowCoord.y >= 0.0 && shadowCoord.y <= 1.0)
+        shadowCoord.y >= 0.0 && shadowCoord.y <= 1.0 &&
+        shadowCoord.z >= 0.0 && shadowCoord.z <= 1.0)
     {
         float shadowDepth = texture2D(shadowMap, shadowCoord.xy).r;
         if (shadowCoord.z > shadowDepth + shadowBias) {

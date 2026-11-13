@@ -49,15 +49,18 @@ const g_code = {
         varying vec2 fragT0Pos;
         
         uniform sampler2D uTexture;
+        uniform bool uLinearOutput;
         
         void main() {
             vec4 texColor = texture2D(uTexture, fragT0Pos);
-            gl_FragColor = vec4(texColor.rgb, 1.0);
+            vec3 linearColor = mix(texColor.rgb / 12.92, pow((texColor.rgb + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), texColor.rgb));
+            gl_FragColor = vec4(uLinearOutput ? linearColor : texColor.rgb, 1.0);
         }`
     }
 };
 
 export default class SkySphereShader extends Shader {
+    linearOutput = false;
     protected _program: ShaderProgram | null = null;
 
     constructor(renderer: Renderer) {
@@ -102,6 +105,7 @@ export default class SkySphereShader extends Shader {
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uTexture', 0);
+        this._program.uniform1i('uLinearOutput', this.linearOutput ? 1 : 0);
 
         const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer)?.getApiObject();
         const target = TextureTargetName[material.albedoTexture.target];

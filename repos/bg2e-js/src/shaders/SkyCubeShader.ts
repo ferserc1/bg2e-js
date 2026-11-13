@@ -46,13 +46,17 @@ const g_code = {
         }
         `,
 
-        fragment: `precision mediump float;
+        fragment: `#extension GL_EXT_shader_texture_lod : require
+        precision mediump float;
         varying vec3 fragNormal;
         
         uniform samplerCube uCubemap;
+        uniform bool uLinearInput;
         
         void main() {
-            gl_FragColor = textureCube(uCubemap, normalize(fragNormal));
+            vec3 color = textureCubeLodEXT(uCubemap, normalize(fragNormal), 0.0).rgb;
+            vec3 displayColor = mix(color * 12.92, 1.055 * pow(max(color, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), color));
+            gl_FragColor = vec4(uLinearInput ? displayColor : color, 1.0);
         }`
     }
 };
@@ -97,6 +101,7 @@ export default class SkyCubeShader extends Shader {
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
+        this._program.uniform1i('uLinearInput', materialRenderer.material.albedoTexture?.linearData ? 1 : 0);
         const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer)?.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
 

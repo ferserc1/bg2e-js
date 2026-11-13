@@ -47,6 +47,7 @@ const g_code = {
         varying vec3 fragNormal;
         
         uniform samplerCube uCubemap;
+        uniform float uRoughness;
         
         float vanDerCorpus(int n, int base) {
             float invBase = 1.0 / float(base);
@@ -73,7 +74,7 @@ const g_code = {
 
         vec3 importanceSampleGGX(vec2 Xi, vec3 N) {
             // compute roughness^4 outside the gpu
-            float a = ${ roughness*roughness*roughness*roughness };
+            float a = uRoughness * uRoughness * uRoughness * uRoughness;
             
             float phi = ${ 2.0 * Math.PI } * Xi.x;
             float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a - 1.0) * Xi.y));
@@ -134,6 +135,7 @@ export default class SpecularMapCubeShader extends Shader {
     }
 
     get roughness() { return this._roughness; }
+    set roughness(value: number) { this._roughness = value; }
 
     async load() {
         const { gl } = (this.renderer as WebGLRenderer);
@@ -168,6 +170,7 @@ export default class SpecularMapCubeShader extends Shader {
 
         gl.activeTexture(gl.TEXTURE0);
         this._program.uniform1i('uCubemap', 0);
+        this._program.uniform1f('uRoughness', this._roughness);
         const webglTexture = (materialRenderer.getTextureRenderer('albedoTexture') as WebGLTextureRenderer)?.getApiObject();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, webglTexture);
 

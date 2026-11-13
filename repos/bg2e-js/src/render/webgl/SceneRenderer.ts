@@ -77,8 +77,8 @@ export default class WebGLSceneRenderer extends SceneRenderer {
 
         const mainCamera = Camera.GetMain(sceneRoot);
 
-        this.shader.lights = this.renderQueue.lights.map(({light}) => light);
         this.shader.lightTransforms = this.renderQueue.lights.map(({transform}) => transform);
+        this.shader.lights = this.renderQueue.lights.map(({light}) => light);
         const cameraMatrix: Mat4 = mainCamera ? Transform.GetWorldMatrix(mainCamera.node) : Mat4.MakeIdentity();
         const pos = Mat4.GetPosition(cameraMatrix);
         this.shader.cameraPosition = pos;

@@ -62,14 +62,19 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
 
             this._textureMerger.setTexture(getTexture('metalnessTexture'), TextureChannel.R, TextureChannel.R + this.material.metalnessChannel);
             this._textureMerger.setTexture(getTexture('roughnessTexture'), TextureChannel.G, TextureChannel.R + this.material.roughnessChannel);
-            this._textureMerger.setTexture(getTexture('lightEmission', this._blackTexture), TextureChannel.B, TextureChannel.R + this.material.lightEmissionChannel);
-            this._textureMerger.setTexture(getTexture('ambientOcclussion'), TextureChannel.A, TextureChannel.R + this.material.ambientOcclussionChannel);
+            this._textureMerger.setTexture(getTexture('lightEmissionTexture', this._blackTexture), TextureChannel.B, TextureChannel.R + this.material.lightEmissionChannel);
+            this._textureMerger.setTexture(getTexture('heightTexture', this._blackTexture), TextureChannel.A, TextureChannel.R + this.material.heightChannel);
+            const sources = ['metalnessTexture', 'roughnessTexture', 'lightEmissionTexture', 'heightTexture'] as const;
+            this._textureMerger.size = [
+                Math.max(...sources.map(key => (this.material[key] as Texture | null)?.size.width || 1)),
+                Math.max(...sources.map(key => (this.material[key] as Texture | null)?.size.height || 1))
+            ];
             this._textureMerger.update();
             this.material.dirty = false;
         }
     }
 
-    get metalnessRoughnessHeightAOTexture() {
+    get metalnessRoughnessEmissionHeightTexture() {
         return this._textureMerger.mergedTexture;
     }
 
@@ -82,8 +87,8 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
     }
 
     // Bind the metalness, roughness, height and ambient occlussion combined texture
-    bindMetalnessRoughnessHeightAOTexture(shaderProgram: ShaderProgram, uniformName: string, textureUnit: number): boolean {
-        const texRenderer = this.renderer.factory.texture(this.metalnessRoughnessHeightAOTexture) as WebGLTextureRenderer;
+    bindMetalnessRoughnessEmissionHeightTexture(shaderProgram: ShaderProgram, uniformName: string, textureUnit: number): boolean {
+        const texRenderer = this.renderer.factory.texture(this.metalnessRoughnessEmissionHeightTexture) as WebGLTextureRenderer;
         shaderProgram.bindTexture(uniformName, texRenderer, textureUnit);
         return true;
     }

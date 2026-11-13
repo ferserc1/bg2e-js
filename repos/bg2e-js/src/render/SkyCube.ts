@@ -22,6 +22,7 @@ import RenderState from "./RenderState";
 import SkyCubeShader from "../shaders/SkyCubeShader";
 import Mat4 from "../math/Mat4";
 import { PolyListCullFace } from "../base/PolyList";
+import SpecularMapCubeShader from "../shaders/SpecularMapCubeShader";
 import type Renderer from "./Renderer";
 import type Texture from "../base/Texture";
 import type Shader from "./Shader";
@@ -95,6 +96,10 @@ export default class SkyCube {
             }
         }
         return this._renderState;
+    }
+
+    setSpecularRoughness(value: number): void {
+        if (this._shader instanceof SpecularMapCubeShader) this._shader.roughness = value;
     }
 
     draw(): void {

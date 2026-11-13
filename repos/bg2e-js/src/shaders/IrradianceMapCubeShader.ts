@@ -52,8 +52,8 @@ const g_code = {
             vec3 normal = normalize(fragNormal);
             vec3 irradiance = vec3(0.0);
 
-            vec3 up = vec3(0.0, 1.0, 0.0);
-            vec3 right = cross(up, normal);
+            vec3 up = abs(normal.y) < 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
+            vec3 right = normalize(cross(up, normal));
             up = cross(normal,right);
 
             float nrSamples = 0.0;
@@ -71,6 +71,7 @@ const g_code = {
                     nrSamples++;
                 }
             }
+            // Angular-grid quadrature stores E / PI (one for a constant white environment).
             irradiance = ${ Math.PI } * irradiance * (1.0 / float(nrSamples));
 
             gl_FragColor = vec4(irradiance, 1.0);

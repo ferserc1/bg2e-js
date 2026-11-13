@@ -106,7 +106,7 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
                 result.push(...c);
             }
             if (t) {
-                result.push(...t);
+                result.push(...t, this.polyList.tangentSigns[i] ?? 1);
             }
         }
 
@@ -149,7 +149,7 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
             tangent += 4;
         }
         if (this.hasTangent) {
-            this._stride += 3;
+            this._stride += 4;
         }
 
         this._offsets = { vertex, normal, texCoord0, texCoord1, texCoord2, color, tangent };
@@ -208,7 +208,7 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
     }
 
     tangentAttribParams(name: string): { name: string; stride: number; size: number; offset: number; enable: boolean } {
-        return { name, stride: this._stride, size: 3, offset: this._offsets.tangent, enable: true }
+        return { name, stride: this._stride, size: 4, offset: this._offsets.tangent, enable: true }
     }
 
     bindBuffers(): void {

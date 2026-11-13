@@ -239,11 +239,18 @@ export const MaterialAttributeNames: { [key: string]: MaterialAttribute } = {
     fresnelTint: { loader: colorTypeLoader },
     sheenIntensity: { loader: primitiveTypeLoader },
     sheenColor: { loader: colorTypeLoader },
-    lightEmission: { loader: colorTypeLoader },
+    lightEmission: { loader: {
+        serialize: (name, value) => primitiveTypeLoader.serialize(name, value),
+        deserialize: (name, value) => typeof value === 'number' || value == null ? value : colorTypeLoader.deserialize(name, value),
+        deserializeWithDependencies: (name, value) => typeof value === 'number' || value == null ? value : colorTypeLoader.deserialize(name, value)
+    } },
     lightEmissionTexture: { loader: textureTypeLoader },
     lightEmissionChannel: { loader: primitiveTypeLoader },
     lightEmissionScale: { loader: vectorTypeLoader },
     lightEmissionUV: { loader: primitiveTypeLoader },
+    indirectTextureMode: { loader: primitiveTypeLoader },
+    ambientOcclussionScale: { loader: vectorTypeLoader },
+    ambientOcclussionSettings: { loader: primitiveTypeLoader },
     ambientOcclussion: { loader: textureTypeLoader },
     ambientOcclussionChannel: { loader: primitiveTypeLoader },
     ambientOcclussionUV: { loader: primitiveTypeLoader },
@@ -332,6 +339,14 @@ export default class Material {
     private _lightEmissionChannel: number;
     private _lightEmissionScale: Vec;
     private _lightEmissionUV: number;
+    private _indirectTextureMode: string = 'ao';
+    ambientOcclussionScale: Vec = new Vec(1, 1);
+    ambientOcclussionSettings: { color?: number; mipmaps?: boolean } = {};
+    get indirectTextureMode(): string { return this._indirectTextureMode; }
+    set indirectTextureMode(value: string) {
+        if (!['ao', 'bakedAO', 'bakedGI'].includes(value)) throw new Error('Invalid indirectTextureMode: ' + value);
+        this._indirectTextureMode = value;
+    }
     private _ambientOcclussion: Texture | null;
     private _ambientOcclussionChannel: number;
     private _ambientOcclussionUV: number;
@@ -442,6 +457,9 @@ export default class Material {
         this._lightEmissionChannel = other._lightEmissionChannel;
         this._lightEmissionScale = cloneObject(other._lightEmissionScale);
         this._lightEmissionUV = other._lightEmissionUV;
+        this.indirectTextureMode = other.indirectTextureMode;
+        this.ambientOcclussionScale = new Vec(other.ambientOcclussionScale);
+        this.ambientOcclussionSettings = { ...other.ambientOcclussionSettings };
         this._ambientOcclussion = other._ambientOcclussion;
         this._ambientOcclussionChannel = other._ambientOcclussionChannel;
         this._ambientOcclussionUV = other._ambientOcclussionUV;
@@ -574,10 +592,8 @@ export default class Material {
 
     get lightEmission(): Color | number { return this._lightEmission; }
     set lightEmission(v: Color | number) {
-        if (typeof v === "number") {
-            v = new Color([v, v, v, 1]);
-        }
-        assertColor(v, "lightEmission"); this._lightEmission = v; this._dirty = true;
+        if (typeof v !== "number") assertColor(v, "lightEmission");
+        this._lightEmission = v; this._dirty = true;
     }
     get lightEmissionTexture(): Texture | null { return this._lightEmissionTexture; }
     set lightEmissionTexture(v: Texture | null) {
@@ -664,6 +680,16 @@ export default class Material {
             }
         }
         await Promise.all(P);
+        if (this.ambientOcclussion) {
+            // Keep sampling settings local to this material, independently of the image cache.
+            const texture = this.ambientOcclussion.clone();
+            // BG2 UVs are preserved here. The image loader's flip matches the native mesh loader's V flip.
+            texture.flipYOnUpload = false;
+            texture.linearData = this.indirectTextureMode !== 'ao' || this.ambientOcclussionSettings.color === 2;
+            if (this.indirectTextureMode !== 'ao') texture.wrapModeXY = TextureWrap.CLAMP;
+            texture.minFilter = this.ambientOcclussionSettings.mipmaps === false ? TextureFilter.LINEAR : texture.minFilter;
+            this.ambientOcclussion = texture;
+        }
     }
 
     async deserializeWithDependencies(sceneData: any, dependencies: File[], canvas?: Canvas | null): Promise<void> {
@@ -687,6 +713,16 @@ export default class Material {
             }
         }
         await Promise.all(P);
+        if (this.ambientOcclussion) {
+            // Keep sampling settings local to this material, independently of the image cache.
+            const texture = this.ambientOcclussion.clone();
+            // BG2 UVs are preserved here. The image loader's flip matches the native mesh loader's V flip.
+            texture.flipYOnUpload = false;
+            texture.linearData = this.indirectTextureMode !== 'ao' || this.ambientOcclussionSettings.color === 2;
+            if (this.indirectTextureMode !== 'ao') texture.wrapModeXY = TextureWrap.CLAMP;
+            texture.minFilter = this.ambientOcclussionSettings.mipmaps === false ? TextureFilter.LINEAR : texture.minFilter;
+            this.ambientOcclussion = texture;
+        }
     }
 
     destroy(): void {

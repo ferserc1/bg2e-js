@@ -178,10 +178,10 @@ export default class TextureMergerShader extends Shader {
         this._program.bindTexture("uTextureB", b, 2);
         this._program.bindTexture("uTextureA", a, 3);
 
-        this._program.uniform1i("uRChannel", this._textureChannels[TextureChannel.R] || 0);
-        this._program.uniform1i("uGChannel", this._textureChannels[TextureChannel.G] || 1);
-        this._program.uniform1i("uBChannel", this._textureChannels[TextureChannel.B] || 2);
-        this._program.uniform1i("uAChannel", this._textureChannels[TextureChannel.A] || 3);
+        this._program.uniform1i("uRChannel", this._textureChannels[TextureChannel.R] ?? 0);
+        this._program.uniform1i("uGChannel", this._textureChannels[TextureChannel.G] ?? 0);
+        this._program.uniform1i("uBChannel", this._textureChannels[TextureChannel.B] ?? 0);
+        this._program.uniform1i("uAChannel", this._textureChannels[TextureChannel.A] ?? 0);
 
         this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams("position"));
         this._program.texCoordAttribPointer((plistRenderer as WebGLPolyListRenderer).texCoord0AttribParams("texCoord"));

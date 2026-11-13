@@ -29,7 +29,7 @@ import { getUniformsFunctions, getColorCorrectionFunctions } from "./webgl";
 
 const g_code = {
     webgl: {
-        vertex: `precision mediump float;
+        vertex: `precision highp float;
         attribute vec3 position;
         attribute vec2 texCoord;
         attribute vec2 texCoord2;
@@ -48,7 +48,7 @@ const g_code = {
         }`,
 
         fragment: ShaderFunction.GetShaderCode(
-            `precision mediump float;
+            `precision highp float;
 
             uniform vec4 uAlbedo;
             uniform float uAlphaCutoff;
@@ -71,7 +71,7 @@ const g_code = {
                         discard;
                     }
                     else {
-                        float d = gl_FragCoord.z / gl_FragCoord.w;
+                        float d = gl_FragCoord.z;
                         gl_FragColor = vec4(d, d, d, 1.0);
                     }
                 }`, [
@@ -114,7 +114,6 @@ export default class DepthRenderShader extends Shader {
         }
 
         const material = materialRenderer.material;
-        materialRenderer.mergeTextures();
 
         const rend = this.renderer as WebGLRenderer;
         rend.state.shaderProgram = this._program;

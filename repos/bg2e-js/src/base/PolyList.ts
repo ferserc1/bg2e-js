@@ -111,79 +111,49 @@ interface Vertex {
 }
 
 function buildTangents(plist: PolyList): void {
-    const result: number[] = [];
-
-    const createVertex = (index: number): Vertex => {
-        return {
-            pos: new Vec(plist.vertex[index] * 3, plist.vertex[index + 1] * 3, plist.vertex[index + 2] * 3 ),
-            uv: new Vec(plist.texCoord0[index] * 2, plist.texCoord0[index + 1] * 2 )
-        }
-    }
-
-    const createUV = (v1: Vertex, v2: Vertex): Vec => Vec.Sub(v1.uv, v2.uv);
-
-    const calcR = (uv1: Vec, uv2: Vec): number =>  1.0 / (uv1.x * uv2.y - uv1.y * uv2.x);
-
-    if (plist.index.length % 3 === 0) {
-        for (let i = 0; i < plist.index.length - 2; i += 3) {
-            let v0 = createVertex(plist.index[i]);
-            let v1 = createVertex(plist.index[i + 1]);
-            let v2 = createVertex(plist.index[i + 2]);
-
-            let edge1 = Vec.Sub(v1.pos, v0.pos);
-            let edge2 = Vec.Sub(v2.pos, v1.pos);
-
-            let uv1 = createUV(v1, v0);
-            let uv2 = createUV(v2, v0);
-            let r = calcR(uv1, uv2);
-
-            if (!isFinite(r)) {
-                v0.uv.x = v0.uv.x * 1.1;
-                v0.uv.y = v0.uv.y * 0.94;
-                uv1 = createUV(v1, v0);
-                uv2 = createUV(v2, v0);
-                r = calcR(uv1, uv2);
+    const count = plist.vertex.length / 3;
+    const sums = new Float64Array(count * 3);
+    const bitangents = new Float64Array(count * 3);
+    for (let i = 0; i + 2 < plist.index.length; i += 3) {
+        const ids = plist.index.slice(i, i + 3);
+        const [a, b, c] = ids;
+        const du1 = plist.texCoord0[b * 2] - plist.texCoord0[a * 2];
+        const dv1 = plist.texCoord0[b * 2 + 1] - plist.texCoord0[a * 2 + 1];
+        const du2 = plist.texCoord0[c * 2] - plist.texCoord0[a * 2];
+        const dv2 = plist.texCoord0[c * 2 + 1] - plist.texCoord0[a * 2 + 1];
+        const det = du1 * dv2 - dv1 * du2;
+        if (!Number.isFinite(det) || Math.abs(det) < 1e-12) continue;
+        for (let axis = 0; axis < 3; ++axis) {
+            const edge1 = plist.vertex[b * 3 + axis] - plist.vertex[a * 3 + axis];
+            const edge2 = plist.vertex[c * 3 + axis] - plist.vertex[a * 3 + axis];
+            for (const id of ids) {
+                sums[id * 3 + axis] += (edge1 * dv2 - edge2 * dv1) / det;
+                bitangents[id * 3 + axis] += (edge2 * du1 - edge1 * du2) / det;
             }
-
-            if (!isFinite(r)) {
-                v2.uv.x = v2.uv.x * 1.3;
-                v2.uv.y = v2.uv.y * 1.82;
-                uv1 = createUV(v1, v0);
-                uv2 = createUV(v2, v0);
-                r = calcR(uv1, uv2);
-            }
-
-            const tangent = new Vec(
-                ((edge1.x * uv2.y) - (edge2.x * uv1.y)) * r,
-                ((edge1.y * uv2.y) - (edge2.y * uv1.y)) * r,
-                ((edge1.z * uv2.y) - (edge2.z * uv1.y)) * r
-            );
-            tangent.normalize();
-            
-            result.push(tangent.x);
-            result.push(tangent.y);
-            result.push(tangent.z);
-            
-            result.push(tangent.x);
-            result.push(tangent.y);
-            result.push(tangent.z);
-            
-            result.push(tangent.x);
-            result.push(tangent.y);
-            result.push(tangent.z);
         }
     }
-    else {
-        for (let i=0; i<plist.vertex.length; i+=3) {
-            result.push(0,0,1);
+    const result: number[] = [], signs: number[] = [];
+    for (let i = 0; i < count; ++i) {
+        const n = [plist.normal[i * 3] || 0, plist.normal[i * 3 + 1] || 0, plist.normal[i * 3 + 2] || 0];
+        const nl = Math.hypot(...n) || 1;
+        for (let k = 0; k < 3; ++k) n[k] /= nl;
+        let t = Array.from(sums.slice(i * 3, i * 3 + 3));
+        const dot = t.reduce((v, x, k) => v + x * n[k], 0);
+        t = t.map((x, k) => x - n[k] * dot);
+        if (Math.hypot(...t) < 1e-10) {
+            // Stable orthogonal frame for missing or degenerate UVs.
+            t = Math.abs(n[2]) < 0.9 ? [-n[1], n[0], 0] : [0, -n[2], n[1]];
+            if (Math.hypot(...t) < 1e-10) t = [1, 0, 0];
         }
-
-        console.warn("Could not generate tangents: invalid type of faces found.");
+        const length = Math.hypot(...t);
+        t = t.map(x => x / length);
+        const cross = [n[1]*t[2]-n[2]*t[1], n[2]*t[0]-n[0]*t[2], n[0]*t[1]-n[1]*t[0]];
+        signs.push(cross.reduce((v, x, k) => v + x * bitangents[i * 3 + k], 0) < 0 ? -1 : 1);
+        result.push(...t);
     }
-
     (plist as any)._tangent = result;
+    (plist as any)._tangentSigns = signs;
 }
-
 export default class PolyList {
     private _renderLayers: number;
     private _drawMode: DrawMode;
@@ -203,6 +173,8 @@ export default class PolyList {
     private _color: number[];
     private _index: number[];
     private _tangent?: number[];
+    private _tangentSigns: number[] = [];
+    get tangentSigns(): number[] { this.tangent; return this._tangentSigns; }
     private _colorCode: Color;
     private _selected: boolean;
     private _selectable: boolean;
@@ -293,11 +265,11 @@ export default class PolyList {
     set visibleToShadows(v: boolean) { this._visibleToShadows = v; }
 
     get vertex(): number[] { return this._vertex; }
-    set vertex(v: number[]) { this._vertex = v; }
+    set vertex(v: number[]) { this._vertex = v; this._tangent = undefined; }
     get normal(): number[] { return this._normal; }
-    set normal(v: number[]) { this._normal = v; }
+    set normal(v: number[]) { this._normal = v; this._tangent = undefined; }
     get texCoord0(): number[] { return this._texCoord0; }
-    set texCoord0(v: number[]) { this._texCoord0 = v; }
+    set texCoord0(v: number[]) { this._texCoord0 = v; this._tangent = undefined; }
     get texCoord1(): number[] { return this._texCoord1; }
     set texCoord1(v: number[]) { this._texCoord1 = v; }
     get texCoord2(): number[] { return this._texCoord2; }
@@ -305,7 +277,7 @@ export default class PolyList {
     get color(): number[] { return this._color; }
     set color(v: number[]) { this._color = v; }
     get index(): number[] { return this._index; }
-    set index(v: number[]) { this._index = v; }
+    set index(v: number[]) { this._index = v; this._tangent = undefined; }
 
     // Internal use: non serializable properties
     set colorCode(c: Color) {

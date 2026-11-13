@@ -52,12 +52,12 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
         return this._programs[numLights];
     }
 
-    const vshader = ShaderFunction.GetShaderCode(`precision mediump float;
+    const vshader = ShaderFunction.GetShaderCode(`precision highp float;
         attribute vec3 inPosition;
         attribute vec3 inNormal;
         attribute vec2 inTexCoord;
         attribute vec2 inTexCoord2;
-        attribute vec3 inTangent;
+        attribute vec4 inTangent;
 
         uniform mat4 uWorld;
         uniform mat4 uView;
@@ -100,7 +100,7 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
                 fragTexCoord2 = inTexCoord2;
                 fragNorm = normalize(uNormMatrix * inNormal);
                 gl_Position = uProj * uView * uWorld * vec4(inPosition,1.0);
-                fragTBN = TBNMatrix(uWorld, inNormal, inTangent);
+                fragTBN = TBNMatrix(uWorld, uNormMatrix, inNormal, inTangent);
             }`, [
                 ...getNormalMapFunctions()
             ])
@@ -113,7 +113,8 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
         ...getPBRFunctions()
     ];
 
-    const fshader = replaceConstants(ShaderFunction.GetShaderCode(`precision mediump float;
+    const fshader = replaceConstants(ShaderFunction.GetShaderCode(`#extension GL_EXT_shader_texture_lod : require
+        precision highp float;
         varying vec3 fragPos;
         varying vec3 fragNorm;
         varying vec2 fragTexCoord;
@@ -125,7 +126,8 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
 
         uniform sampler2D uAlbedoTexture;
         uniform sampler2D uNormalTexture;
-        uniform sampler2D uMetallicRoughnessHeightAOTexture;
+        uniform bool uHasNormalTexture;
+        uniform sampler2D uMetallicRoughnessEmissionHeightTexture;
 
         uniform vec4 uAlbedo;
         uniform float uMetallic;
@@ -150,9 +152,13 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
         uniform float uLightIntensities[${numLights}];
         
 
-        uniform samplerCube uEnvMap;
-        uniform samplerCube uSpecularMap;
-        uniform samplerCube uIrradianceMap;
+        uniform samplerCube uEnvironmentData;
+        uniform float uMaxSpecularLod;
+        uniform float uIrradianceLod;
+        uniform sampler2D uLightmapData;
+        uniform int uIndirectTextureMode;
+        uniform int uLightmapChannel;
+        uniform vec2 uLightmapScale;
         uniform sampler2D uBRDFIntegrationMap;
         uniform float uAmbientIntensity;
 
@@ -198,19 +204,25 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
                 mat.sheenIntensity = uSheenIntensity;
 
                 vec4 albedo = sampleAlbedo(uAlbedoTexture, fragTexCoord, fragTexCoord2, mat, gamma);
-                float metallic = sampleMetallic(uMetallicRoughnessHeightAOTexture, fragTexCoord, fragTexCoord2, mat);
-                float roughness = sampleRoughness(uMetallicRoughnessHeightAOTexture, fragTexCoord, fragTexCoord2, mat);
+                float metallic = sampleMetallic(uMetallicRoughnessEmissionHeightTexture, fragTexCoord, fragTexCoord2, mat);
+                float roughness = sampleRoughness(uMetallicRoughnessEmissionHeightTexture, fragTexCoord, fragTexCoord2, mat);
 
                 // TODO: Light emission
-                float ambientOcclussion = sampleAmbientOcclussion(uMetallicRoughnessHeightAOTexture, fragTexCoord, fragTexCoord2, mat);
+                vec2 lightmapUV = (uAOMap == 0 ? fragTexCoord : fragTexCoord2) * uLightmapScale;
+                vec4 lightmap = texture2D(uLightmapData, lightmapUV);
+                float ambientOcclussion = uLightmapChannel == 0 ? lightmap.r : (uLightmapChannel == 1 ? lightmap.g : (uLightmapChannel == 2 ? lightmap.b : lightmap.a));
+                if (uIndirectTextureMode != 0) ambientOcclussion = 1.0;
+                // TODO: Apply height mapping using the packed alpha, height UV, scale and intensity.
+                // float height = texture2D(uMetallicRoughnessEmissionHeightTexture, heightUV).a;
 
-                vec3 normal = sampleNormal(uNormalTexture, fragTexCoord, fragTexCoord2, mat, fragTBN);
+                vec3 normal = normalize(fragNorm);
+                if (uHasNormalTexture) normal = sampleNormal(uNormalTexture, fragTexCoord, fragTexCoord2, mat, fragTBN);
                 if (!gl_FrontFacing) {
                     normal = -normal;
                 }
                 
                 vec3 viewDir = normalize(fragViewPos - fragPos);
-                vec3 F0 = calcF0(albedo.rgb, mat);
+                vec3 F0 = mix(vec3(0.04) * mat.fresnelTint.rgb, albedo.rgb, metallic);
 
                 if (albedo.a < uAlphaTresshold) {
                     discard;
@@ -233,12 +245,12 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
                     
                     Lo = Lo * shadowColor;
 
-                    float ambientIntensity = 2.0;
+                    float ambientIntensity = uAmbientIntensity;
                     vec3 ambient = calcAmbientLight(
                         viewDir, normal, F0,
                         albedo.rgb, metallic, roughness,
-                        uIrradianceMap, uSpecularMap, uEnvMap,
-                        uBRDFIntegrationMap, ambientOcclussion,
+                        uEnvironmentData, uMaxSpecularLod, uIrradianceLod,
+                        uBRDFIntegrationMap, ambientOcclussion, lightmap.rgb, uIndirectTextureMode,
                         mat.sheenIntensity, mat.sheenColor.rgb,
                         shadowColor,
                         ambientIntensity
@@ -246,9 +258,7 @@ function getShaderProgramForLights(this: PBRLightIBLShader, renderer: Renderer, 
 
                     vec3 color = ambient + Lo;
 
-                    color = color / (color + vec3(1.0));
-                    gl_FragColor = lineal2SRGB(vec4(color, 1.0), gamma);
-                    gl_FragColor = brightnessContrast(vec4(color, albedo.a), uBrightness, uContrast);
+                    gl_FragColor = brightnessContrast(pbrDisplayColor(vec4(color, albedo.a), gamma), uBrightness, uContrast);
                 }
             }`, deps)
         ]));
@@ -268,6 +278,7 @@ export default class PBRLightIBLShader extends Shader {
     protected _lightIntensities: number[] = [];
     protected _brightness: number;
     protected _contrast: number;
+    shadowsEnabled = true;
 
     protected _cameraPosition: Vec;
     protected _brdfIntegrationTexture: Texture | null = null;
@@ -280,8 +291,8 @@ export default class PBRLightIBLShader extends Shader {
         this._lights = [];
         this._lightTransforms = [];
 
-        this._brightness = 0.2;
-        this._contrast = 1.1;
+        this._brightness = 0.0;
+        this._contrast = 1.0;
 
         this._cameraPosition = new Vec(0,0,0);
 
@@ -403,6 +414,9 @@ export default class PBRLightIBLShader extends Shader {
         }
 
         const material = materialRenderer.material;
+        if (material.indirectTextureMode !== 'ao' && (material.isTransparent || material.ambientOcclussionUV !== 1)) {
+            throw new Error('Baked lightmaps require opaque materials and UV2 (ambientOcclussionUV = 1)');
+        }
         materialRenderer.mergeTextures();
         rend.state.shaderProgram = this._program;
         
@@ -423,7 +437,8 @@ export default class PBRLightIBLShader extends Shader {
 
         materialRenderer.bindTexture(this._program, 'albedoTexture', 'uAlbedoTexture', 0);
         materialRenderer.bindTexture(this._program, 'normalTexture', 'uNormalTexture', 1, normalTexture(this.renderer));
-        materialRenderer.bindMetalnessRoughnessHeightAOTexture(this._program, 'uMetallicRoughnessHeightAOTexture', 2);
+        this._program.uniform1i('uHasNormalTexture', material.normalTexture ? 1 : 0);
+        materialRenderer.bindMetalnessRoughnessEmissionHeightTexture(this._program, 'uMetallicRoughnessEmissionHeightTexture', 2);
         this._program.uniform1f('uAlphaTresshold', material.alphaCutoff);
 
         materialRenderer.bindColor(this._program, 'albedo', 'uAlbedo');
@@ -434,9 +449,9 @@ export default class PBRLightIBLShader extends Shader {
         this._program.uniform1i('uAlbedoMap', material.albedoUV);
         this._program.uniform1i('uNormalMap', material.normalUV);
         this._program.uniform1i('uAOMap', material.ambientOcclussionUV);
-        this._program.uniform1i('uMetallicMap', material.metalnessChannel);
-        this._program.uniform1i('uRoughnessMap', material.roughnessChannel);
-        this._program.uniform1i('uLightemissionMap', material.lightEmissionChannel);
+        this._program.uniform1i('uMetallicMap', material.metalnessUV);
+        this._program.uniform1i('uRoughnessMap', material.roughnessUV);
+        this._program.uniform1i('uLightemissionMap', material.lightEmissionUV);
     
         this._program.bindVector("uAlbedoScale", material.albedoScale);
         this._program.bindVector("uNormalScale", material.normalScale);
@@ -447,18 +462,22 @@ export default class PBRLightIBLShader extends Shader {
         this._program.bindVector("uSheenColor", material.sheenColor);
         this._program.uniform1f("uSheenIntensity", material.sheenIntensity);
 
-        if (!this.irradianceMap || !this.specularMap || !this.environmentMap || !this._brdfIntegrationTexture) {
+        if (!this._environment?.environmentData || !this._brdfIntegrationTexture) {
             throw new Error("PBRLightIBLShader: Environment maps not set.");
         }
-        const irMap = this.renderer.factory.texture(this.irradianceMap) as WebGLTextureRenderer;
-        const specMap = this.renderer.factory.texture(this.specularMap) as WebGLTextureRenderer;
-        const envMap = this.renderer.factory.texture(this.environmentMap) as WebGLTextureRenderer;
+        const envMap = this.renderer.factory.texture(this._environment.environmentData) as WebGLTextureRenderer;
         const brdfLut = this.renderer.factory.texture(this._brdfIntegrationTexture) as WebGLTextureRenderer;
 
-        this._program.bindTexture("uIrradianceMap", irMap, 3);
-        this._program.bindTexture("uSpecularMap", specMap, 4);
-        this._program.bindTexture("uEnvMap", envMap, 5);
-        this._program.bindTexture("uBRDFIntegrationMap", brdfLut, 6);
+        this._program.bindTexture("uEnvironmentData", envMap, 3);
+        materialRenderer.bindTexture(this._program, 'ambientOcclussion', 'uLightmapData', 4);
+        this._program.uniform1f('uMaxSpecularLod', this._environment.maxSpecularLod);
+        this._program.uniform1f('uIrradianceLod', this._environment.irradianceLod);
+        this._program.uniform1i('uIndirectTextureMode', material.indirectTextureMode === 'bakedGI' ? 2 : material.indirectTextureMode === 'bakedAO' ? 1 : 0);
+        this._program.uniform1i('uLightmapChannel', material.ambientOcclussionChannel);
+        this._program.bindVector('uLightmapScale', material.ambientOcclussionScale);
+        this._program.bindTexture("uBRDFIntegrationMap", brdfLut, 5);
+        this._program.uniform1f('uShadowStrength', 0);
+        materialRenderer.bindTexture(this._program, 'ambientOcclussion', 'uShadowMap', 6);
 
         this._program.uniform1f("uBrightness", this._brightness);
         this._program.uniform1f("uContrast", this._contrast);
@@ -479,9 +498,9 @@ export default class PBRLightIBLShader extends Shader {
             this._program?.bindMatrix(`uLightTransforms[${i}]`, this._lightTransforms[i]);
         });
 
-        if (shadowLight?.depthTexture) {
+        if (this.shadowsEnabled && shadowLight?.depthTexture) {
             const depthTex = this.renderer.factory.texture(shadowLight.depthTexture) as WebGLTextureRenderer;
-            this._program.bindTexture("uShadowMap", depthTex, 7);
+            this._program.bindTexture("uShadowMap", depthTex, 6);
             const projectionViewMatrix = Mat4.Mult(shadowLight.projection, shadowLight.viewMatrix || Mat4.MakeIdentity());
             this._program.bindMatrix("uLightPovMvp", projectionViewMatrix);
             this._program.uniform1f("uShadowBias", shadowLight.shadowBias * 30);

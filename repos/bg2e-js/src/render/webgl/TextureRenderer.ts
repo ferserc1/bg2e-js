@@ -101,6 +101,8 @@ const getWebGLTexture = (gl: WebGLRenderingContext, textureObject: any): void =>
     const target = getTarget(gl, textureObject);
     const dataFormat = getDataFormat(gl, textureObject);
     gl.bindTexture(target, textureObject._apiObject);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, textureObject.flipYOnUpload === true);
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, textureObject.linearData ? gl.NONE : gl.BROWSER_DEFAULT_WEBGL);
 
     if (textureObject.dataType ===TextureDataType.RENDER_TARGET) {
         const { width, height } = textureObject.size;
@@ -110,8 +112,8 @@ const getWebGLTexture = (gl: WebGLRenderingContext, textureObject: any): void =>
         let format = isDepthTexture ? gl.DEPTH_COMPONENT : gl.RGBA;
         const type = isDepthTexture ? gl.UNSIGNED_SHORT : dataFormat;
 
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, getTextureFilter(gl, textureObject.minFilter));
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, getTextureFilter(gl, textureObject.magFilter));
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, getClampMode(gl,textureObject.wrapModeX));
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, getClampMode(gl,textureObject.wrapModeY));
         

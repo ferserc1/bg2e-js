@@ -358,6 +358,9 @@ export default class Texture {
     private _proceduralFunction: ProceduralTextureFunction;
     private _proceduralParameters: any;
     private _renderTargetAttachment: TextureRenderTargetAttachment;
+    // Linear data textures bypass browser color conversion; independent of component precision.
+    linearData: boolean = false;
+    flipYOnUpload: boolean = false;
     private _componentFormat: TextureComponentFormat;
     private _imageData: TextureImageData;
     private _references: number;
@@ -424,6 +427,8 @@ export default class Texture {
     }
 
     assign(other: Texture): void {
+        this.linearData = other.linearData;
+        this.flipYOnUpload = other.flipYOnUpload;
         this._dataType = other._dataType;
         this._wrapModeX = other._wrapModeX;
         this._wrapModeY = other._wrapModeY;

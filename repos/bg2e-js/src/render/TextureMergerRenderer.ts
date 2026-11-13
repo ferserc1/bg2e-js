@@ -46,6 +46,8 @@ export default class TextureMergerRenderer {
         this._shader.load();
     }
 
+    set size(value: number[]) { this._renderBuffer.size = value; }
+
     get renderer(): Renderer {
         return this._renderer;
     }

@@ -226,7 +226,7 @@ export default class SceneRenderer {
     async setEnvironment(env: EnvironmentRenderer): Promise<void> {
         this._environment = env;
         if (this._environment?.environmentMap) {
-            this._skyCube?.load(this._environment?.environmentMap);
+            await this._skyCube?.load(this._environment?.environmentMap);
         }
     }
 
@@ -261,7 +261,7 @@ export default class SceneRenderer {
         sceneRoot.accept(findVisitor);
         if (findVisitor.result.length) {
             const comp = findVisitor.result[0].component("Environment") as EnvironmentComponent;
-            comp && this.setEnvironment(comp.environment);
+            if (comp?.environment) await this.setEnvironment(comp.environment);
             this._sceneEnvironment = comp;
         }
     }
