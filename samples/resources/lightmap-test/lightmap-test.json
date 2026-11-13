@@ -7,26 +7,28 @@
           "children" : [],
           "components" : [
             {
-              "priority" : 0,
-              "transformMatrix" : [
-                0.70710677,
-                0,
-                -0.70710677,
-                0,
-                0.61237246,
-                0.49999997,
-                0.61237246,
-                0,
-                0.35355335,
-                -0.86602545,
-                0.35355335,
-                0,
-                0,
-                5,
-                0,
+              "groundColor" : [
+                0.04,
+                0.035,
+                0.025,
                 1
               ],
-              "type" : "Transform"
+              "priority" : 0,
+              "skyHorizonColor" : [
+                0.55,
+                0.65,
+                0.8,
+                1
+              ],
+              "skyZenithColor" : [
+                0.06,
+                0.22,
+                0.6,
+                1
+              ],
+              "skyboxBlur" : 0,
+              "skyboxVisible" : true,
+              "type" : "Environment"
             },
             {
               "lightData" : {
@@ -51,29 +53,26 @@
               "type" : "LightSource"
             },
             {
-              "equirectangularTexture" : "5c71001a46ed41d-2.jpg",
-              "groundColor" : [
-                0.04,
-                0.035,
-                0.025,
-                1
-              ],
               "priority" : 0,
-              "skyHorizonColor" : [
-                0.55,
-                0.65,
-                0.8,
+              "transformMatrix" : [
+                0.70710677,
+                0,
+                -0.70710677,
+                0,
+                0.61237246,
+                0.49999997,
+                0.61237246,
+                0,
+                0.35355335,
+                -0.86602545,
+                0.35355335,
+                0,
+                0,
+                5,
+                0,
                 1
               ],
-              "skyZenithColor" : [
-                0.06,
-                0.22,
-                0.6,
-                1
-              ],
-              "skyboxBlur" : 0,
-              "skyboxVisible" : true,
-              "type" : "Environment"
+              "type" : "Transform"
             }
           ],
           "enabled" : true,
@@ -85,6 +84,12 @@
           "children" : [],
           "components" : [
             {
+              "path" : "98f1331d5819c868-0.bg2",
+              "priority" : 0,
+              "resourceName" : "",
+              "type" : "Drawable"
+            },
+            {
               "priority" : 0,
               "transformMatrix" : [
                 1,
@@ -105,12 +110,6 @@
                 1
               ],
               "type" : "Transform"
-            },
-            {
-              "path" : "5c71001a46ed41d-0.bg2",
-              "priority" : 0,
-              "resourceName" : "",
-              "type" : "Drawable"
             }
           ],
           "enabled" : true,
@@ -121,6 +120,12 @@
         {
           "children" : [],
           "components" : [
+            {
+              "path" : "98f1331d5819c868-1.bg2",
+              "priority" : 0,
+              "resourceName" : "",
+              "type" : "Drawable"
+            },
             {
               "priority" : 0,
               "transformMatrix" : [
@@ -138,16 +143,10 @@
                 0,
                 0,
                 0.6,
-                0,
+                -1.8768506,
                 1
               ],
               "type" : "Transform"
-            },
-            {
-              "path" : "5c71001a46ed41d-1.bg2",
-              "priority" : 0,
-              "resourceName" : "",
-              "type" : "Drawable"
             }
           ],
           "enabled" : true,
@@ -159,47 +158,13 @@
           "children" : [],
           "components" : [
             {
-              "priority" : 0,
-              "transformMatrix" : [
-                0.9999619,
-                0,
-                0.008726535,
-                0,
-                0.0024053592,
-                0.9612617,
-                -0.27562687,
-                0,
-                -0.008388484,
-                0.27563736,
-                0.9612251,
-                0,
-                -0.06710787,
-                2.2050989,
-                7.6898007,
-                1
-              ],
-              "type" : "Transform"
-            },
-            {
-              "cameraData" : {
-                "projection" : {
-                  "far" : 100,
-                  "fov" : 60,
-                  "near" : 0.1,
-                  "type" : "PerspectiveProjection"
-                }
-              },
-              "priority" : 0,
-              "type" : "Camera"
-            },
-            {
               "center" : [
-                0,
-                0,
-                0
+                -0.27050954,
+                0.61743015,
+                -0.47134796
               ],
               "displacementSpeed" : 0.1,
-              "distance" : 8,
+              "distance" : 6.978257,
               "enabled" : true,
               "maxDistance" : 24,
               "maxPitch" : 85,
@@ -226,8 +191,8 @@
                 "right" : false
               },
               "rotation" : [
-                16,
-                -0.5
+                9.999997,
+                -290.99997
               ],
               "rotationSpeed" : 0.2,
               "type" : "OrbitCameraController",
@@ -237,15 +202,101 @@
                 "middle" : true,
                 "right" : false
               }
+            },
+            {
+              "cameraData" : {
+                "projection" : {
+                  "far" : 100,
+                  "fov" : 60,
+                  "near" : 0.1,
+                  "type" : "PerspectiveProjection"
+                }
+              },
+              "priority" : 0,
+              "type" : "Camera"
+            },
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                0.35836735,
+                0,
+                -0.93358064,
+                0,
+                -0.16211453,
+                0.9848078,
+                -0.062229823,
+                0,
+                0.9193975,
+                0.17364813,
+                0.35292298,
+                0,
+                6.1452823,
+                1.8291914,
+                1.9914395,
+                1
+              ],
+              "type" : "Transform"
             }
           ],
           "enabled" : true,
           "name" : "Editor camera",
           "steady" : false,
           "type" : "Node"
+        },
+        {
+          "children" : [],
+          "components" : [
+            {
+              "path" : "98f1331d5819c868-2.bg2",
+              "priority" : 0,
+              "resourceName" : "",
+              "type" : "Drawable"
+            },
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                2.304814,
+                0,
+                0,
+                0,
+                0,
+                2.304814,
+                0,
+                0,
+                0,
+                0,
+                2.304814,
+                0,
+                0,
+                0.7611496,
+                0.86570525,
+                1
+              ],
+              "type" : "Transform"
+            }
+          ],
+          "enabled" : true,
+          "name" : "Sphere",
+          "steady" : false,
+          "type" : "Node"
         }
       ],
       "components" : [
+        {
+          "fonts" : [
+            {
+              "faceIndex" : 0,
+              "identifier" : "default",
+              "notices" : [
+                "98f1331d5819c868-3.txt",
+                "98f1331d5819c868-4.md"
+              ],
+              "path" : "98f1331d5819c868-5.ttf"
+            }
+          ],
+          "priority" : 0,
+          "type" : "TextFonts"
+        },
         {
           "priority" : 0,
           "transformMatrix" : [
@@ -267,21 +318,6 @@
             1
           ],
           "type" : "Transform"
-        },
-        {
-          "fonts" : [
-            {
-              "faceIndex" : 0,
-              "identifier" : "default",
-              "notices" : [
-                "5c71001a46ed41d-3.txt",
-                "5c71001a46ed41d-4.md"
-              ],
-              "path" : "5c71001a46ed41d-5.ttf"
-            }
-          ],
-          "priority" : 0,
-          "type" : "TextFonts"
         }
       ],
       "enabled" : true,
