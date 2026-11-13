@@ -15,6 +15,10 @@ The serialization and deserialization rules are as follows:
 - If the class include mandatory parameters, these parameters will be also mandatory in serialization and deserialization.
 
 
+## Native lighting documents
+
+The legacy example below illustrates flat `lightType` data. Current native scenes use a `LightSource` component with nested `lightData.type`, including `kTypeSun`. The SDK accepts both formats. Solar runtime direction, atmospheric transmission and effective intensity are derived values and are not persisted over the authored color/intensity. See [Light](light.md), [scene loading](../db/vitscnj-loader-plugin.md) and [Environment](../render/Environment.md) for the current fields and defaults.
+
 ## Example: the `Light` class
 
 ```js

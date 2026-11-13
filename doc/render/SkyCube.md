@@ -70,3 +70,11 @@ const skyCube = new SkyCube(renderer);
 await skyCube.load(myCubemapTexture);
 // Integrate with scene renderer's render loop manually or via subclass
 ```
+
+## Linear HDR backgrounds and Sun
+
+The default shader samples LOD 0 and converts textures marked `linearData` to sRGB for display. `SkyCube.shader` exposes the shader instance. `SceneRenderer` configures `SkyCubeShader.lod` from the active Environment's normalized `skyboxBlur` and supplies its derived `solar` snapshot.
+
+For an unblurred linked solar sky, the renderer binds `Environment.backgroundMap` (without the solar disk) and draws the disk analytically at screen resolution. For a blurred background it binds `environmentMap` and samples its prefiltered specular levels, without adding another disk. Loading `environmentMap` directly into a standalone SkyCube displays the cubemap's filtered disk instead of automatically configuring that association.
+
+`setSpecularRoughness(value)` controls a `SpecularMapCubeShader` instance during environment generation; it is distinct from the display shader's LOD. See [Environment](Environment.md) for source mipmaps, GGX filtering and HDR requirements.

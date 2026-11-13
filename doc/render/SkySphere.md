@@ -1,86 +1,21 @@
 # SkySphere
 
-The `SkySphere` class renders a skybox using a sphere mesh, providing an illusion of vast distance. The sphere is extruded toward the camera so its position doesn't affect the visual result (the sky stays at "infinity").
-
-Access through `sceneRenderer.skySphere` on the `SceneAppController`:
+`renderer.factory.skySphere()` creates the WebGL implementation for rendering an equirectangular image on an inward-facing sphere. For procedural sky generation and solar association, use [Environment](Environment.md).
 
 ```ts
-const sky = mySkySphere;
-sky.load(myCubemapTexture);
-// The scene renderer automatically draws it during its render loop
-```
-
-## Constructor
-
-```ts
-constructor(renderer: Renderer)
-```
-
-Requires a `Renderer` instance. The sphere geometry (128 segments, 32 stacks) is created lazily on first `draw()` call.
-
-## Properties
-
-### renderer
-Reference to the owning `Renderer`.
-
-### material
-The sky's current `Material` instance. Defaults to a white-colored material if not set explicitly.
-
-### depthTexture
-Exposes the `depthTexture` from the shader's internal shadow renderer, if available.
-
-### depthMap
-Shorthand: `{ return this.shader?.depthMap; }` — the current shadow map texture.
-
-## Methods
-
-### load(cubemapTexture: Texture, Shader?, shaderParams?)
-Loads a cubemap texture and initializes the sky sphere.
-
-```ts
-sky.load(myCubimapTexture);  // Uses default SkyCubeShader
-sky.load(myCubemapTexture, MyCustomSkyShader, [param1, param2]);
-```
-
-- **cubemapTexture** — The cube map to use for the sky
-- **Shader?** — Optional custom shader class (defaults to `SkyCubeShader`)
-- **shaderParams?** — Parameters passed to the custom shader constructor
-
-### draw()
-Draws the sky sphere. The sphere is pushed away from the camera to prevent z-fighting:
-
-```ts
+const sky = renderer.factory.skySphere();
+await sky.load('/assets/sky.hdr');
+sky.updateRenderState({ viewMatrix, projectionMatrix });
 sky.draw();
 ```
 
-The draw distance is calculated as the sum of far plane (`-camera.far`) and near plane (`near`), multiplied by 10. The sphere then receives directional lights automatically from the renderer's light queue.
+## Methods and properties
 
-### destroy()
-Cleans up shader, texture, renderBuffer, and sphere buffers:
+- `load(imageUrl: string | null, Shader?): Promise<void>` loads an equirectangular image and initializes the shader (default `SkySphereShader`). A null URL creates a black texture; this low-level behavior differs from `Environment.load()`, whose empty source generates a procedural sky.
+- `setTexture(imageUrl: string): Promise<void>` replaces the image after initialization, retaining the current shader.
+- `linearOutput: boolean` controls SDR-to-linear decoding in the default shader. Environment generation sets it to true. Radiance `.hdr` pixels are already linear and bypass that decoding.
+- `updateRenderState({ viewMatrix, projectionMatrix })` prepares drawing using the view matrix's rotation, so camera translation does not move the sky.
+- `draw()` renders the prepared sphere through the WebGL subclass, temporarily disabling depth writes. Call `updateRenderState()` first.
+- `destroy()` releases the owned texture, shader, material and geometry.
 
-```ts
-sky.destroy();  // Call before disposing of the renderer
-```
-
-## Automatic Behavior
-
-- **Lights** — Receives all directional lights from `renderer.renderQueue.lights` automatically during draw
-- **Depth** — The sky sphere is positioned to avoid z-fighting (pushed far from camera)
-- **Rotation** — The draw call includes the full view matrix (3x3 rotation component) to keep sky aligned with camera orientation
-- **Depth test** — Configured as `GL_GREATER` to render behind most scene objects
-
-## Example Usage
-
-```typescript
-import { createSceneApp } from 'bg2e-js';
-
-const app = createSceneApp({ canvasId: 'appCanvas' });
-await app.load();
-
-// Load a sky sphere with our cubemap
-const skySphere = SkySphere.FromSceneRenderer(app.scene);
-await skyCube.load(starCubemapTexture);
-
-// The scene renderer draws the sky sphere automatically
-app.render();  // Sky is drawn behind everything in the scene
-```
+Images may use browser-supported SDR formats or Radiance RGBE `.hdr`. HDR decoding supports scanline RLE and flat/legacy pixels with Y-then-X axes, uploaded as float32 without passing through an SDR canvas. The default sphere shader does not implement the analytic solar disk used by `SceneRenderer`'s cube background.

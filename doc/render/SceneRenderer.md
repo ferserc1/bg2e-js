@@ -21,7 +21,7 @@ const sceneRenderer = myRenderer.factory.scene();  // Create from factory
 await sceneRenderer.init();                         // Initialize renderer
 
 // In the frame callback:
-scene.bindRenderer(camera);
+await sceneRenderer.bindRenderer(sceneRoot);
 await sceneRenderer.frame(sceneRoot, delta);
 
 // In the display callback:
@@ -30,13 +30,13 @@ sceneRenderer.draw();  // Renders all layers
 
 ## Methods (Read)
 
-### async init(): Promise<void>
+### async init({ shadowMapSize, softShadows } = {}): Promise<void>
 
 Initializes the scene renderer. Loads shaders and registers render queues for standard layers (`OPAQUE_DEFAULT`, `TRANSPARENT_DEFAULT`).
 
 ### async frame(sceneRoot: Node, delta: number): Promise<void> | void
 
-Updates and renders the scene. Processes the render queue, transforms propagation (up + down passes through nodes), per-layer rendering and updates global shader state.
+Prepares the scene for drawing. Processes the render queue, transforms propagation (up + down passes through nodes), per-layer rendering and updates global shader state.
 
 Parameters:
 - `sceneRoot` — The root Node of the scene graph to render.
@@ -44,14 +44,14 @@ Parameters:
 
 ### draw(): void | Promise<void>
 
-Draws all render layers from the queue. Calls `drawRenderQueue()` for each layer (opaque, transparent) and shadow maps (`_renderShadowMaps`).
+Draws the main shadow map, the visible skybox, and the opaque and transparent queues.
 
 ### async setEnvironment(env: Environment): Promise<void> | void
 
-Sets the environment for IBL (image-based lighting). Propagates it to the shader. Use this when an environment has been loaded and updated with `env.updateMaps()`:
+Sets the fallback environment for IBL and propagates it to the shader. `await env.load(...)` already generates its maps:
 
 ```ts
-await scene.setEnvironment(environment); // After env.load(...) and env.updateMaps()
+await sceneRenderer.setEnvironment(environment); // After await environment.load(...)
 ```
 
 ## Methods (Event Handlers)
@@ -107,3 +107,11 @@ Calls `dispatchTouchEnd(evt)` on the root node.
 ```ts
 sceneRenderer.layerOpacity = { opacity: 0.5 }; // Attenuate all layers by 50%
 ```
+
+## Environment synchronization and soft shadows
+
+`shadowMapSize` accepts a number or a two-component `Vec` (default 1024×1024). `softShadows` defaults to `false` and can also be changed on the renderer before the next `frame()`. PCSS uses the main directional/Sun light's source angle and `shadowSamples`; it does not add point-light shadow maps.
+
+The first Environment in enabled scene traversal overrides the fallback passed to `setEnvironment()`. Removing or disabling it restores the fallback. Active procedural colors, source image and solar changes regenerate resources synchronously during `frame()`. A scene without direct lights can still render IBL. Call `draw()` after the awaited frame preparation.
+
+See [Environment](Environment.md) for same-node Sun association, HDR generation, prefiltering and shadow limitations.

@@ -16,7 +16,7 @@ The render module consists of several abstractions that work together to render 
 - **RenderQueue** — Queue system that batches RenderStates per layer (opaque, transparent) with begin/end callbacks.
 - **SceneRenderer** — High-level component that renders a scene graph: processes camera, lights, transforms, and render queue automatically.
 - **SceneAppController** — An AppController derivative designed for SceneRenderer-based apps; handles the app lifecycle, input forwarding, and automatic frame rendering.
-- **Environment** — Auto-generates cubemap lighting from an equirectangular texture (environmentMap, specularMap, irradianceMap).
+- **Environment** — Generates linear HDR sky and IBL from images or a procedural sky, with same-node Sun association.
 - **SkySphere / SkyCube** — Render sky/scene background using spheric/cubemap textures via a sky shader.
 
 ## Rendering Flow (Low-level)
@@ -70,7 +70,7 @@ For scene-graph based applications:
 2. Use `SceneAppController` or create a `SceneRenderer`: build scene nodes with components (Transform, Drawable, Camera, Light).
 3. Initialize the `SceneRenderer` with an Environment for PBR lighting.
 4. Forward app events (keyDown, mouseDown, mouseDrag, etc.) to `sceneRenderer.onKey...()`, `sceneRenderer.onMouse...()` methods.
-5. Call `sceneRenderer.frame(sceneRoot, delta)` in the frame callback and no explicit draw is needed — rendering is automatic.
+5. Await `sceneRenderer.frame(sceneRoot, delta)` in the frame callback, then call `sceneRenderer.draw()` in the display callback. `SceneAppController` forwards these lifecycle calls.
 
 ```ts
 import SceneAppController from "bg2e-js/ts/render/SceneAppController.ts";

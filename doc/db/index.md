@@ -30,6 +30,6 @@ The plugin database maps file extensions and resource types to plugins. There ar
 - [loader-plugin.md](loader-plugin.md) — `LoaderPlugin` base class for reading plugins
 - [bg2-loader-plugin.md](bg2-loader-plugin.md) — Loads `.bg2` and `.vwglb` models
 - [obj-loader-plugin.md](obj-loader-plugin.md) — Loads `.obj` text files  
-- [vitscnj-loader-plugin.md](vitscnj-loader-plugin.md) — Loads `.vitscnj` scene files
+- [vitscnj-loader-plugin.md](vitscnj-loader-plugin.md) — Loads legacy `.vitscnj` and native `.json` scene files
 - [obj-parser.md](obj-parser.md) — OBJ text file parser (internal tool used by `ObjLoaderPlugin`)
 - [loader.md](loader.md) — `Loader` class, facade for loading resources

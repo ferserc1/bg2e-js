@@ -4,12 +4,11 @@
 Defines the properties of a light. The final result of the rendering and the concrete meaning of each parameter may vary depending on the rendering method. At the `bg2e-base` library level, the `Light` class is only used as a data container and to handle data serialization and deserialization.
 
 ```js
-import Light, { LightType } from 'bg2e/base/Light';
-import Color from 'bg2e/base/Color';
+import Light, { LightType } from 'bg2e-js/ts/base/Light';
+import Color from 'bg2e-js/ts/base/Color';
 
 const light = new Light();
-light.ambient = new Color({ rgb: 0.1 });
-light.diffuse = new Color({ rgb: 0.77 });
+light.color = new Color({ rgb: 0.77 });
 light.type = LightType.POINT;
 ```
 
@@ -22,6 +21,7 @@ const LightType = {
     DIRECTIONAL: 4,
     SPOT: 1,
     POINT: 5,
+    SUN: 6,
     DISABLED: 10
 }
 ```
@@ -41,11 +41,7 @@ const LightType = {
 
 **`l.direction`**: (read/write) [`bg2e-math.Vec`](../../bg2e-math/doc/vector.md) with three components.
 
-**`l.ambient`**: (read/write) [`Color`](color.md)
-
-**`l.diffuse`**: (read/write) [`Color`](color.md)
-
-**`l.specular`**: (read/write) [`Color`](color.md)
+**`l.color`**: (read/write) linear RGB [`Color`](color.md) or a three/four-component array.
 
 **`l.intensity`**: (read/write) `number`
 
@@ -65,3 +61,11 @@ const LightType = {
 ## Serialize/Deserialize
 
 See the [serialization protocol](serialization.md).
+
+## Native solar properties
+
+`LightType.SUN` imports `kTypeSun` and acts as a directional emitter. `solarSize` defaults to 1 solar radius and `solarDistanceMillionKm` to 149.6 million km; both require finite positive values. `sourceSize` (default 0.5), `shadowSamples` (8), `affectsReflections` (true) and `spotAngle` (22) are retained when importing and cloning lights. `affectsReflections` is retained metadata; the WebGL renderer does not implement native per-light reflection exclusions.
+
+See [Environment and Sun](../render/Environment.md) for same-node association, atmospheric evaluation, image import and optional soft shadows.
+
+For a Sun, emitted rays follow node-local +Z transformed into world space; `direction` does not override that convention. Ordinary directional lights use their authored `direction`. `sourceSize` is an angular radius in degrees for directional shadows; solar shadows derive their angle from size and distance. Zero source size or at most one sample selects hard shadows. These values affect PCSS only when `sceneRenderer.softShadows` is enabled.

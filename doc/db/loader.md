@@ -43,7 +43,7 @@ const root = await loader.loadNode("../resources/test-scene.vitscnj");
 | `loadPolyList(path)` | `Promise\<PolyList\>` | Convenience method for loading PolyList resources. |
 | `loadDrawable(path)` | `Promise\<any\>` | Convenience method for loading Drawable resources. |
 | `loadDrawableBuffer(buffer, format, dependencies)` | `Promise\<any\>` | Convenience method for loading Drawable from an ArrayBuffer (used by drag-and-drop). |
-| `loadNode(path)` | `Promise\<any\>` | Convenience method for loading a Node tree from `.vitscnj` scene files. |
+| `loadNode(path)` | `Promise\<any\>` | Convenience method for loading a Node tree from `.vitscnj` or native `.json` scene files. |
 | `loadTexture(path)` | `Promise\<Texture\>` | Convenience method for loading texture assets. |
 | `loadMaterial(path)` | `Promise\<any\>` | Convenience method for loading material assets. |
 | `setupModelDropZone(dropZone, fileFormats, cb)` | — | Sets up drag-and-drop loading for models on a DOM element. Accepts an array of file formats (e.g., `["bg2","vwglb"]`) and a callback that receives the loaded Drawable for each dropped file. See example below. |
