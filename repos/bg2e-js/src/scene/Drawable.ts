@@ -21,7 +21,7 @@ import Component from "./Component";
 import Mat4 from "../math/Mat4";
 import PolyList from "../base/PolyList";
 import Material from "../base/Material";
-import VitscnjLoaderPlugin, { DrawableFormat } from "../db/VitscnjLoaderPlugin";
+import { DrawableFormat, preferredDrawableFormat } from "../db/DrawableFormat";
 import Renderer from "../render/Renderer";
 
 interface DrawableItem {
@@ -45,8 +45,8 @@ interface LoadedDrawable {
 export default class Drawable extends Component {
     private _name: string;
     private _items: DrawableItem[];
-    constructor(name?: string) {
-        super("Drawable");
+    constructor(name?: string, typeId = "Drawable") {
+        super(typeId);
         this._name = name || "";
         this._items = [];
     }
@@ -138,7 +138,7 @@ export default class Drawable extends Component {
             }
         }
 
-        const drwFormat = VitscnjLoaderPlugin.PreferredDrawableFormat();
+        const drwFormat = preferredDrawableFormat();
         const nativePath = (sceneData as DrawableSceneData & { path?: string }).path;
         const drw = nativePath ? await tryload(nativePath) : drwFormat === DrawableFormat.BG2
             ? (await tryload(sceneData.name + '.bg2') || await tryload(sceneData.name + '.vwglb'))

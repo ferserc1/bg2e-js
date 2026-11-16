@@ -130,7 +130,10 @@ const getWebGLTexture = (gl: WebGLRenderingContext, textureObject: any): void =>
     }
     else {
     
-        if (textureObject._imageData.data instanceof Float32Array) {
+        if (textureObject._imageData.data instanceof Uint8Array) {
+            const { width, height, data } = textureObject._imageData;
+            gl.texImage2D(target, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+        } else if (textureObject._imageData.data instanceof Float32Array) {
             const { width, height, data } = textureObject._imageData;
             gl.texImage2D(target, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, data);
         } else {

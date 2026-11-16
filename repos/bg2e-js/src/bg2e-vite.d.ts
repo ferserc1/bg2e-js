@@ -20,7 +20,10 @@ import type { PluginOption } from "vite";
 
 export interface CopyBg2eAssetsOptions {
     nodeModulesPath?: string;
+    artifacts?: { name: string; source: string }[];
     dstSubdir?: string;
 }
 
 export declare function copyBg2eAssets(options?: CopyBg2eAssetsOptions): PluginOption;
+
+export declare function bg2eWasmAssets(options?: CopyBg2eAssetsOptions): { name: string; source: string }[];

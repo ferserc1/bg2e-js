@@ -40,6 +40,8 @@ import KeyboardEvent from "../app/Bg2KeyboardEvent"
 import MouseEvent from "../app/Bg2MouseEvent"
 import TouchEvent from "../app/Bg2TouchEvent";
 
+import { prepareTextResources } from "../scene/TextResources";
+
 export class FrameVisitor extends NodeVisitor {
     _renderQueue: RenderQueue;
     _delta: number;
@@ -259,6 +261,7 @@ export default class SceneRenderer {
     }
     
     async bindRenderer(sceneRoot: Node): Promise<void> {
+        await prepareTextResources(sceneRoot);
         const bindRendererVisitor = new BindRendererVisitor(this.renderer);
         sceneRoot.accept(bindRendererVisitor);
 
@@ -291,6 +294,7 @@ export default class SceneRenderer {
         if (sceneRoot.sceneChanged) {
             await sceneRoot.asyncAccept(this._initVisitor);
         }
+        await prepareTextResources(sceneRoot);
         this._sceneRoot = sceneRoot;
 
         this._renderQueue?.newFrame();

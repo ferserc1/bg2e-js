@@ -153,7 +153,7 @@ export default class Component {
     }
 
     get drawable(): Drawable | undefined {
-        return this.component("Drawable") as Drawable;
+        return (this.component("Drawable") ?? this.component("Text")) as Drawable;
     }
 
     get camera(): Camera | undefined {

@@ -108,7 +108,7 @@ export default class Node {
         if (cloneChildren) {
             this._children = [];
             other._children.forEach(c => {
-                this._children.push(c.clone(cloneChildren));
+                this.addChild(c.clone(cloneChildren));
             });
         }
     }
@@ -440,7 +440,7 @@ export default class Node {
     }
 
     get drawable(): Drawable | undefined {
-        return this.component("Drawable") as Drawable;
+        return (this.component("Drawable") ?? this.component("Text")) as Drawable;
     }
 
     get instance(): Instance | undefined {

@@ -118,7 +118,7 @@ export default class ComponentMap {
         for (const typeId in other._obj) {
             const comp = other._obj[typeId];
             const compClone = comp.clone();
-            this._obj[typeId] = compClone;
+            this.add(compClone);
         }
         this.syncArray();
     }

@@ -23,6 +23,9 @@ import { deserializeComponent } from "../scene/Component";
 import Bg2LoaderPlugin, { type MaterialImportCallback } from "./Bg2LoaderPlugin";
 import Loader from "./Loader";
 
+import TextFontLoaderPlugin from "./TextFontLoaderPlugin";
+import { prepareTextResources } from "../scene/TextResources";
+
 interface NodeData {
     name: string;
     enabled?: boolean;
@@ -59,24 +62,20 @@ const deserializeNode = async (nodeData: NodeData, loader: Loader): Promise<Node
     return node;
 }
 
-export const DrawableFormat = {
-    LEGACY: 'vwglb',
-    BG2: 'bg2'
-} as const;
+import { DrawableFormat, type DrawableFormatValue, preferredDrawableFormat, setPreferredDrawableFormat } from './DrawableFormat';
+export { DrawableFormat } from './DrawableFormat';
+export type { DrawableFormatValue } from './DrawableFormat';
 
-export type DrawableFormatValue = typeof DrawableFormat[keyof typeof DrawableFormat];
-
-let g_prefDrawableFormat: DrawableFormatValue = DrawableFormat.BG2;
 export default class VitscnjLoaderPlugin extends LoaderPlugin {
     private _bg2ioPath: string | null;
     private _materialImportCallback?: MaterialImportCallback;
 
     static PreferredDrawableFormat(): DrawableFormatValue {
-        return g_prefDrawableFormat;
+        return preferredDrawableFormat();
     }
 
     constructor({
-        bg2ioPath = "/bg2io",
+        bg2ioPath = null,
         preferedDrawableFormat = DrawableFormat.BG2,
         materialImportCallback
     }: {
@@ -87,7 +86,7 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
         super();
 
         this._bg2ioPath = bg2ioPath;
-        g_prefDrawableFormat = preferedDrawableFormat;
+        setPreferredDrawableFormat(preferedDrawableFormat);
         this._materialImportCallback = materialImportCallback;
     }
 
@@ -122,13 +121,14 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
                 root.addChild(node);
             }
 
+            await prepareTextResources(root, loader);
             return root;
         }
         finally { loader.currentPath = prevPath; }
     }
 
     get dependencies(): LoaderPlugin[] {
-        return [new Bg2LoaderPlugin({
+        return [new TextFontLoaderPlugin(), new Bg2LoaderPlugin({
             bg2ioPath: this._bg2ioPath,
             materialImportCallback: this._materialImportCallback
         })];

@@ -7,7 +7,10 @@
   "files": [
     "dist/bg2e-js.js",
     "dist/bg2e-js.js.map",
-    "src"
+    "src",
+    "wasm/assets",
+    "wasm/text",
+    "wasm/build-text.mjs"
   ],
   "module": "./dist/bg2e-js.js",
   "exports": {
@@ -23,13 +26,18 @@
     "./ts/*": {
       "types": "./src/*",
       "import": "./src/*"
+    },
+    "./vite": {
+      "types": "./src/bg2e-vite.d.ts",
+      "import": "./src/bg2e-vite.js"
     }
   },
   "type": "module",
   "scripts": {
     "dev": "vite build --watch --emptyOutDir",
     "build": "vite build --emptyOutDir",
-    "test": "node tests/run.mjs"
+    "test": "node tests/run.mjs",
+    "build:wasm": "node wasm/build-text.mjs"
   },
   "repository": {
     "type": "git",

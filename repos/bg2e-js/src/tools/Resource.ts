@@ -43,11 +43,12 @@ export enum ResourceType {
     Drawable = 'Drawable',
     Node = 'Node',
     Texture = 'Texture',
-    Material = 'Material'
+    Material = 'Material',
+    TextFont = 'TextFont'
 }
 
 export const getExtension = (url: string): string => {
-    const reResult = /\.([a-z0-9]+)$/i.exec(url);
+    const reResult = /\.([a-z0-9]+)$/i.exec(url.split(/[?#]/)[0]);
     if (reResult) {
         return reResult[1];
     }
@@ -144,6 +145,7 @@ export const addVideoFormats = (fmts: string | string[]): void => {
 export const getValidVideoFormats = (): string[] => g_validVideoFormats;
 
 const g_validBinaryFormats = [
+    "ttf", "otf", "ttc", "otc",
     "vwglb",
     "bg2"
 ];

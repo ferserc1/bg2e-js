@@ -1,3 +1,5 @@
+import Text from "./Text";
+import TextFont from "./TextFont";
 /*
  *    business grade graphic engine (bg2 engine)
  *    Copyright (C) 2024  Fernando Serrano Carpena
@@ -60,6 +62,8 @@ import Texture, {
 } from './Texture';
 
 export default {
+    Text,
+    TextFont,
     evaluateSolarLight,
     BoundingBox,
     Color,

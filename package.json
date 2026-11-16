@@ -44,7 +44,9 @@
     "dev:joints": "npm --prefix samples/32_joints run dev",
     "dev:instances": "npm --prefix samples/33_instances run dev",
     "dev:sofa_reorder": "npm --prefix samples/34_sofa_reorder run dev",
-    "dev:lightmap": "npm --prefix samples/35_lightmap run dev"
+    "dev:lightmap": "npm --prefix samples/35_lightmap run dev",
+    "dev:text": "npm --prefix samples/36_text run dev",
+    "build:wasm": "npm --prefix repos/bg2e-js run build:wasm"
   },
   "repository": {
     "type": "git",

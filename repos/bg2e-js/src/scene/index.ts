@@ -1,3 +1,6 @@
+import TextComponent from "./TextComponent";
+import TextFontComponent from "./TextFontComponent";
+import { prepareTextResources, reloadTextFonts } from "./TextResources";
 /*
  *    business grade graphic engine (bg2 engine)
  *    Copyright (C) 2024  Fernando Serrano Carpena
@@ -44,6 +47,8 @@ import FindNodeVisitor from "./FindNodeVisitor";
 export type { ChildPosition } from "./Node";
 
 export const registerComponents = () => {
+    registerComponent("Text", TextComponent);
+    registerComponent("TextFonts", TextFontComponent);
     registerComponent("Drawable", DrawableComponent);
     registerComponent("Instance", InstanceComponent);
     registerComponent("Transform", TransformComponent);
@@ -65,6 +70,10 @@ export const registerComponents = () => {
 }
 
 export default {
+    TextComponent,
+    TextFontComponent,
+    prepareTextResources,
+    reloadTextFonts,
     AABoundingBoxComponent,
     Component,
     DrawableComponent,

@@ -25,22 +25,15 @@ import Node from "../scene/Node";
 import Material from "../base/Material";
 import { deserializeComponent } from "../scene/Component";
 
-// @ts-ignore: module not typed
-import Bg2ioWrapper from 'bg2io/Bg2ioBrowser';
+import Bg2ioWrapper from './Bg2ioDataAdapter.js';
 import Loader from './Loader';
 
-let g_bg2Wrapper: any = null;
-
-const bg2ioFactory = async (path?: string | null): Promise<any> => {
-    if (g_bg2Wrapper === null) {
-        const params = path ? { wasmPath: path } : {};
-        g_bg2Wrapper = await Bg2ioWrapper(params);
-        if (!g_bg2Wrapper) {
-            throw new Error("Bg2LoaderPlugin: unable to initialize bg2io library");
-        }
-    }
-    return g_bg2Wrapper;
-}
+const bg2ioFactory = (loader: Loader, path?: string | null): Promise<any> =>
+    loader.wasm.load('bg2io', async resolve => {
+        const factory = await loader.wasm.loadScriptFactory('bg2io.js', 'Bg2ioModule', path ?? loader.wasm.baseUrl);
+        const instance = await factory({ locateFile: (file: string) => resolve(file) });
+        return new Bg2ioWrapper({ instance });
+    }, path ?? loader.wasm.baseUrl);
 
 const createPolyList = (jsonData: any, loader: Loader): Array<{ plist: PolyList, materialData: any }> => {
     const result = jsonData.polyLists.map((plData: any) => {
@@ -134,7 +127,7 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
     }
 
     override async load(path: string, resourceType: ResourceType, loader: Loader): Promise<any> {
-        const bg2io = await bg2ioFactory(this._bg2ioPath);
+        const bg2io = await bg2ioFactory(loader, this._bg2ioPath);
 
         const buffer = await this._resource.load(path);
         const jsonData = bg2io.loadBg2FileAsJson(buffer);
@@ -164,7 +157,7 @@ export default class Bg2LoaderPlugin extends LoaderPlugin {
     }
 
     override async loadBuffer(buffer: ArrayBuffer, format: string, dependencies: File[], type: ResourceType, loader: any): Promise<any> {
-        const bg2io = await bg2ioFactory(this._bg2ioPath);
+        const bg2io = await bg2ioFactory(loader, this._bg2ioPath);
         const jsonData = bg2io.loadBg2FileAsJson(buffer);
 
         // Compatibility with 1.4 models

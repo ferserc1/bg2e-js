@@ -135,3 +135,12 @@ Where `<example_name>` is the name of the example you want to run:
 - `23_selection`
 - `24_canvas_texture`
 - `25_debug`
+
+### Editable scene text and shared WASM resources
+
+The SDK supports native `Text` and `TextFonts` scene components using a bundled
+stb_truetype WASM module. Run `npm run dev:text` for the editable tutorial.
+See [text components and WASM deployment](doc/scene/text.md) for component APIs,
+shared loader configuration and the Vite helper that supplies both bg2io and
+bg2text automatically. The committed text artifacts can be regenerated with
+`npm run build:wasm` in an activated Emscripten environment.

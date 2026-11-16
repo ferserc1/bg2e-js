@@ -1,3 +1,5 @@
+import TextFontLoaderPlugin from "./TextFontLoaderPlugin";
+import WasmResources from "./WasmResources";
 /*
  *    business grade graphic engine (bg2 engine)
  *    Copyright (C) 2024  Fernando Serrano Carpena
@@ -41,6 +43,8 @@ import Writer, {
 import WriterPlugin from "./WriterPlugin";
 
 export default {
+    TextFontLoaderPlugin,
+    WasmResources,
     Bg2LoaderPlugin,
     PluginOperationType,
     createPluginDatabase,

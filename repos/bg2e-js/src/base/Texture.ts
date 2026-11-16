@@ -185,7 +185,7 @@ interface ProceduralBase64Parameters {
     imageData?: string;
 }
 
-interface FloatImageData { width: number; height: number; data: Float32Array; }
+interface FloatImageData { width: number; height: number; data: Float32Array | Uint8Array; }
 
 type TextureImageData = ExtendedHTMLImageElement | RenderTargetImageData | FloatImageData | null;
 
@@ -709,6 +709,17 @@ export default class Texture {
             // TODO: load other classes of procedural image data
             throw new Error("Texture: loadImageData(): not implemented");
         }
+    }
+
+    /** Assign owned linear RGBA8 pixels without PNG/base64 conversion. */
+    setByteImageData(width: number, height: number, data: Uint8Array): void {
+        if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || data.length !== width * height * 4) throw new Error('Invalid byte image data');
+        this._imageData = { width, height, data: data.slice() };
+        this._size = new Vec(width, height);
+        this._componentFormat = TextureComponentFormat.UNSIGNED_BYTE;
+        this._dataType = TextureDataType.IMAGE_DATA;
+        this.linearData = true;
+        this._dirty = true;
     }
 
     /** Assign linear RGBA float pixels without routing them through an SDR canvas. */

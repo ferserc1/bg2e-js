@@ -47,7 +47,7 @@ export const registerPluginInDatabase = (pluginInstance: LoaderPlugin, pluginDat
 
 export const getPluginFromDatabase = function(path: string, type: ResourceType, pluginDatabase: PluginDatabase): LoaderPlugin {
     const ext = getExtension(path);
-    const extCheck = new RegExp(ext, "i");
+
     const errMsg = `Could not find a plugin to ${pluginDatabase.operationType} file '${path}' of type '${type}'.`;
 
     const plugins = pluginDatabase.plugins[type];
@@ -56,7 +56,7 @@ export const getPluginFromDatabase = function(path: string, type: ResourceType, 
     }
     else {
         for (const plugin of plugins) {
-            if (plugin.supportedExtensions.find(e => extCheck.test(e))) {
+            if (ext && plugin.supportedExtensions.some(e => e.toLowerCase() === ext.toLowerCase())) {
                 return plugin;
             }
         }

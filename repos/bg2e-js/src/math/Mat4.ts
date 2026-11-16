@@ -167,11 +167,14 @@ export default class Mat4 extends NumericArray {
 	lookAt(p_eye: Vec, p_center: Vec, p_up: Vec): this {
         this.identity();
 
-		const y = new Vec(p_up);
+		const up = new Vec(p_up);
 		const z = Vec.Sub(p_eye,p_center);
 		z.normalize();
-		const x = Vec.Cross(y,z) as Vec;
+		const x = Vec.Cross(up,z) as Vec;
 		x.normalize();
+        // The supplied up vector is a reference, not necessarily perpendicular
+        // to the view direction. Rebuild a rigid, orthonormal camera basis.
+        const y = Vec.Cross(z,x) as Vec;
 		y.normalize();
 
 		this.m00 = x.x;

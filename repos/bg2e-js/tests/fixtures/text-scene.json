@@ -1,0 +1,28 @@
+{
+  "fileType": "bg2e::scene",
+  "scene": [
+    {
+      "name": "Editable text",
+      "components": [
+        { "type": "Transform", "transformMatrix": [1,0,0,0, 0,0,-1,0, 0,1,0,0, 0,1.2,0,1] },
+        {
+          "type": "Text",
+          "text": {
+            "content": "Hello World", "fontIdentifier": "tutorial", "fontSize": 160,
+            "lineSpacing": 1.2, "characterSpacing": 0,
+            "paragraphSize": { "width": 1024, "height": 256 },
+            "bitmapResolution": { "width": 2048, "height": 512 },
+            "margins": { "left": 24, "top": 24, "right": 24, "bottom": 24 },
+            "alignment": "center", "verticalAlignment": "center", "wrapMode": "word", "overflowPolicy": "clip"
+          },
+          "size": [2,1.4], "preserveAspect": true, "pivot": [0.5,0.5],
+          "material": { "albedo": [0.07,0.28,0.8,1], "metalness": 0, "roughness": 0.9, "alphaCutoff": 0.1, "doubleSided": true, "isUnlit": false }
+        }
+      ]
+    },
+    {
+      "name": "Fonts (deliberately after text)",
+      "components": [{ "type": "TextFonts", "fonts": [{ "identifier": "tutorial", "path": "fonts/didact-gothic/DidactGothic-Regular.ttf", "faceIndex": 0, "notices": ["fonts/didact-gothic/OFL.txt", "fonts/didact-gothic/README.md"] }] }]
+    }
+  ]
+}
