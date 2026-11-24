@@ -1,6 +1,7 @@
 import Drawable from './Drawable';
 import Text from '../base/Text';
-import Material from '../base/Material';
+import Material, { getMaterialAppearance } from '../base/Material';
+import { finiteNumber } from '../base/MaterialTextureSettings';
 import PolyList from '../base/PolyList';
 import Texture, { TextureFilter, TextureWrap } from '../base/Texture';
 import Mat4 from '../math/Mat4';
@@ -19,7 +20,6 @@ export default class TextComponent extends Drawable {
     private geometry = '';
     private resolved?: ResolvedTextFont;
     private coverage = false;
-    private materialVisible = true;
     private _rasterization?: TextRasterization;
     constructor() {
         super('', 'Text');
@@ -78,15 +78,14 @@ export default class TextComponent extends Drawable {
         const renderer = this.renderer ?? this.node?.bindedRenderer;
         if (renderer && (rebind || !this.renderer)) super.bindRenderer(renderer);
     }
-    draw(queue: any, modelMatrix: Mat4): void { if (this.coverage && this.materialVisible) super.draw(queue, modelMatrix); }
+    draw(queue: any, modelMatrix: Mat4): void { if (this.coverage && getMaterialAppearance(this.material).visible) super.draw(queue, modelMatrix); }
     clone(): TextComponent {
         const result = new TextComponent();
         result.text.setParameters(this.text.parameters);
         result.manualSize = this.authoredSize; result.preserveAspect = this.preserveAspect; result.pivot = this.pivot;
-        result.material.assign(this.material); result.material.albedoTexture = result.mask;
-        result.materialVisible = this.materialVisible; result.quad.enableCullFace = this.quad.enableCullFace;
-        result.mask.magFilter = this.mask.magFilter; result.mask.minFilter = this.mask.minFilter;
-        result.mask.wrapModeX = this.mask.wrapModeX; result.mask.wrapModeY = this.mask.wrapModeY;
+        result.material.assign(this.material);
+        result.mask = result.material.albedoTexture ?? result.mask;
+        result.quad.enableCullFace = this.quad.enableCullFace;
         return result;
     }
     async deserialize(data: any, loader: Loader): Promise<void> {
@@ -97,19 +96,9 @@ export default class TextComponent extends Drawable {
         if (data.material) {
             const { albedoTexture: _source, ...attributes } = data.material;
             await this.material.deserialize(attributes, loader.currentPath, loader.canvas);
-            this.material.albedoTexture = this.mask;
-            this.material.unlit = data.material.isUnlit ?? data.material.unlit ?? false;
-            this.material.alphaCutoff = data.material.alphaCutoff ?? .1;
-            this.materialVisible = data.material.visible ?? true;
-            this.quad.enableCullFace = typeof data.material.doubleSided === 'boolean' ? !data.material.doubleSided : data.material.cullFace ?? false;
-            const settings = data.material.albedoTextureSettings;
-            if (settings) {
-                if (settings.mag === 0 || settings.mag === 1) this.mask.magFilter = settings.mag ? TextureFilter.NEAREST : TextureFilter.LINEAR;
-                if (settings.min === 0 || settings.min === 1) this.mask.minFilter = settings.min ? TextureFilter.NEAREST : TextureFilter.LINEAR;
-                const modes = [TextureWrap.REPEAT, TextureWrap.MIRRORED_REPEAT, TextureWrap.CLAMP, TextureWrap.CLAMP];
-                if (Number.isInteger(settings.u) && settings.u >= 0 && settings.u <= 3) this.mask.wrapModeX = modes[settings.u];
-                if (Number.isInteger(settings.v) && settings.v >= 0 && settings.v <= 3) this.mask.wrapModeY = modes[settings.v];
-            }
+            this.mask = this.material.albedoTexture ?? this.mask;
+            if (!finiteNumber(attributes.alphaCutoff)) this.material.alphaCutoff = .1;
+            this.quad.enableCullFace = getMaterialAppearance(this.material).cullFace ?? false;
         }
     }
     async serialize(data: any): Promise<void> {
@@ -121,7 +110,7 @@ export default class TextComponent extends Drawable {
         data.material.isUnlit = this.material.unlit;
         data.material.alphaCutoff = this.material.alphaCutoff;
         data.material.isTransparent = this.material.isTransparent;
-        data.material.visible = this.materialVisible;
+        data.material.visible = getMaterialAppearance(this.material).visible;
         const mode = (wrap: TextureWrap) => wrap === TextureWrap.REPEAT ? 0 : wrap === TextureWrap.MIRRORED_REPEAT ? 1 : 2;
         data.material.albedoTextureSettings = {
             mag: this.mask.magFilter === TextureFilter.NEAREST ? 1 : 0,

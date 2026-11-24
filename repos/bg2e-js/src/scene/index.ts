@@ -23,7 +23,7 @@ import { prepareTextResources, reloadTextFonts } from "./TextResources";
 
 import AABoundingBoxComponent from "./AABoundingBox";
 import DrawableComponent from "./Drawable";
-import InstanceComponent from "./Instance";
+import DrawableInstance from "./DrawableInstance";
 import TransformComponent from "./Transform";
 import ChainComponent from "./Chain";
 import {
@@ -50,7 +50,7 @@ export const registerComponents = () => {
     registerComponent("Text", TextComponent);
     registerComponent("TextFonts", TextFontComponent);
     registerComponent("Drawable", DrawableComponent);
-    registerComponent("Instance", InstanceComponent);
+    registerComponent("DrawableInstance", DrawableInstance);
     registerComponent("Transform", TransformComponent);
     registerComponent("Gizmo", GizmoComponent);
 
@@ -77,7 +77,7 @@ export default {
     AABoundingBoxComponent,
     Component,
     DrawableComponent,
-    InstanceComponent,
+    DrawableInstance,
     TransformComponent,
     ChainComponent,
     InputChainJointComponent,

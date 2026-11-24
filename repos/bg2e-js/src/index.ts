@@ -51,5 +51,9 @@ export const primitives = bgprimitives;
 export const shaders = bgshaders;
 
 export { evaluateSolarLight } from './base/SolarLight';
+export { default as DrawableCache } from './db/DrawableCache';
+export type { DrawableAppearance, DrawableResource, DrawableResourceLease } from './db/DrawableCache';
+export { default as DrawableInstance } from './scene/DrawableInstance';
+export type { DrawableInstanceItem } from './scene/DrawableInstance';
 export type { SolarState } from './base/SolarLight';
 export type { EnvironmentOptions } from './render/Environment';

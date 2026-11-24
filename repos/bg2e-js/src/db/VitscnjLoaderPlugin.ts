@@ -16,77 +16,70 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import Resource, { removeFileName, ResourceType } from "../tools/Resource";
+import { removeFileName, ResourceType } from "../tools/Resource";
+import TextResourceProvider from "../tools/TextResourceProvider";
 import LoaderPlugin from "./LoaderPlugin";
 import Node from "../scene/Node";
 import { deserializeComponent } from "../scene/Component";
+import { isJsonObject } from "../scene/SceneData";
 import Bg2LoaderPlugin, { type MaterialImportCallback } from "./Bg2LoaderPlugin";
 import Loader from "./Loader";
 
 import TextFontLoaderPlugin from "./TextFontLoaderPlugin";
 import { prepareTextResources } from "../scene/TextResources";
 
-interface NodeData {
-    name: string;
-    enabled?: boolean;
-    steady?: boolean;
-    children?: NodeData[];
-    components?: any[];
+function readNodeArray(node: Record<string, unknown>, key: "children" | "components", name: string): unknown[] {
+    const value = node[key];
+    if (Array.isArray(value)) return value;
+    if (value !== undefined) console.warn(`Ignoring invalid ${key} in node "${name}"`);
+    return [];
 }
 
-const deserializeNode = async (nodeData: NodeData, loader: Loader): Promise<Node> => {
-    nodeData.children = nodeData.children || [];
-    nodeData.components = nodeData.components || [];
+const deserializeNode = async (nodeData: Record<string, unknown>, loader: Loader): Promise<Node> => {
+    const node = new Node(typeof nodeData.name === "string" ? nodeData.name : undefined);
+    if (typeof nodeData.enabled === "boolean") node.enabled = nodeData.enabled;
+    if (typeof nodeData.steady === "boolean") node.steady = nodeData.steady;
 
-    const node = new Node(nodeData.name);
-    node.enabled = nodeData.enabled !== undefined ? nodeData.enabled : true;
-    node.steady = nodeData.steady !== undefined ? nodeData.steady : false;
-
-    for (const componentData of nodeData.components) {
+    for (const [index, componentData] of readNodeArray(nodeData, "components", node.name).entries()) {
         try {
-            const component = await deserializeComponent(componentData, loader);
+            const component = await deserializeComponent(componentData, loader, node);
             if (component) {
+                const previous = node.component(component.typeId);
                 node.addComponent(component);
+                previous?.destroy();
             }
         }
-        catch (err: any) {
-            console.warn(`Deserialization of node with name "${node.name}": ${err.message}`);
+        catch (error) {
+            console.warn(`Skipping component at index ${index} in node "${node.name}":`, error);
         }
     }
 
-    for (const childData of nodeData.children) {
-        const child = await deserializeNode(childData, loader);
-        node.addChild(child);
+    for (const [index, childData] of readNodeArray(nodeData, "children", node.name).entries()) {
+        if (isJsonObject(childData)) {
+            node.addChild(await deserializeNode(childData, loader));
+        }
+        else {
+            console.warn(`Skipping invalid child at index ${index} in node "${node.name}"`);
+        }
     }
 
     return node;
 }
 
-import { DrawableFormat, type DrawableFormatValue, preferredDrawableFormat, setPreferredDrawableFormat } from './DrawableFormat';
-export { DrawableFormat } from './DrawableFormat';
-export type { DrawableFormatValue } from './DrawableFormat';
-
 export default class VitscnjLoaderPlugin extends LoaderPlugin {
     private _bg2ioPath: string | null;
     private _materialImportCallback?: MaterialImportCallback;
 
-    static PreferredDrawableFormat(): DrawableFormatValue {
-        return preferredDrawableFormat();
-    }
-
     constructor({
         bg2ioPath = null,
-        preferedDrawableFormat = DrawableFormat.BG2,
         materialImportCallback
     }: {
         bg2ioPath?: string | null
-        preferedDrawableFormat?: DrawableFormatValue
         materialImportCallback?: MaterialImportCallback
     } = { }) {
         super();
 
         this._bg2ioPath = bg2ioPath;
-        setPreferredDrawableFormat(preferedDrawableFormat);
         this._materialImportCallback = materialImportCallback;
     }
 
@@ -103,28 +96,28 @@ export default class VitscnjLoaderPlugin extends LoaderPlugin {
             throw new Error(`VitscnjLoaderPlugin.load() unexpected resource type received: ${resourceType}`);
         }
 
-        const prevPath = loader.currentPath;
-        loader.currentPath = removeFileName(path);
-
-        const resource = new Resource();
-
-        const root = new Node("Scene Root");
-
-        try {
-            const data = await resource.load(path);
-            if (!Array.isArray(data.scene) || (path.split('?')[0].endsWith('.json') && data.fileType !== 'bg2e::scene')) {
-                throw new Error('Expected a bg2e scene document');
-            }
-            const { scene } = data;
-            for (const nodeData of scene) {
-                const node = await deserializeNode(nodeData, loader);
-                root.addChild(node);
-            }
-
-            await prepareTextResources(root, loader);
-            return root;
+        const data: unknown = await new TextResourceProvider().load(path);
+        if (!isJsonObject(data) || !Array.isArray(data.scene)) {
+            throw new Error("Scene document requires an object containing a scene array");
         }
-        finally { loader.currentPath = prevPath; }
+        if ("fileType" in data && data.fileType !== "bg2e::scene") {
+            throw new Error("Unsupported scene document type");
+        }
+        const nodes = data.scene.map((nodeData: unknown, index: number) => {
+            if (!isJsonObject(nodeData)) {
+                throw new Error(`Invalid top-level scene node at index ${index}`);
+            }
+            return nodeData;
+        });
+        const sceneLoader = loader.withSceneBasePath(removeFileName(path));
+        const root = new Node("Scene Root", sceneLoader.drawableCache);
+        for (const nodeData of nodes) {
+            root.addChild(await deserializeNode(nodeData, sceneLoader));
+        }
+
+        // Font declarations already include their scene directory.
+        await prepareTextResources(root, loader.withBasePath(""));
+        return root;
     }
 
     get dependencies(): LoaderPlugin[] {

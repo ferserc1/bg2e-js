@@ -19,9 +19,10 @@
 
 import Vec from '../math/Vec';
 import Color from './Color';
-import Texture, { TextureDataType, TextureFilter, TextureWrap } from './Texture';
+import Texture, { TextureDataType, TextureFilter } from './Texture';
 import Canvas from '../app/Canvas';
-import TextureCache from '../tools/TextureCache';
+import { resolveResourceUrl } from '../tools/Resource';
+import { applyTextureSettings, finiteNumber, integerBetween, isBoolean, isMaterialRecord, readField, readTextureSettings } from './MaterialTextureSettings';
 import { NumericArray } from '../math/constants';
 
 export enum MaterialType {
@@ -32,6 +33,15 @@ interface TypeLoader {
     serialize: (attName: string, obj: any) => any;
     deserialize: (attName: string, obj: any, relativePath?: string, canvas?: Canvas | null) => any;
     deserializeWithDependencies: (attName: string, obj: any, dependencies: File[], canvas?: Canvas | null) => any;
+}
+
+function createImageTexture(source: string | File, canvas: Canvas | null): Texture {
+    const texture = new Texture(canvas);
+    if (typeof source === "string") texture.fileName = source;
+    else texture.imageFile = source;
+    texture.dataType = TextureDataType.IMAGE;
+    texture.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
+    return texture;
 }
 
 export const textureTypeLoader: TypeLoader = {
@@ -47,77 +57,21 @@ export const textureTypeLoader: TypeLoader = {
         }
     },
 
-    deserialize: (attName: string, obj: any, relativePath: string = "", canvas: Canvas | null = null) => {
-        if (!obj) {
-            return null;
-        }
-        else if (attName === "ambientOcclussion" && typeof(obj) === "number") {
-            // Compatibility with v1.4 where ambient occlussion could be a float value
-            return null;
-        }
-        else if (typeof(obj) === "string") {
-            const texturePath = relativePath + obj;
-            const textureCache = TextureCache.Get(canvas);
-            if (textureCache.findTexture(texturePath)) {
-                console.debug(`Texture '${ texturePath }' already loaded. Reusing texture.`);
-                return textureCache.getTexture(texturePath);
-            }
-            else {
-                console.debug(`Texture not found in cache. Loading texture '${ texturePath }'`);
-                const tex = new Texture(canvas);
-                tex.fileName = relativePath + obj;
-                tex.dataType = TextureDataType.IMAGE;
-                tex.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-                tex.magFilter = TextureFilter.LINEAR;
-                tex.wrapModeX = TextureWrap.REPEAT;
-                tex.wrapModeY = TextureWrap.REPEAT;
-                textureCache.registerTexture(tex);
-                return tex;
-            }
-        }
-        else {
-            throw new Error(`Invalid parameter found in material deserialization. The required parameter type is string (file path)`);
-        }
+    deserialize: (attName, source, relativePath = "", canvas = null) => {
+        if (!source || (attName === "ambientOcclussion" && typeof source === "number")) return null;
+        if (typeof source !== "string") throw new Error("Expected a texture file path for " + attName);
+        return createImageTexture(resolveResourceUrl(relativePath, source), canvas);
     },
 
-    deserializeWithDependencies: (attName: string, obj: any, dependencies: File[], canvas?: Canvas | null) => {
-        if (!obj) {
-            return null;
-        }
-        else if (attName === "ambientOcclussion" && typeof(obj) === "number") {
-            // Compatibility with v1.4 where ambient occlussion could be a float value
-            return null;
-        }
-        else if (typeof(obj) === "string") {
-            // TODO: search obj (path) in dependencies and load the texture from the file instead of creating a new one.
-            const file = dependencies.find(d => d.name === obj);
-            if (file) {
-                const textureCache = TextureCache.Get(canvas);
-                if (textureCache.findTexture(obj)) {
-                    console.debug(`Texture '${ obj }' already loaded. Reusing texture.`);
-                    return textureCache.getTexture(obj);
-                }
-                else {
-                    console.log(`Texture not found in cache. Loading texture '${ obj }' from dependencies.`);
-                    const text = new Texture(canvas);
-                    text.imageFile = file;
-                    text.dataType = TextureDataType.IMAGE;
-                    text.minFilter = TextureFilter.LINEAR_MIPMAP_LINEAR;
-                    text.magFilter = TextureFilter.LINEAR;
-                    text.wrapModeX = TextureWrap.REPEAT;
-                    text.wrapModeY = TextureWrap.REPEAT;
-                    textureCache.registerTexture(text);
-                    return text;
-                }
-            }
-            else {
-                console.warn(`Texture file '${ obj }' not found in dependencies.`);
-            }
-        }
-        else {
-            throw new Error(`Invalid parameter found in material deserialization. The required parameter type is string (file path)`);
-        }
+    deserializeWithDependencies: (attName, source, dependencies, canvas = null) => {
+        if (!source || (attName === "ambientOcclussion" && typeof source === "number")) return null;
+        if (typeof source !== "string") throw new Error("Expected a texture file path for " + attName);
+        const file = dependencies.find(dependency => dependency.name === source);
+        if (file) return createImageTexture(file, canvas);
+        console.warn(`Texture file '${source}' not found in dependencies.`);
+        return null;
     }
+
 }
 
 export const colorTypeLoader: TypeLoader = {
@@ -301,6 +255,46 @@ export const cloneObject = (obj: any): any => {
     }
 }
 
+interface MaterialAppearance {
+    name: string;
+    groupName: string;
+    visible: boolean;
+    cullFace?: boolean;
+    isSolid: boolean;
+    refractionFactor: number;
+    metalnessInvert: boolean;
+    roughnessInvert: boolean;
+    lightEmissionInvert: boolean;
+}
+
+const appearances = new WeakMap<Material, MaterialAppearance>();
+
+/** Material state used by the renderer and the native scene importer. */
+export function getMaterialAppearance(material: Material): Readonly<MaterialAppearance> {
+    return appearances.get(material)!;
+}
+
+const textureSlots = [
+    { source: "albedoTexture", settings: "albedoTextureSettings", scale: "albedoScale", uv: "albedoUV" },
+    { source: "normalTexture", settings: "normalTextureSettings", scale: "normalScale", uv: "normalUV" },
+    { source: "metalnessTexture", settings: "metalnessTextureSettings", scale: "metalnessScale", uv: "metalnessUV", channel: "metalnessChannel" },
+    { source: "roughnessTexture", settings: "roughnessTextureSettings", scale: "roughnessScale", uv: "roughnessUV", channel: "roughnessChannel" },
+    { source: "lightEmissionTexture", settings: "lightEmissionTextureSettings", scale: "lightEmissionScale", uv: "lightEmissionUV", channel: "lightEmissionChannel" },
+    { source: "ambientOcclussion", settings: "ambientOcclussionSettings", scale: "ambientOcclussionScale", uv: "ambientOcclussionUV", channel: "ambientOcclussionChannel" }
+] as const;
+
+const isString = (value: unknown): value is string => typeof value === "string";
+const isSource = (value: unknown): value is string | null => value === null || (isString(value) && value.length > 0);
+const isUV = (value: unknown): value is number => integerBetween(value, 0, 1);
+const isChannel = (value: unknown): value is number => integerBetween(value, 0, 3);
+const isIndirectMode = (value: unknown): value is "ao" | "bakedAO" | "bakedGI" =>
+    value === "ao" || value === "bakedAO" || value === "bakedGI";
+const isVector = (value: unknown, lengths: number[], legacy = false): value is number[] =>
+    (Array.isArray(value) || (legacy && value instanceof NumericArray)) &&
+    lengths.includes(value.length) && Array.from(value as ArrayLike<unknown>).every(finiteNumber);
+
+type TextureSourceLoader = (key: string, source: string) => Texture | null | undefined;
+
 export default class Material {
     static async Deserialize(sceneData: any, relativePath: string = "", canvas: Canvas | null = null): Promise<Material> {
         const result = new Material(canvas);
@@ -402,6 +396,10 @@ export default class Material {
         this._heightIntensity = 1.0;
         this._castShadows = true;
         this._unlit = false;
+        appearances.set(this, {
+            name: "", groupName: "", visible: true, isSolid: true, refractionFactor: 0.017,
+            metalnessInvert: false, roughnessInvert: false, lightEmissionInvert: false
+        });
 
         this._dirty = true;
     }
@@ -423,47 +421,50 @@ export default class Material {
     }
 
     clone(): Material {
-        const result = new Material();
+        const result = new Material(this.canvas);
         result.assign(this);
         return result;
     }
 
     assign(other: Material): void {
+        if (other === this) return;
+        appearances.set(this, { ...getMaterialAppearance(other) });
         this._type = other._type;
-        this._alphaCutoff = other._alphaCutoff;;
+        this._alphaCutoff = other._alphaCutoff;
         this._isTransparent = other._isTransparent;
         this._albedo = cloneObject(other._albedo);
-        this._albedoTexture = cloneObject(other._albedoTexture);
+        this.albedoTexture = other.albedoTexture?.clone() ?? null;
         this._albedoScale = cloneObject(other._albedoScale);
         this._albedoUV = other._albedoUV;
-        this._normalTexture = cloneObject(other._normalTexture);
+        this.normalTexture = other.normalTexture?.clone() ?? null;
         this._normalScale = cloneObject(other._normalScale);
         this._normalUV = other._normalUV;
+        this._normalChannel = other._normalChannel;
         this._metalness = other._metalness;
-        this._metalnessTexture = cloneObject(other._metalnessTexture);
+        this.metalnessTexture = other.metalnessTexture?.clone() ?? null;
         this._metalnessChannel = other._metalnessChannel;
         this._metalnessScale = cloneObject(other._metalnessScale);
         this._metalnessUV = other._metalnessUV;
         this._roughness = other._roughness;
-        this._roughnessTexture = cloneObject(other._roughnessTexture);
+        this.roughnessTexture = other.roughnessTexture?.clone() ?? null;
         this._roughnessChannel = other._roughnessChannel;
         this._roughnessScale = cloneObject(other._roughnessScale);
         this._roughnessUV = other._roughnessUV;
         this._fresnelTint = cloneObject(other._fresnelTint);
         this._sheenIntensity = other._sheenIntensity;
         this._sheenColor = cloneObject(other._sheenColor);
-        this._lightEmission = other._lightEmission;
-        this._lightEmissionTexture = cloneObject(other._lightEmissionTexture);
+        this._lightEmission = cloneObject(other._lightEmission);
+        this.lightEmissionTexture = other.lightEmissionTexture?.clone() ?? null;
         this._lightEmissionChannel = other._lightEmissionChannel;
         this._lightEmissionScale = cloneObject(other._lightEmissionScale);
         this._lightEmissionUV = other._lightEmissionUV;
         this.indirectTextureMode = other.indirectTextureMode;
         this.ambientOcclussionScale = new Vec(other.ambientOcclussionScale);
         this.ambientOcclussionSettings = { ...other.ambientOcclussionSettings };
-        this._ambientOcclussion = other._ambientOcclussion;
+        this.ambientOcclussion = other.ambientOcclussion?.clone() ?? null;
         this._ambientOcclussionChannel = other._ambientOcclussionChannel;
         this._ambientOcclussionUV = other._ambientOcclussionUV;
-        this._heightTexture = cloneObject(other._heightTexture);
+        this.heightTexture = other.heightTexture?.clone() ?? null;
         this._heightChannel = other._heightChannel;
         this._heightScale = cloneObject(other._heightScale);
         this._heightUV = other._heightUV;
@@ -636,7 +637,13 @@ export default class Material {
     
     
     get heightTexture(): Texture | null { return this._heightTexture; }
-    set heightTexture(v: Texture | null) { assertTexture(v, "heightTexture"); this._heightTexture = v; this._dirty = true; }
+    set heightTexture(v: Texture | null) {
+        if (v) assertTexture(v, "heightTexture");
+        this._heightTexture?.decReferences();
+        this._heightTexture = v;
+        v?.incReferences();
+        this._dirty = true;
+    }
     get heightChannel(): number { return this._heightChannel; }
     set heightChannel(v: number) { this._heightChannel = v; this._dirty = true; }
     get heightScale(): Vec { return this._heightScale; }
@@ -660,85 +667,151 @@ export default class Material {
     }
 
     async deserialize(sceneData: any, relativePath: string, canvas?: Canvas | null): Promise<void> {
-        const P: Promise<any>[] = [];
-        
-        this.type = sceneData.type || MaterialType.PBR;
-        this.alphaCutoff = sceneData.alphaCutoff || 0.5;
-        this.isTransparent = sceneData.isTransparent || false;
-
-        for (const attName in MaterialAttributeNames) {
-            const loader = MaterialAttributeNames[attName]?.loader;
-            if (loader) {
-                const value = loader.deserialize(attName, sceneData[attName], relativePath, this.canvas);
-                if (value instanceof Texture) {
-                    P.push(value.loadImageData());
-                }
-
-                if (value !== null && value !== undefined) {
-                    (this as any)[attName] = value;
-                }
-            }
-        }
-        await Promise.all(P);
-        if (this.ambientOcclussion) {
-            // Keep sampling settings local to this material, independently of the image cache.
-            const texture = this.ambientOcclussion.clone();
-            // BG2 UVs are preserved here. The image loader's flip matches the native mesh loader's V flip.
-            texture.flipYOnUpload = false;
-            texture.linearData = this.indirectTextureMode !== 'ao' || this.ambientOcclussionSettings.color === 2;
-            if (this.indirectTextureMode !== 'ao') texture.wrapModeXY = TextureWrap.CLAMP;
-            texture.minFilter = this.ambientOcclussionSettings.mipmaps === false ? TextureFilter.LINEAR : texture.minFilter;
-            this.ambientOcclussion = texture;
-        }
+        await this.readMaterial(sceneData, (key, source) =>
+            textureTypeLoader.deserialize(key, source, relativePath, canvas ?? this.canvas), false);
     }
 
     async deserializeWithDependencies(sceneData: any, dependencies: File[], canvas?: Canvas | null): Promise<void> {
-        const P: Promise<any>[] = [];
-        
-        this.type = sceneData.type || MaterialType.PBR;
-        this.alphaCutoff = sceneData.alphaCutoff || 0.5;
-        this.isTransparent = sceneData.isTransparent || false;
+        await this.readMaterial(sceneData, (key, source) =>
+            textureTypeLoader.deserializeWithDependencies(key, source, dependencies, canvas ?? this.canvas), false);
+    }
 
-        for (const attName in MaterialAttributeNames) {
-            const loader = MaterialAttributeNames[attName]?.loader;
-            if (loader) {
-                const value = loader.deserializeWithDependencies(attName, sceneData[attName], dependencies, this.canvas);
-                if (value instanceof Texture) {
-                    P.push(value.loadImageData());
-                }
-
-                if (value !== null && value !== undefined) {
-                    (this as any)[attName] = value;
-                }
-            }
+    /** Create an independent appearance with the fields supplied by a scene material. */
+    async withOverrides(sceneData: unknown, sceneDirectory: string): Promise<Material> {
+        const result = this.clone();
+        try {
+            await result.readMaterial(sceneData, (key, source) =>
+                textureTypeLoader.deserialize(key, source, sceneDirectory, result.canvas), true);
+            return result;
         }
-        await Promise.all(P);
-        if (this.ambientOcclussion) {
-            // Keep sampling settings local to this material, independently of the image cache.
-            const texture = this.ambientOcclussion.clone();
-            // BG2 UVs are preserved here. The image loader's flip matches the native mesh loader's V flip.
-            texture.flipYOnUpload = false;
-            texture.linearData = this.indirectTextureMode !== 'ao' || this.ambientOcclussionSettings.color === 2;
-            if (this.indirectTextureMode !== 'ao') texture.wrapModeXY = TextureWrap.CLAMP;
-            texture.minFilter = this.ambientOcclussionSettings.mipmaps === false ? TextureFilter.LINEAR : texture.minFilter;
-            this.ambientOcclussion = texture;
+        catch (error) {
+            result.destroy();
+            throw error;
         }
     }
 
-    destroy(): void {
-        const decReferences = (attrib: string) => {
-            if ((this as any)[attrib] instanceof Texture) {
-                (this as any)[attrib].decReferences();
-            }
+    private async readMaterial(sceneData: unknown, loadSource: TextureSourceLoader, overlay: boolean): Promise<void> {
+        if (!isMaterialRecord(sceneData)) {
+            if (sceneData !== undefined) console.warn("Ignoring invalid material record");
+            return;
         }
 
-        decReferences("albedoTexture");
-        decReferences("normalTexture");
-        decReferences("metalnessTexture");
-        decReferences("roughnessTexture");
-        decReferences("lightEmissionTexture");
-        decReferences("ambientOcclussion");
-        decReferences("height");
+        const appearance = appearances.get(this)!;
+        for (const key of ["name", "groupName"] as const) {
+            appearance[key] = readField(sceneData, key, isString) ?? appearance[key];
+        }
+        for (const key of ["visible", "isSolid", "metalnessInvert", "roughnessInvert", "lightEmissionInvert"] as const) {
+            appearance[key] = readField(sceneData, key, isBoolean) ?? appearance[key];
+        }
+        appearance.refractionFactor = readField(sceneData, "refractionFactor", finiteNumber) ?? appearance.refractionFactor;
+        const doubleSided = readField(sceneData, "doubleSided", isBoolean);
+        if (doubleSided !== undefined) appearance.cullFace = !doubleSided;
+        else if (!overlay) appearance.cullFace = readField(sceneData, "cullFace", isBoolean) ?? appearance.cullFace;
+
+        const unlit = readField(sceneData, "isUnlit", isBoolean) ?? readField(sceneData, "unlit", isBoolean);
+        if (unlit !== undefined) this.unlit = unlit;
+        const alphaCutoff = readField(sceneData, "alphaCutoff", finiteNumber);
+        if (alphaCutoff !== undefined || !overlay) this.alphaCutoff = alphaCutoff ?? 0.5;
+        const transparent = readField(sceneData, "isTransparent", isBoolean);
+        if (transparent !== undefined || !overlay) this.isTransparent = transparent ?? false;
+
+        const mode = readField(sceneData, "indirectTextureMode", isIndirectMode);
+        if (mode !== undefined) this.indirectTextureMode = mode;
+        for (const key of ["metalness", "roughness", "sheenIntensity"] as const) {
+            const value = readField(sceneData, key, finiteNumber);
+            if (value !== undefined) this[key] = value;
+        }
+        for (const key of ["albedo", "fresnelTint", "sheenColor"] as const) {
+            const lengths = key === "albedo" || !overlay ? [3, 4] : [4];
+            const color = readField(sceneData, key, (value): value is number[] => isVector(value, lengths, !overlay));
+            if (color) this[key] = colorTypeLoader.deserialize(key, color);
+        }
+        const emission = readField(sceneData, "lightEmission", (value): value is number | number[] =>
+            finiteNumber(value) || (!overlay && isVector(value, [3, 4], true)));
+        if (emission !== undefined) this.lightEmission = typeof emission === "number"
+            ? emission : colorTypeLoader.deserialize("lightEmission", emission);
+
+        if (!overlay) this.readLegacyFields(sceneData);
+
+        const texturesToLoad: Texture[] = [];
+        for (const slot of textureSlots) {
+            const scale = this.readScale(sceneData, slot.scale, !overlay);
+            if (scale) this[slot.scale] = scale;
+            const uv = readField(sceneData, slot.uv, isUV);
+            if (uv !== undefined) this[slot.uv] = uv;
+            if ("channel" in slot) {
+                const channel = readField(sceneData, slot.channel, isChannel);
+                if (channel !== undefined) this[slot.channel] = channel;
+            }
+
+            const legacyAO = !overlay && slot.source === "ambientOcclussion" && finiteNumber(sceneData[slot.source]);
+            const source = legacyAO ? undefined : readField(sceneData, slot.source, isSource);
+            const settings = readTextureSettings(sceneData, slot.settings);
+            if (source === null && overlay) {
+                this[slot.source] = null;
+                if (slot.source === "ambientOcclussion") this.ambientOcclussionSettings = {};
+                continue;
+            }
+
+            const texture = typeof source === "string"
+                ? loadSource(slot.source, source)
+                : settings ? this[slot.source]?.clone() : undefined;
+            if (slot.source === "ambientOcclussion") {
+                if (!overlay && uv === undefined) this.ambientOcclussionUV = (texture ?? this.ambientOcclussion) ? 1 : 0;
+                if (typeof source === "string") this.ambientOcclussionSettings = {};
+                if (settings) this.ambientOcclussionSettings = { ...this.ambientOcclussionSettings, ...settings };
+            }
+            if (!texture) continue;
+
+            applyTextureSettings(texture, settings ?? {}, slot.source === "ambientOcclussion" && this.indirectTextureMode !== "ao");
+            this[slot.source] = texture;
+            if (typeof source === "string") texturesToLoad.push(texture);
+        }
+
+        if (!overlay) {
+            const source = readField(sceneData, "heightTexture", isSource);
+            const texture = typeof source === "string" ? loadSource("heightTexture", source) : null;
+            if (texture) {
+                this.heightTexture = texture;
+                texturesToLoad.push(texture);
+            }
+        }
+        this.dirty = true;
+        await Promise.all(texturesToLoad.map(texture => texture.loadImageData()));
+    }
+
+    private readScale(data: Record<string, unknown>, key: string, legacy: boolean): Vec | undefined {
+        const value = data[key];
+        if (legacy && isMaterialRecord(value) && isVector(value._v, [2], true)) return new Vec(value._v);
+        const scale = readField(data, key, (entry): entry is number[] => isVector(entry, [2], legacy));
+        return scale && new Vec(scale);
+    }
+
+    private readLegacyFields(data: Record<string, unknown>): void {
+        this.type = readField(data, "type", isString) || readField(data, "class", isString) || MaterialType.PBR;
+        const scale = this.readScale(data, "heightScale", true);
+        if (scale) this.heightScale = scale;
+        const channel = readField(data, "heightChannel", isChannel);
+        if (channel !== undefined) this.heightChannel = channel;
+        const uv = readField(data, "heightUV", isUV);
+        if (uv !== undefined) this.heightUV = uv;
+        const intensity = readField(data, "heightIntensity", finiteNumber);
+        if (intensity !== undefined) this.heightIntensity = intensity;
+        const shadows = readField(data, "castShadows", isBoolean);
+        if (shadows !== undefined) this.castShadows = shadows;
+    }
+
+    destroy(disposeUnusedTextures = false): void {
+        const textures = disposeUnusedTextures
+            ? new Set([...textureSlots.map(({ source }) => this[source]), this.heightTexture])
+            : undefined;
+        for (const { source } of textureSlots) this[source] = null;
+        this.heightTexture = null;
+        if (textures) {
+            for (const texture of textures) {
+                if (texture?.references === 0) texture.destroy();
+            }
+        }
 
         this._canvas = null;
         

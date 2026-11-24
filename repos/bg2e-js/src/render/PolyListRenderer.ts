@@ -55,7 +55,7 @@ export default class PolyListRenderer {
 
     }
 
-    draw(): void {
+    draw(_cullFaceEnabled?: boolean): void {
 
     }
 

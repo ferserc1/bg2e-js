@@ -20,6 +20,7 @@ import Component from './Component';
 import Node from './Node';
 import Mat4 from "../math/Mat4";
 import NodeVisitor from './NodeVisitor';
+import { isTransformMatrix } from './SceneData';
 
 export class TransformVisitor extends NodeVisitor {
     _matrix: Mat4;
@@ -67,14 +68,17 @@ export default class Transform extends Component {
     }
 
     assign(other: Transform): void {
+        this.priority = other.priority;
         this._matrix = new Mat4(other.matrix);
     }
 
     async deserialize(sceneData: any, loader: any): Promise<void> {
-        if (Array.isArray(sceneData.transformMatrix) && sceneData.transformMatrix.length === 16) {
+        await super.deserialize(sceneData, loader);
+        if (isTransformMatrix(sceneData.transformMatrix)) {
             this._matrix.assign(sceneData.transformMatrix);
         }
         else {
+            this._matrix.assign(Mat4.MakeIdentity());
             console.warn("Transform.deserialize(): invalid transformMatrix attribute found in scene data");
         }
     }

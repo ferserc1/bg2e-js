@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type DrawableInstance from "../scene/DrawableInstance";
 import {
     textureTypeLoader,
     colorTypeLoader,
@@ -332,10 +333,11 @@ export default class MaterialModifier {
     get texturesPath(): string { return this._texturesPath; }
     set texturesPath(v: string) { this._texturesPath = v; }
 
-    async applyDrawable(canvas: Canvas, drawable: Drawable, { groupName, groupRE } : { groupName?: string, groupRE?: RegExp } = {}): Promise<void> {
+    async applyDrawable(canvas: Canvas, drawable: Drawable | DrawableInstance, { groupName, groupRE } : { groupName?: string, groupRE?: RegExp } = {}): Promise<void> {
         drawable.items.forEach(item => {
-            if ( (groupName && item.polyList.groupName === groupName) ||
-                (groupRE && item.polyList.groupName && groupRE.test(item.polyList.groupName)) ||
+            const itemGroup = "groupName" in item ? item.groupName : item.polyList.groupName;
+            if ( (groupName && itemGroup === groupName) ||
+                (groupRE && itemGroup && groupRE.test(itemGroup)) ||
                 (!groupName && !groupRE))
             {
                 this.apply(canvas, item.material);

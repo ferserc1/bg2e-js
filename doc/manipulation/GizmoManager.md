@@ -59,7 +59,7 @@ this.gizmoManager!.setGizmoDrawable(drawable);
 
 ### loadGizmo(url: string, labelMap?: Partial\<Record\<string, GizmoActionLabel\>\>\>): Promise\<void\>
 
-Utility that loads a `Drawable` from a model file (`.bg2`/`.vwglb`, same as `Loader.loadDrawable()`) and installs it via `setGizmoDrawable()`. Model files are typically authored without their `PolyList`s named after a `GizmoActionLabel`, so the optional `labelMap` renames them — keyed by each `PolyList`'s **original** name — to make the loaded handles interactive:
+Loads a `Drawable` from a `.bg2` model using `Loader.loadDrawable()` and installs it via `setGizmoDrawable()`. The optional `labelMap` maps each `PolyList`'s original name to a `GizmoActionLabel` to make the loaded handles interactive.
 
 ```ts
 // PlaneGizmo.bg2 has a single PolyList named "Cube.0010"
@@ -68,7 +68,7 @@ await this.gizmoManager!.loadGizmo("../resources/PlaneGizmo.bg2", {
 });
 ```
 
-Note that the referenced model file's loader plugin (e.g. `Bg2LoaderPlugin`) must already be registered — `registerLoaderPlugin(new VitscnjLoaderPlugin())`, done once for `.vitscnj` scene loading, also registers `Bg2LoaderPlugin` as a dependency, so a plain `.bg2`/`.vwglb` load usually works without extra setup.
+Register `Bg2LoaderPlugin` before loading a `.bg2` model. If you register `VitscnjLoaderPlugin` for scene loading, it registers `Bg2LoaderPlugin` as a dependency.
 
 ### gizmoDrawable: Drawable | null (read-only)
 

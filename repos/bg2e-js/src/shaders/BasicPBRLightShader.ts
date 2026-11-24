@@ -34,6 +34,7 @@ import ShaderProgram from "../render/webgl/ShaderProgram";
 import Mat4 from "../math/Mat4";
 import Vec from "../math/Vec";
 import { evaluateSolarLight } from '../base/SolarLight';
+import { getMaterialAppearance } from "../base/Material";
 import Light, { LightType } from "../base/Light";
 import { createNormalTexture, normalTexture } from "../tools/TextureResourceDatabase";
 import PolyListRenderer from '../render/PolyListRenderer';
@@ -94,6 +95,12 @@ function getShaderProgramForLights(this: BasicPBRLightShader, renderer: Renderer
         uniform sampler2D uRoughnessTexture;
 
         uniform vec4 uAlbedo;
+        uniform bool uUnlit;
+        uniform float uAlphaCutoff;
+        uniform int uMetallicChannel;
+        uniform int uRoughnessChannel;
+        uniform bool uMetallicInvert;
+        uniform bool uRoughnessInvert;
         uniform float uMetallic;
         uniform float uRoughness;
 
@@ -109,7 +116,18 @@ function getShaderProgramForLights(this: BasicPBRLightShader, renderer: Renderer
         uniform float uLightIntensities[${numLights}];
         `,
         [
+            new ShaderFunction('float', 'readMaterialChannel', 'vec4 color, int channel, bool invert', `{
+                float value = channel == 0 ? color.r : (channel == 1 ? color.g : (channel == 2 ? color.b : color.a));
+                return invert ? 1.0 - value : value;
+            }`),
             new ShaderFunction('void','main','',`{
+                vec4 sampledAlbedo = texture2D(uAlbedoTexture, fragTexCoord * uAlbedoScale) * uAlbedo;
+                if (sampledAlbedo.a < uAlphaCutoff) discard;
+                if (uUnlit) {
+                    gl_FragColor = sampledAlbedo;
+                    return;
+                }
+
                 vec3 N = normalize(fragNorm);
                 if (!gl_FrontFacing) {
                     N = -N;
@@ -118,10 +136,10 @@ function getShaderProgramForLights(this: BasicPBRLightShader, renderer: Renderer
                 vec3 B = normalize(fragBitangent);
                 mat3 TBN = mat3(T,B,N);
 
-                vec3 albedo = texture2D(uAlbedoTexture, fragTexCoord * uAlbedoScale).rgb * uAlbedo.rgb;
+                vec3 albedo = sampledAlbedo.rgb;
                 vec3 normal = texture2D(uNormalTexture, fragTexCoord * uNormalScale).rgb * 2.0 - 1.0;
-                float metallic = texture2D(uMetallicTexture, fragTexCoord * uMetallicScale).r * uMetallic;
-                float roughness = max(texture2D(uRoughnessTexture, fragTexCoord * uRoughnessScale).r * uRoughness, 0.05);
+                float metallic = readMaterialChannel(texture2D(uMetallicTexture, fragTexCoord * uMetallicScale), uMetallicChannel, uMetallicInvert) * uMetallic;
+                float roughness = max(readMaterialChannel(texture2D(uRoughnessTexture, fragTexCoord * uRoughnessScale), uRoughnessChannel, uRoughnessInvert) * uRoughness, 0.05);
 
                 N = normalize(TBN * normal);
                 vec3 V = normalize(uCameraPos - fragPos);
@@ -146,7 +164,7 @@ function getShaderProgramForLights(this: BasicPBRLightShader, renderer: Renderer
                 color = color / (color + vec3(1.0));
                 color = pow(color, vec3(1.0/2.2));
 
-                gl_FragColor = vec4(color,1.0);
+                gl_FragColor = vec4(color, sampledAlbedo.a);
             }`, [pbrPointLight, pbrDirectionalLight])
         ]);
 
@@ -262,6 +280,13 @@ export default class BasicPBRLightShader extends Shader {
         (materialRenderer as WebGLMaterialRenderer).bindColor(this._program, 'albedo', 'uAlbedo');
         (materialRenderer as WebGLMaterialRenderer).bindValue(this._program, 'metalness', 'uMetallic');
         (materialRenderer as WebGLMaterialRenderer).bindValue(this._program, 'roughness', 'uRoughness');
+        const appearance = getMaterialAppearance(material);
+        this._program.uniform1i('uUnlit', material.unlit ? 1 : 0);
+        this._program.uniform1f('uAlphaCutoff', material.alphaCutoff);
+        this._program.uniform1i('uMetallicChannel', material.metalnessChannel);
+        this._program.uniform1i('uRoughnessChannel', material.roughnessChannel);
+        this._program.uniform1i('uMetallicInvert', material.metalnessTexture && appearance.metalnessInvert ? 1 : 0);
+        this._program.uniform1i('uRoughnessInvert', material.roughnessTexture && appearance.roughnessInvert ? 1 : 0);
         
         
         this._program.bindVector("uAlbedoScale", material.albedoScale);

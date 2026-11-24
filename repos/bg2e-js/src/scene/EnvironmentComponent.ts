@@ -16,7 +16,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { jointUrl } from "../tools/Resource";
+import { resolveResourceUrl } from "../tools/Resource";
 import Component from "./Component";
 import { LightType } from '../base/Light';
 import { evaluateSolarLight, type SolarState } from '../base/SolarLight';
@@ -146,7 +146,7 @@ export default class EnvironmentComponent extends Component {
     async deserialize(sceneData: any, loader: any): Promise<void> {
         super.deserialize(sceneData, loader);
         const image = sceneData.equirectangularTexture ?? sceneData.environmentImage;
-        this.equirectangularTexture = image ? jointUrl(loader.currentPath || '', image) : '';
+        this.equirectangularTexture = image ? resolveResourceUrl(loader.currentPath || '', image) : '';
         this.skyHorizonColor = readSkyColor(sceneData.skyHorizonColor, [0.55, 0.65, 0.8]);
         this.skyZenithColor = readSkyColor(sceneData.skyZenithColor, [0.06, 0.22, 0.6]);
         this.groundColor = readSkyColor(sceneData.groundColor, [0.04, 0.035, 0.025]);

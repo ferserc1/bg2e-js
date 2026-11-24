@@ -9,9 +9,9 @@ import OrbitCameraController from "bg2e-js/ts/scene/OrbitCameraController.ts";
 import { registerComponents } from "bg2e-js/ts/scene/index.ts";
 import Node from "bg2e-js/ts/scene/Node.ts";
 import Transform from "bg2e-js/ts/scene/Transform.ts";
-import Instance from "bg2e-js/ts/scene/Instance.ts";
+import DrawableInstance from "bg2e-js/ts/scene/DrawableInstance.ts";
+import GizmoComponent from "bg2e-js/ts/manipulation/GizmoComponent.ts";
 import AABoundingBox from "bg2e-js/ts/scene/AABoundingBox.ts";
-import type Drawable from "bg2e-js/ts/scene/Drawable.ts";
 import Color from "bg2e-js/ts/base/Color.ts";
 import Mat4 from "bg2e-js/ts/math/Mat4.ts";
 import Vec from "bg2e-js/ts/math/Vec.ts";
@@ -22,40 +22,15 @@ const GRID_SIZE = 8;
 const GRID_SEPARATION = 2;
 
 class MyAppController extends SceneAppController {
-    private _textContainer: HTMLHeadingElement;
-
-    // The Drawable component rendered by every Instance of the scene. Note that this
-    // component is NOT part of the scene graph: it lives in a node that is never added to
-    // the scene, so the only thing that draws it are the Instance components.
-    private _sourceDrawable: Drawable | null = null;
-
-    constructor() {
-        super();
-        this._textContainer = document.createElement("h1");
-        this._textContainer.style.position = "absolute";
-        this._textContainer.style.top = "0px";
-        this._textContainer.style.left = "0px";
-        this._textContainer.style.color = "white";
-        this._textContainer.style.fontSize = "18px";
-        this._textContainer.style.textShadow = "0px 0px 18px rgba(0,0,0,0.8)";
-        document.body.appendChild(this._textContainer);
-    }
-
-    printText(text: string) {
-        this._textContainer.innerHTML += `<br/>${text}`;
-    }
-
-    clearText() {
-        this._textContainer.innerHTML = "";
-    }
-
-    get selectionManagerEnabled() {
-        return true;
-    }
-
-    get selectionHighlightEnabled() {
-        return true;
-    }
+    private readonly _referenceChairs: DrawableInstance[] = [];
+    private readonly _status = document.getElementById("selection-status")!;
+    private readonly _selectedSwatch = document.getElementById("selected-swatch")!;
+    private readonly _referenceSwatch = document.getElementById("reference-swatch")!;
+    private readonly _referenceName = document.getElementById("reference-name")!;
+    private readonly _referenceValue = document.getElementById("reference-color")!;
+    private _selected: DrawableInstance | undefined;
+    private _colorControls: HTMLInputElement[] = [];
+    private _colorValues: HTMLSpanElement[] = [];
 
     async loadScene() {
         registerLoaderPlugin(new VitscnjLoaderPlugin());
@@ -63,7 +38,7 @@ class MyAppController extends SceneAppController {
 
         // Load scene
         const loader = new Loader();
-        const root = await loader.loadNode("../resources/test-scene/test-scene.vitscnj");
+        const root: Node = await loader.loadNode("../resources/test-scene/test-scene.vitscnj");
 
         // Get main camera and set it up to see the whole instance matrix
         const mainCamera = CameraComponent.GetMain(root)!;
@@ -81,31 +56,30 @@ class MyAppController extends SceneAppController {
             cameraController.distance = 26;
         }
 
-        // Load one single model. The node returned by the loader is not added to the scene:
-        // its Drawable component is the source of all the instances, and it is rendered
-        // only through them. Because the node is not part of the scene graph, nobody binds
-        // the renderer to the drawable: each Instance component takes care of it.
-        const modelNode = await loader.loadNode("../resources/chain/chair.bg2");
-        const drawable = modelNode.drawable;
-        if (!drawable) {
-            throw new Error("The loaded model does not contain a Drawable component");
-        }
-        this._sourceDrawable = drawable;
+        const resource = await root.drawableCache!.loadBg2("../resources/chain/chair.bg2", loader);
+        const palette = [[0.78, 0.27, 0.17], [0.18, 0.58, 0.75], [0.46, 0.66, 0.27]];
 
-        // Matrix of GRID_SIZE x GRID_SIZE nodes, each one with an instance of the drawable
-        const gridNode = new Node("Instance matrix");
+        this._referenceChairs.length = 0;
+        const gridNode = new Node("Chairs");
         const offset = (GRID_SIZE - 1) * GRID_SEPARATION / 2;
         for (let row = 0; row < GRID_SIZE; ++row) {
             for (let column = 0; column < GRID_SIZE; ++column) {
-                const name = `Instance ${ row },${ column }`;
+                const name = `Chair ${row + 1},${column + 1}`;
                 const instanceNode = new Node(name);
                 instanceNode.addComponent(new Transform(Mat4.MakeTranslation(
                     row * GRID_SEPARATION - offset,
                     0,
                     column * GRID_SEPARATION - offset
                 )));
-                instanceNode.addComponent(new Instance(drawable, name));
+                const instance = new DrawableInstance(resource);
+                const [r, g, b] = palette[(row + column) % palette.length];
+                for (const { material } of instance.items) {
+                    material.albedo = new Color([r, g, b, material.albedo.a]);
+                }
+                instanceNode.addComponent(instance);
+                instanceNode.addComponent(new GizmoComponent());
                 gridNode.addChild(instanceNode);
+                if (row === 0 && column < 2) this._referenceChairs.push(instance);
             }
         }
         root.addChild(gridNode);
@@ -114,71 +88,64 @@ class MyAppController extends SceneAppController {
     }
 
     async loadDone() {
-        // Each instance is picked separately, even if all of them share the polyLists of
-        // the source drawable: the picking color codes and the selection flags of an
-        // instance are stored in its own Instance component
+        document.getElementById("model-summary")!.textContent = `${GRID_SIZE * GRID_SIZE} chairs share one model`;
+        const channels = ["r", "g", "b"];
+        this._colorControls = channels.map(channel => document.getElementById(`albedo-${channel}`) as HTMLInputElement);
+        this._colorValues = channels.map(channel => document.getElementById(`albedo-${channel}-value`) as HTMLSpanElement);
+        for (const slider of this._colorControls) slider.addEventListener("input", () => this.updateAlbedo());
+
         this.selectionManager!.onSelectionChanged("appController", (selection: SelectionChangedData[]) => {
-            this.printSceneInfo();
-            if (selection.length) {
-                this.printText("Selection:");
-                selection.forEach(item => {
-                    const instanceName = item.instance ? `${ item.instance.name } -> ` : "";
-                    this.printText(`&nbsp;${ instanceName }${ item.drawable.name } (${ item.polyList.name })`);
-                });
-            }
+            const picked = selection[selection.length - 1]?.drawable;
+            this._selected = picked instanceof DrawableInstance ? picked : undefined;
+            this.updatePanel();
         });
-
-        this.printSceneInfo();
-        this.setupAlbedoControls();
+        this.updatePanel();
     }
 
-    printSceneInfo() {
-        this.clearText();
-        const drawable = this._sourceDrawable;
-        this.printText(`${ GRID_SIZE * GRID_SIZE } instances of the drawable '${ drawable?.name }'`);
-        if (drawable) {
-            // The model size is printed to check that it fits in the space between the
-            // instance nodes
-            const size = AABoundingBox.FromDrawable(drawable).size;
-            this.printText(`Model size: ${ size.x.toFixed(2) } x ${ size.y.toFixed(2) } x ${ size.z.toFixed(2) } ` +
-                `(node separation: ${ GRID_SEPARATION })`);
+    private updatePanel(): void {
+        const instance = this._selected;
+        if (instance) {
+            const size = AABoundingBox.FromNode(instance.node).size;
+            this._status.textContent = `${instance.name} · ${size.x.toFixed(2)} × ${size.y.toFixed(2)} × ${size.z.toFixed(2)}`;
         }
-        this.printText("Click on any instance to select it");
+        else {
+            this._status.textContent = "Click a chair to select it.";
+        }
+
+        const albedo = instance?.items[0]?.material.albedo;
+        this._colorControls.forEach((slider, index) => {
+            slider.disabled = !albedo;
+            if (albedo) slider.value = String(Math.round(albedo[index] * 255));
+            this._colorValues[index].textContent = albedo ? slider.value : "—";
+        });
+        this.updateSwatches();
     }
 
-    // The three sliders modify the albedo color of the materials of the source drawable.
-    // Because all the instances render that same drawable, with its same materials, the
-    // change is applied to all of them at once.
-    setupAlbedoControls() {
-        const channels: Array<"r" | "g" | "b"> = ["r", "g", "b"];
-        const sliders = channels.map(channel => document.getElementById(`albedo-${ channel }`) as HTMLInputElement);
-        const values = channels.map(channel => document.getElementById(`albedo-${ channel }-value`) as HTMLSpanElement);
+    private updateSwatches(): void {
+        const reference = this._referenceChairs.find(chair => chair !== this._selected);
+        this._referenceName.textContent = reference ? `Compare with ${reference.name}` : "Reference chair";
+        this._referenceValue.textContent = this.showColor(this._referenceSwatch, reference) ?? "—";
+        this.showColor(this._selectedSwatch, this._selected);
+    }
 
-        // Initialize the sliders with the albedo of the first material of the drawable
-        const initialAlbedo = this._sourceDrawable?.items[0]?.material.albedo;
-        if (initialAlbedo) {
-            sliders.forEach((slider, index) => {
-                slider.value = `${ Math.round(initialAlbedo[index] * 255) }`;
-            });
+    private showColor(swatch: HTMLElement, instance?: DrawableInstance): string | undefined {
+        const color = instance?.items[0]?.material.albedo;
+        swatch.hidden = !color;
+        if (!color) return undefined;
+        const channels = [color.r, color.g, color.b].map(channel => Math.round(channel * 255));
+        swatch.style.backgroundColor = `rgb(${channels.join(", ")})`;
+        return channels.join(", ");
+    }
+
+    private updateAlbedo(): void {
+        if (!this._selected) return;
+        const [r, g, b] = this._colorControls.map(slider => Number(slider.value) / 255);
+        this._colorControls.forEach((slider, index) => this._colorValues[index].textContent = slider.value);
+        for (const { material } of this._selected.items) {
+            material.albedo = new Color([r, g, b, material.albedo.a]);
         }
-
-        const updateAlbedo = () => {
-            const rgb = sliders.map(slider => Number(slider.value));
-            sliders.forEach((slider, index) => values[index].innerText = slider.value);
-
-            this._sourceDrawable?.items.forEach(({ material }) => {
-                // The alpha component of the albedo is used as transparency factor, so it
-                // is preserved
-                material.albedo = new Color([rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, material.albedo.a]);
-            });
-
-            // The main loop is configured in manual update mode, so a redisplay must be
-            // requested to see the new material color
-            this.mainLoop.postRedisplay();
-        };
-
-        sliders.forEach(slider => slider.addEventListener("input", updateAlbedo));
-        updateAlbedo();
+        this.updateSwatches();
+        this.mainLoop.postRedisplay();
     }
 }
 

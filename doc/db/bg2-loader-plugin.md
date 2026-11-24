@@ -1,6 +1,6 @@
 # Bg2LoaderPlugin
 
-Loads `.bg2` and `.vwglb` model files using the bg2io WASM library.
+Loads `.bg2` model files using the bg2io WASM library.
 
 ```js
 import Bg2LoaderPlugin from 'bg2e-js/ts/db/Bg2LoaderPlugin.ts';
@@ -12,7 +12,7 @@ const loader = new Loader();
 const drawable = await loader.loadDrawable("../resources/cubes.bg2");
 ```
 
-Supported extensions: `["bg2", "vwglb"]`
+The supported extension is `.bg2`. Buffer loads use the format name `"bg2"`.
 
 Supported resource types: `PolyList`, `Drawable`, `Node`
 
@@ -21,7 +21,7 @@ See also: [about.md](about.md), [loader-plugin.md](loader-plugin.md)
 ## Constructor
 
 ```js
-constructor({ bg2ioPath, preferedDrawableFormat, materialImportCallback })
+constructor({ bg2ioPath, materialImportCallback })
 ```
 
 | Parameter | Type | Default | Description |

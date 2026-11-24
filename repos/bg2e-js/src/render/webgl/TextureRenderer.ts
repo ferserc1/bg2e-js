@@ -58,6 +58,8 @@ const getTextureFilter = (gl: WebGLRenderingContext, filter: number): number => 
     return (gl as any)[name];
 }
 
+const isPowerOfTwo = (size: number): boolean => size > 0 && (size & (size - 1)) === 0;
+
 const getDataFormat = (gl: WebGLRenderingContext, texture: Texture): number => {
     const componentFormat = texture.componentFormat;
     switch (componentFormat) {
@@ -78,13 +80,14 @@ const bg2eCreateTexture = (gl: any, textureObject: any): void => {
     if (gl._bg2_textures[id] && gl._bg2_textures[id] !== textureObject) {
         id = textureObject.name + "_" + textureObject._apiObject._bg2_uuid;
     }
+    textureObject._apiObject._bg2_registryKey = id;
     gl._bg2_textures[id] = textureObject;
 }
 
 const bg2eDeleteTexture = (gl: any, textureObject: any): void => {
     if (textureObject._apiObject) {
         gl.deleteTexture(textureObject._apiObject);
-        delete gl._bg2_textures[textureObject._apiObject._bg2_uuid];
+        delete gl._bg2_textures[textureObject._apiObject._bg2_registryKey];
         textureObject._apiObject = null;
         textureObject.setUpdated(false);
     }
@@ -103,20 +106,23 @@ const getWebGLTexture = (gl: WebGLRenderingContext, textureObject: any): void =>
     gl.bindTexture(target, textureObject._apiObject);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, textureObject.flipYOnUpload === true);
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, textureObject.linearData ? gl.NONE : gl.BROWSER_DEFAULT_WEBGL);
+    const { width, height } = textureObject.size;
+    const webGL2 = typeof WebGL2RenderingContext !== "undefined" && gl instanceof WebGL2RenderingContext;
+    const unrestricted = webGL2 || (isPowerOfTwo(width) && isPowerOfTwo(height));
+    const minFilter = getTextureFilter(gl, textureObject.minFilter);
+    const nearest = minFilter === gl.NEAREST ||
+        minFilter === gl.NEAREST_MIPMAP_NEAREST || minFilter === gl.NEAREST_MIPMAP_LINEAR;
+    gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, unrestricted ? minFilter : nearest ? gl.NEAREST : gl.LINEAR);
+    gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, getTextureFilter(gl, textureObject.magFilter));
+    gl.texParameteri(target, gl.TEXTURE_WRAP_S, unrestricted ? getClampMode(gl, textureObject.wrapModeX) : gl.CLAMP_TO_EDGE);
+    gl.texParameteri(target, gl.TEXTURE_WRAP_T, unrestricted ? getClampMode(gl, textureObject.wrapModeY) : gl.CLAMP_TO_EDGE);
 
     if (textureObject.dataType ===TextureDataType.RENDER_TARGET) {
-        const { width, height } = textureObject.size;
-
         const isDepthTexture = textureObject.renderTargetAttachment === TextureRenderTargetAttachment.DEPTH_ATTACHMENT;
         const internalFormat = isDepthTexture ? gl.DEPTH_COMPONENT : gl.RGBA;
         let format = isDepthTexture ? gl.DEPTH_COMPONENT : gl.RGBA;
         const type = isDepthTexture ? gl.UNSIGNED_SHORT : dataFormat;
 
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, getTextureFilter(gl, textureObject.minFilter));
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, getTextureFilter(gl, textureObject.magFilter));
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, getClampMode(gl,textureObject.wrapModeX));
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, getClampMode(gl,textureObject.wrapModeY));
-        
         if (target === gl.TEXTURE_CUBE_MAP) {
             for (let i = 0; i<6; ++i) {
                 gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, format, type, null);
@@ -140,13 +146,7 @@ const getWebGLTexture = (gl: WebGLRenderingContext, textureObject: any): void =>
             gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, dataFormat, textureObject._imageData);
         }
     
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, getClampMode(gl,textureObject.wrapModeX));
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, getClampMode(gl,textureObject.wrapModeY));
-    
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, getTextureFilter(gl, textureObject.magFilter));
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, getTextureFilter(gl, textureObject.minFilter));
-    
-        if (textureObject.mipmapRequired) {
+        if (unrestricted && textureObject.mipmapRequired) {
             gl.generateMipmap(target);
         }
     }

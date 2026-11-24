@@ -121,11 +121,11 @@ export default class RenderBuffer {
             this._type = getTargetType(texture) || RenderBufferType.UNINITIALIZED;
         }
 
-        texture.dataType = TextureDataType.RENDER_TARGET;
         texture.size = this.size;
-        await texture.loadImageData();
+        texture.dataType = TextureDataType.RENDER_TARGET;
         const textureRenderer = this.renderer.factory.texture(texture);
         this._attachments[texture.renderTargetAttachment] = textureRenderer;
+        this._dirty = true;
     }
 
     detachTexture(texture: Texture): void {

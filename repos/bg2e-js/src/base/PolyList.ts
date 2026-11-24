@@ -227,6 +227,11 @@ export default class PolyList {
         this.groupName = other.groupName;
         this.visible = other.visible;
         this.visibleToShadows = other.visibleToShadows;
+        this.cullFace = other.cullFace;
+        this.frontFace = other.frontFace;
+        this.enableCullFace = other.enableCullFace;
+        this.renderLayers = other.renderLayers;
+        this.selectable = other.isSelectable;
         this.vertex = [...other.vertex];
         this.normal = [...other.normal];
         this.texCoord0 = [...other.texCoord0];

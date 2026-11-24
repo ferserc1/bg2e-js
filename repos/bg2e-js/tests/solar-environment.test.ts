@@ -11,6 +11,7 @@ import LightComponent from '../src/scene/LightComponent';
 import { deserializeComponent } from '../src/scene/Component';
 import { registerComponents } from '../src/scene/index';
 import Loader from '../src/db/Loader';
+import type Canvas from '../src/app/Canvas';
 
 registerComponents();
 
@@ -115,7 +116,8 @@ test('shadow light selection tracks Sun type, enabled ancestors and castShadows 
 });
 
 test('native scene loader imports Sun and environment without a sample-specific adapter', async t => {
-    const { default: Resource, ResourceType } = await import('../src/tools/Resource');
+    const { ResourceType } = await import('../src/tools/Resource');
+    const { default: TextResourceProvider } = await import('../src/tools/TextResourceProvider');
     const { default: SceneLoader } = await import('../src/db/VitscnjLoaderPlugin');
     const document = { fileType: 'bg2e::scene', scene: [{ name: 'Native solar node', components: [
         { type: 'Transform', transformMatrix: Array.from(Mat4.MakeRotation(Math.PI / 2, 1, 0, 0)) },
@@ -123,8 +125,9 @@ test('native scene loader imports Sun and environment without a sample-specific 
         { type: 'Environment', equirectangularTexture: '', skyboxVisible: false, skyboxBlur: 0.3,
             skyZenithColor: [0.1, 0.2, 0.3, 1] }
     ] }] };
-    t.mock.method(Resource.prototype, 'load', async () => document);
-    const loader = { currentPath: '/previous/' } as Loader;
+    t.mock.method(TextResourceProvider.prototype, 'load', async () => document);
+    const loader = new Loader({} as Canvas);
+    loader.currentPath = '/previous/';
     const plugin = new SceneLoader();
     const scene = await plugin.load('/scene/native.json', ResourceType.Node, loader);
     const lights = LightComponent.GetLights(scene);
@@ -135,7 +138,7 @@ test('native scene loader imports Sun and environment without a sample-specific 
     assert.equal(environment.showSkybox, false);
     assert.ok(environment.solarState!.direction.y > 0.99);
     assert.equal(loader.currentPath, '/previous/');
-    t.mock.method(Resource.prototype, 'load', async () => { throw new Error('load failed'); });
+    t.mock.method(TextResourceProvider.prototype, 'load', async () => { throw new Error('load failed'); });
     await assert.rejects(plugin.load('/scene/broken.json', ResourceType.Node, loader));
     assert.equal(loader.currentPath, '/previous/');
 });

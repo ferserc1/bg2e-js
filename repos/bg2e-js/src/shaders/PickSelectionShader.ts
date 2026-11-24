@@ -101,9 +101,7 @@ export default class PickSelectionShader extends Shader {
 
         const { polyList } = plistRenderer;
 
-        // The selection state of the draw call takes precedence over the one stored in the
-        // polyList: this is what makes it possible to pick each Instance component
-        // separately, even if all the instances share the same polyList objects.
+        // Each drawable instance supplies a separate color code for the same geometry.
         const selected = selectionState ? selectionState.selected : polyList.isSelected;
         const colorCode = selectionState ? selectionState.colorCode : polyList.colorCode;
 

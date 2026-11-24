@@ -147,14 +147,26 @@ What does not change is the data that is stored in the material. Each attribute 
 **`material.destroy()`**: Decrements the references of all Texture objects contained in the material.
 
 
+## Native material imports
+
+`deserialize` resolves texture paths against the declaring document's directory. `deserializeWithDependencies` resolves each source by the dropped file's name. Both accept `isUnlit` with the legacy `unlit` fallback, honor explicit `alphaCutoff: 0`, and use the SDK defaults for omitted numeric values. A material's `visible` flag and its submesh's visibility both apply to drawing. `doubleSided` controls face culling, with the legacy `cullFace` flag as a fallback.
+
+`await original.withOverrides(fields, sceneDirectory)` creates an independent appearance. An omitted texture source keeps the original, `null` clears it, and a filename resolves against the scene directory with fresh sampler defaults. A settings record on its own updates the inherited sampler. The UV set, scale and channel retain their original values until overridden. Copies can share decoded pixels and keep independent textures and sampler state.
+
+The six texture settings records are `albedoTextureSettings`, `normalTextureSettings`, `metalnessTextureSettings`, `roughnessTextureSettings`, `lightEmissionTextureSettings` and `ambientOcclussionSettings`. WebGL supports minification, magnification, mipmaps, horizontal and vertical wrap, and the linear data flag. Clamp-to-border uses clamp-to-edge. The 2D WebGL path uses clamp-to-edge and base-level filtering for non-power-of-two textures in WebGL 1. The 2D samplers have no W axis, and the SDK's WebGL 1 samplers omit per-texture `minLod`, `maxLod` and `bias`.
+
+The PBR renderer stores metalness, roughness, emission and height in a shared RGBA8 texture. It applies each supported inversion to the selected source channel when building that texture. The packed texture has a common filter and wrap state when sampled by the final shader. The basic PBR shader uses UV0 and samples metalness and roughness directly. Native `isSolid` and `refractionFactor` are read as material metadata. The web render queue uses its existing transparency pipeline.
+
 ## Baked indirect lighting
 
 Native-compatible JSON uses `indirectTextureMode` (`ao`, `bakedAO`, `bakedGI`),
 `ambientOcclussion`, `ambientOcclussionUV`, `ambientOcclussionScale`,
 `ambientOcclussionChannel` and `ambientOcclussionSettings` (`color: 2` for linear,
 `mipmaps: false` to disable mipmaps). The historical spelling is intentional.
-Missing mode defaults to scalar AO. Baked modes require opaque materials and UV2
-(index 1), sample linear RGB and ignore the channel selector. Baked AO multiplies
+Missing mode defaults to scalar AO. Baked modes sample RGB from the selected UV set
+and ignore the channel selector. Importing a baked map or applying settings to it
+forces linear interpretation. A mode-only override retains the inherited sampler.
+Baked AO multiplies
 indirect lighting; baked GI multiplies diffuse indirect lighting and sheen while
 preserving specular and direct lighting. Missing maps use neutral white.
 

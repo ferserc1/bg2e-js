@@ -1,6 +1,6 @@
 import Component from './Component';
 import type Loader from '../db/Loader';
-import { isAbsolute, jointUrl } from '../tools/Resource';
+import { resolveResourceUrl } from '../tools/Resource';
 export interface FontDeclaration { identifier: string; path: string; faceIndex?: number; notices?: string[]; }
 export default class TextFontComponent extends Component {
     private value: FontDeclaration[] = [];
@@ -20,7 +20,7 @@ export default class TextFontComponent extends Component {
     async deserialize(data: any, loader: Loader): Promise<void> {
         if (!Array.isArray(data.fonts)) return;
         const resolve = (p: string) => {
-            const resolved = isAbsolute(p) ? p : jointUrl(loader.currentPath, p);
+            const resolved = resolveResourceUrl(loader.currentPath, p);
             return typeof document !== 'undefined' ? new URL(resolved, document.baseURI).href : resolved;
         };
         this.setDeclarations(data.fonts.filter((f: any) => f && typeof f.identifier === 'string' && typeof f.path === 'string').map((f: any) => ({

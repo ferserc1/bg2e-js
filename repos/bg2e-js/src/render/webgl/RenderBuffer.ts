@@ -140,9 +140,7 @@ export default class WebGLRenderBuffer extends RenderBuffer {
         const { gl } = this.renderer;
 
         if (this.dirty) {
-            if (this._framebuffer) {
-                gl.deleteFramebuffer(this._framebuffer);
-            }
+            this.destroy();
             this._framebuffer = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
 

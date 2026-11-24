@@ -200,6 +200,8 @@ export default class ShadowRenderer {
                     queue.beginOperation(layer);
                 }
                 queue.queue.forEach(rs => {
+                    if (rs.polyListRenderer?.polyList.visibleToShadows === false ||
+                        rs.materialRenderer?.material.castShadows === false) return;
                     rs.draw({
                         overrideShader: this._shader,
                         overrideViewMatrix: viewMatrix,

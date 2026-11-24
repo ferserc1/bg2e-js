@@ -18,7 +18,7 @@
 
 
 import Vec from '../math/Vec';
-import Resource from '../tools/Resource';
+import ImageResourceProvider from '../tools/ImageResourceProvider';
 import { generateImageHash } from '../tools/image';
 import Color from './Color';
 import Canvas from '../app/Canvas';
@@ -189,91 +189,50 @@ interface FloatImageData { width: number; height: number; data: Float32Array | U
 
 type TextureImageData = ExtendedHTMLImageElement | RenderTargetImageData | FloatImageData | null;
 
-const g_loadedImages: Record<string, Promise<HTMLImageElement> | null> = {};
-let g_resource: Resource | null = null;
-const g_loadPromises: Record<string, Promise<HTMLImageElement> | null> = {};
-const loadImageFromFileUrl = async (fileUrl: string): Promise<HTMLImageElement> => {
-    if (!g_resource) {
-        g_resource = new Resource();
-    }
+const urlImages = new Map<string, Promise<HTMLImageElement>>();
+const fileImages = new WeakMap<File, Promise<HTMLImageElement>>();
 
-    if (g_loadPromises[fileUrl]) {
-        console.debug(`Image already loaded or loading: ${fileUrl}`);
-    }
-    else {
-        console.debug(`Loading image: ${fileUrl}`);
-        g_loadPromises[fileUrl] = new Promise(async (resolve, reject) => {
-            const image = await g_resource?.load(fileUrl);
-            // Flip image Y coord
-            const canvas = document.createElement("canvas");
-            canvas.width = image.naturalWidth;
-            canvas.height = image.naturalHeight;
-    
-            const ctx = canvas.getContext('2d');
-            ctx!.fillStyle = '#00000000';
-            ctx!.clearRect(0, 0, canvas.width, canvas.height);
-            ctx!.fillRect(0, 0, canvas.width, canvas.height);
-            ctx!.scale(1, -1);
-            ctx!.drawImage(image, 0, 0, canvas.width, -canvas.height);
-            const flipImage = new Image();
-            const loadFlipImage = () => {
-                return new Promise<void>(resolve => {
-                    flipImage.onload = () => {
-                        (flipImage as any)._hash = generateImageHash(flipImage);
-                        resolve();
-                    }
-                    flipImage.src = canvas.toDataURL();
-                })
-            } 
-            await loadFlipImage();    
-            
-            resolve(flipImage);
-        })
-    }
-
-    return g_loadPromises[fileUrl];
+async function flipMaterialImage(image: CanvasImageSource, width: number, height: number): Promise<HTMLImageElement> {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Unable to prepare texture image");
+    ctx.translate(0, height);
+    ctx.scale(1, -1);
+    ctx.drawImage(image, 0, 0);
+    const result = new Image();
+    result.src = canvas.toDataURL();
+    await result.decode();
+    (result as ExtendedHTMLImageElement)._hash = generateImageHash(result);
+    return result;
 }
-const loadImageFromFile = async (file: File): Promise<HTMLImageElement> => {
-    
-    if (!g_resource) {
-        g_resource = new Resource();
-    }
 
-    if (g_loadPromises[file.name]) {
-        console.debug(`Image already loaded or loading: ${file.name}`);
-    }
-    else {
-        console.debug(`Loading image: ${file.name}`);
-        g_loadPromises[file.name] = new Promise(async (resolve, reject) => {
-            const image = await createImageBitmap(file);
-            // Flip image Y coord
-            const canvas = document.createElement("canvas");
-            canvas.width = image.width;
-            canvas.height = image.height;
-    
-            const ctx = canvas.getContext('2d');
-            ctx!.fillStyle = '#00000000';
-            ctx!.clearRect(0, 0, canvas.width, canvas.height);
-            ctx!.fillRect(0, 0, canvas.width, canvas.height);
-            ctx!.scale(1, -1);
-            ctx!.drawImage(image, 0, 0, canvas.width, -canvas.height);
-            const flipImage = new Image();
-            const loadFlipImage = () => {
-                return new Promise<void>(resolve => {
-                    flipImage.onload = () => {
-                        (flipImage as any)._hash = generateImageHash(flipImage);
-                        resolve();
-                    }
-                    flipImage.src = canvas.toDataURL();
-                })
-            } 
-            await loadFlipImage();    
-            
-            resolve(flipImage);
-        })
-    }
+async function loadImageFromFileUrl(url: string): Promise<HTMLImageElement> {
+    const image = await new ImageResourceProvider().load(url);
+    return flipMaterialImage(image, image.naturalWidth, image.naturalHeight);
+}
 
-    return g_loadPromises[file.name]!;
+async function loadImageFromFile(file: File): Promise<HTMLImageElement> {
+    const url = URL.createObjectURL(file);
+    try {
+        return await loadImageFromFileUrl(url);
+    }
+    finally {
+        URL.revokeObjectURL(url);
+    }
+}
+
+function getCachedImage<K>(
+    cache: Pick<Map<K, Promise<HTMLImageElement>>, "get" | "delete"> & { set(key: K, image: Promise<HTMLImageElement>): unknown },
+    key: K, load: (key: K) => Promise<HTMLImageElement>, refresh: boolean
+): Promise<HTMLImageElement> {
+    const existing = cache.get(key);
+    if (existing && !refresh) return existing;
+    const pending = load(key);
+    cache.set(key, pending);
+    pending.catch(() => { if (cache.get(key) === pending) cache.delete(key); });
+    return pending;
 }
 
 const loadBase64Image = async (base64Img: string): Promise<HTMLImageElement> => {
@@ -445,6 +404,7 @@ export default class Texture {
         this._imageData = other._imageData;
         this._renderTargetAttachment = other._renderTargetAttachment;
         this._componentFormat = other._componentFormat;
+        this._name = other._name;
 
         this._dirty = true;
     }
@@ -460,6 +420,9 @@ export default class Texture {
     get dataType(): TextureDataType { return this._dataType; }
     set dataType(v: TextureDataType) {
         this._dataType = v;
+        if (v === TextureDataType.RENDER_TARGET) {
+            this.prepareRenderTargetImage();
+        }
         if (!this.isPowerOfTwo) {
             this.wrapModeXY = TextureWrap.CLAMP;
         }
@@ -600,51 +563,21 @@ export default class Texture {
         sceneData.name = this._name;
     }
 
+    private prepareRenderTargetImage(): void {
+        this._imageData = { currentSize: new Vec(this.size) };
+        this._dirty = true;
+    }
+
     async loadImageData(refresh: boolean = false): Promise<void> {
-        if (this.imageFile) {
-            if (g_loadedImages[this.fileName] && refresh) {
-                delete g_loadedImages[this.fileName];
-            }
-            let loadPromise = g_loadedImages[this.fileName];
-            if (!loadPromise) {
-                loadPromise = loadImageFromFile(this.imageFile);
-                g_loadedImages[this.fileName] = loadPromise;
-            }
-            else {
-                console.debug(`Texture: loadImageData(): image already loaded or is loading: ${this.fileName}`)
-            }
-            this._imageData = await loadPromise;
-
-            this._size = new Vec((this._imageData as HTMLImageElement).width, (this._imageData as HTMLImageElement).height);
-
-            this._dirty = true; 
+        if (this.dataType === TextureDataType.RENDER_TARGET) {
+            this.prepareRenderTargetImage();
         }
-        else if (this.fileName) {
-            if (g_loadedImages[this.fileName] && refresh) {
-                delete g_loadedImages[this.fileName];
-            }
-
-            let loadPromise = g_loadedImages[this.fileName];
-            if (!loadPromise) {
-                loadPromise = loadImageFromFileUrl(this.fileName);
-                g_loadedImages[this.fileName] = loadPromise;
-            }
-            else {
-                console.debug(`Texture: loadImageData(): image already loaded or is loading: ${this.fileName}`)
-            }
-            this._imageData = await loadPromise;
-
-            this._size = new Vec((this._imageData as HTMLImageElement).width, (this._imageData as HTMLImageElement).height);
-
-            this._dirty = true; 
-        }
-        else if (this.dataType === TextureDataType.RENDER_TARGET) {
-            // This object will store data to determine if the 
-            // texture must to be resized, and other information
-            // from the framebuffer
-            this._imageData = {
-                currentSize: new Vec(this.size)
-            };
+        else if (this.imageFile || this.fileName) {
+            const image = await (this.imageFile
+                ? getCachedImage(fileImages, this.imageFile, loadImageFromFile, refresh)
+                : getCachedImage(urlImages, this.fileName, loadImageFromFileUrl, refresh));
+            this._imageData = image;
+            this._size = new Vec(image.width, image.height);
             this._dirty = true;
         }
         else if (this.proceduralFunction === ProceduralTextureFunction.PLAIN_COLOR) {

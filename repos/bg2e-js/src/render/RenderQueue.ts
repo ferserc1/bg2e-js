@@ -18,6 +18,7 @@
 
 
 import { getLayers, RenderLayer } from "../base/PolyList";
+import { getMaterialAppearance } from "../base/Material";
 import Mat4 from "../math/Mat4";
 import { BlendFunction } from "./Pipeline";
 import RenderState, { type SelectionState } from "./RenderState";
@@ -162,23 +163,14 @@ export default class RenderQueue {
         this._lights = [];
     }
 
-    // The selectionState parameter is optional: if it isn't specified, the picking system
-    // will use the color code and selection flag stored in the polyList. It is used by
-    // components that draw polyLists owned by another component, so the same polyList can
-    // be added to the queue several times with a different selection state (see Instance).
-    addPolyList(polyListRenderer: PolyListRenderer, materialRenderer: MaterialRenderer, modelMatrix: Mat4, selectionState: SelectionState | null = null): void {
+    addPolyList(polyListRenderer: PolyListRenderer, materialRenderer: MaterialRenderer,
+        modelMatrix: Mat4, selectionState: SelectionState | null = null, submeshVisible?: boolean): void {
         const plistLayers = getLayers(polyListRenderer.polyList, materialRenderer.material);
+        const cullFace = getMaterialAppearance(materialRenderer.material).cullFace ?? polyListRenderer.polyList.enableCullFace;
         this._queues.forEach(({ layer, shader, queue, pipelines }) => {
             if (plistLayers & layer) {
-                const { polyList } = polyListRenderer;
-                let pipeline = null;
-                // TODO: Select pipeline based on material and polyList properties
-                if (polyList.enableCullFace) {
-                    pipeline = pipelines.cullBackFace;
-                }
-                else {
-                    pipeline = pipelines.cullFaceDisabled;
-                }
+                if (layer === RenderLayer.SELECTION_DEFAULT && selectionState?.selectable === false) return;
+                const pipeline = cullFace ? pipelines.cullBackFace : pipelines.cullFaceDisabled;
                 queue.push(new RenderState({
                     shader,
                     polyListRenderer,
@@ -187,7 +179,8 @@ export default class RenderQueue {
                     viewMatrix: this.viewMatrix,
                     projectionMatrix: this.projectionMatrix,
                     pipeline,
-                    selectionState
+                    selectionState,
+                    submeshVisible
                 }))
             }
         });

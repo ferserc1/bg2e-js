@@ -17,7 +17,7 @@
  */
 
 
-import { isAbsolute, jointUrl, ResourceType } from '../tools/Resource';
+import { resolveResourceUrl, ResourceType } from '../tools/Resource';
 import { 
     PluginOperationType,
     createPluginDatabase, 
@@ -32,6 +32,7 @@ import Drawable from '../scene/Drawable';
 
 import WasmResources from "./WasmResources";
 import TextFont from "../base/TextFont";
+import DrawableCache from "./DrawableCache";
 
 const g_loadPluginDatabase = createPluginDatabase(PluginOperationType.Read);
 
@@ -42,6 +43,15 @@ type ResourceCache = {
     [ResourceType.Texture]: Record<string, Texture>;
     [ResourceType.Material]: Record<string, any>;
     [ResourceType.TextFont]: Record<string, TextFont>;
+}
+
+interface LoaderResources {
+    disposed: boolean;
+    fontLoads: Map<string, Promise<TextFont>>;
+    ownedFonts: Set<TextFont>;
+    wasm: WasmResources;
+    cache: ResourceCache;
+    suppliedDrawableCache?: DrawableCache;
 }
 
 export const registerLoaderPlugin = (pluginInstance: LoaderPlugin): void => {
@@ -65,19 +75,44 @@ const getClearedCache = (): ResourceCache => {
 }
 
 export default class Loader {
-    private disposed = false;
-    private fontLoads = new Map<string, Promise<TextFont>>();
-    private ownedFonts = new Set<TextFont>();
-    readonly wasm: WasmResources;
+    private resources: LoaderResources;
     private _canvas: Canvas;
-    private _cache: ResourceCache;
-    private _currentPath: string;
+    private _currentPath = "";
+    private _drawableCache?: DrawableCache;
 
-    constructor(canvas?: Canvas | null, options: { wasmBaseUrl?: string } = {}) {
-        this.wasm = new WasmResources(options.wasmBaseUrl);
+    constructor(canvas?: Canvas | null, options: { wasmBaseUrl?: string; drawableCache?: DrawableCache } = {}) {
+        this.resources = {
+            disposed: false,
+            fontLoads: new Map(),
+            ownedFonts: new Set(),
+            wasm: new WasmResources(options.wasmBaseUrl),
+            cache: getClearedCache(),
+            suppliedDrawableCache: options.drawableCache
+        };
+        this._drawableCache = options.drawableCache;
         this._canvas = canvas || Canvas.FirstCanvas();
-        this._cache = getClearedCache();
-        this._currentPath = "";
+    }
+
+    get wasm(): WasmResources {
+        return this.resources.wasm;
+    }
+
+    withBasePath(path: string): Loader {
+        const scoped = new Loader(this.canvas);
+        scoped.resources = this.resources;
+        scoped.currentPath = path;
+        scoped._drawableCache = this.drawableCache;
+        return scoped;
+    }
+
+    withSceneBasePath(path: string): Loader {
+        const scoped = this.withBasePath(path);
+        scoped._drawableCache = this.resources.suppliedDrawableCache ?? new DrawableCache();
+        return scoped;
+    }
+
+    get drawableCache(): DrawableCache | undefined {
+        return this._drawableCache;
     }
 
     get canvas(): Canvas {
@@ -92,7 +127,7 @@ export default class Loader {
         this._currentPath = p;
     }
 
-    setupModelDropZone(dropZone: HTMLElement, fileFormats: string[], cb: (drawable: Drawable) => void): void {
+    setupModelDropZone(dropZone: HTMLElement, cb: (drawable: Drawable) => void): void {
         dropZone.addEventListener("dragover", event => {
             event.stopPropagation();
             event.preventDefault();
@@ -109,7 +144,7 @@ export default class Loader {
 
             const files = Array.from(dataTransfer.files);
 
-            const modelFile = files.find(f => f.name.toLowerCase().endsWith(".bg2") || f.name.toLowerCase().endsWith(".vwglb"));
+            const modelFile = files.find(f => f.name.toLowerCase().endsWith(".bg2"));
             if (modelFile) {
                 const buffer = await modelFile.arrayBuffer();
                 const drawable = await this.loadDrawableBuffer(buffer, "bg2", files.filter(f => f !== modelFile));
@@ -119,30 +154,28 @@ export default class Loader {
     }
 
     clearTextFontCache(): void {
-        this.fontLoads.clear();
-        this._cache[ResourceType.TextFont] = {};
+        this.resources.fontLoads.clear();
+        this.resources.cache[ResourceType.TextFont] = {};
     }
 
     dispose(): void {
-        this.disposed = true;
-        for (const font of this.ownedFonts) font.dispose();
-        this.ownedFonts.clear();
+        this.resources.disposed = true;
+        for (const font of this.resources.ownedFonts) font.dispose();
+        this.resources.ownedFonts.clear();
         this.clearCache();
     }
 
     clearCache(): void {
         this.clearTextFontCache();
-        this._cache = getClearedCache();
+        this.resources.cache = getClearedCache();
     }
 
     findCache(path: string, type: ResourceType): any {
-        return this._cache[type] && this._cache[type][path];
+        return this.resources.cache[type]?.[path];
     }
 
     async loadResource(path: string, type: ResourceType): Promise<any> {
-        if (!isAbsolute(path) && this.currentPath !== "") {
-            path = jointUrl(this.currentPath, path);
-        }
+        path = resolveResourceUrl(this.currentPath, path);
         let result = this.findCache(path, type);
         if (!result) {
             const plugin = getLoaderPlugin(path, type);
@@ -178,30 +211,31 @@ export default class Loader {
     }
 
     async loadTextFont(path: string): Promise<TextFont> {
-        if (this.disposed) throw new Error("Loader has been disposed");
-        const resolved = !isAbsolute(path) && this.currentPath ? jointUrl(this.currentPath, path) : path;
-        const cached = this._cache[ResourceType.TextFont][resolved];
+        const resources = this.resources;
+        if (resources.disposed) throw new Error("Loader has been disposed");
+        const resolved = resolveResourceUrl(this.currentPath, path);
+        const cached = resources.cache[ResourceType.TextFont][resolved];
         if (cached && !cached.disposed) return cached;
-        let pending = this.fontLoads.get(resolved);
+        let pending = resources.fontLoads.get(resolved);
         if (!pending) {
             const plugin = getLoaderPlugin(resolved, ResourceType.TextFont);
             pending = plugin.load(resolved, ResourceType.TextFont, this).then((font: TextFont) => {
-                if (this.disposed) { font.dispose(); throw new Error("Loader disposed during font load"); }
-                this.ownedFonts.add(font);
-                if (this.fontLoads.get(resolved) === pending) this._cache[ResourceType.TextFont][resolved] = font;
+                if (resources.disposed) { font.dispose(); throw new Error("Loader disposed during font load"); }
+                resources.ownedFonts.add(font);
+                if (resources.fontLoads.get(resolved) === pending) resources.cache[ResourceType.TextFont][resolved] = font;
                 return font;
             });
             // Failures stay cached until explicit cache clear/reload.
-            this.fontLoads.set(resolved, pending);
+            resources.fontLoads.set(resolved, pending);
         }
         return pending;
     }
 
     async loadTextFontBuffer(buffer: ArrayBuffer, format = "ttf"): Promise<TextFont> {
-        if (this.disposed) throw new Error("Loader has been disposed");
+        if (this.resources.disposed) throw new Error("Loader has been disposed");
         const font = await this.loadResourceBuffer(buffer, format, [], ResourceType.TextFont) as TextFont;
-        if (this.disposed) { font.dispose(); throw new Error("Loader disposed during font load"); }
-        this.ownedFonts.add(font);
+        if (this.resources.disposed) { font.dispose(); throw new Error("Loader disposed during font load"); }
+        this.resources.ownedFonts.add(font);
         return font;
     }
 

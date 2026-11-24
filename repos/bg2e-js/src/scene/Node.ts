@@ -18,12 +18,13 @@
 
 import Mat4 from '../math/Mat4';
 import ComponentMap from './ComponentMap';
+import type DrawableCache from '../db/DrawableCache';
 import Component from './Component';
 import Renderer from '../render/Renderer';
 import Camera from './Camera';
 import Transform from './Transform';
 import Drawable from './Drawable';
-import Instance from './Instance';
+import type DrawableInstance from './DrawableInstance';
 import LightComponent from './LightComponent';
 
 // Position of a child in the children list. It can be specified as:
@@ -63,7 +64,7 @@ export default class Node {
 
     private _postRedisplayFrames: number = 0;
 
-    constructor(name: string = "") {
+    constructor(name: string = "", public readonly drawableCache?: DrawableCache) {
         this._name = name;
         this._enabled = true;
         this._steady = false;
@@ -86,16 +87,14 @@ export default class Node {
     get components(): ComponentMap { return this._components; }
 
     // The renderer bound to this node, if the node is part of an initialized scene.
-    // It is used by components that need to bind the renderer to resources that are not
-    // part of the scene graph when they are added to an already initialized node
-    // (see Instance.addedToNode).
+    // Components added after initialization can use it to bind their render resources.
     get bindedRenderer(): Renderer | undefined { return this._bindedRenderer; }
 
     get parent(): Node | null { return this._parent; }
     get children(): Node[] { return this._children; }
 
     clone(cloneChildren: boolean = false): Node {
-        const newNode = new Node();
+        const newNode = new Node("", this.drawableCache);
         newNode.assign(this, cloneChildren);
         return newNode;
     }
@@ -114,6 +113,7 @@ export default class Node {
     }
 
     destroy(): void {
+        this._components.forEach(component => component.destroy());
         this._components.empty();
         this.emptyChildren();
     }
@@ -443,8 +443,8 @@ export default class Node {
         return (this.component("Drawable") ?? this.component("Text")) as Drawable;
     }
 
-    get instance(): Instance | undefined {
-        return this.component("Instance") as Instance;
+    get drawableInstance(): DrawableInstance | undefined {
+        return this.component("DrawableInstance") as DrawableInstance;
     }
 
     get camera(): Camera | undefined {

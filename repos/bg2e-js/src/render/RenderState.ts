@@ -18,6 +18,7 @@
 
 
 import { RenderLayer } from "../base/PolyList";
+import { getMaterialAppearance } from "../base/Material";
 import Mat4 from "../math/Mat4";
 import type Shader from "./Shader";
 import type PolyListRenderer from "./PolyListRenderer";
@@ -26,15 +27,11 @@ import type Renderer from "./Renderer";
 import type Pipeline from "./Pipeline";
 import type Color from "../base/Color";
 
-// The selection state of a draw call. Usually, the selection state (the color code used
-// by the picking system and the selection flag) is stored in the PolyList, but a PolyList
-// can be drawn several times in the same frame with a different selection state: this is
-// the case of the Instance component, that draws the polyLists of another Drawable
-// component. In that case, the object that adds the polyList to the render queue provides
-// its own selection state, that takes precedence over the one stored in the PolyList.
+// When geometry is shared, each draw supplies its own picking identity.
 export interface SelectionState {
     colorCode: Color;
     selected: boolean;
+    selectable?: boolean;
 }
 
 export interface RenderStateOptions {
@@ -46,6 +43,7 @@ export interface RenderStateOptions {
     projectionMatrix?: Mat4;
     pipeline?: Pipeline | null;
     selectionState?: SelectionState | null;
+    submeshVisible?: boolean;
 }
 
 export interface DrawOptions {
@@ -63,6 +61,7 @@ export default class RenderState {
     protected _projectionMatrix: Mat4;
     protected _pipeline: Pipeline | null;
     protected _selectionState: SelectionState | null;
+    protected _submeshVisible?: boolean;
 
     constructor({
         shader = null,
@@ -72,7 +71,8 @@ export default class RenderState {
         viewMatrix = Mat4.MakeIdentity(),
         projectionMatrix = Mat4.MakeIdentity(),
         pipeline = null,
-        selectionState = null
+        selectionState = null,
+        submeshVisible
     }: RenderStateOptions = {}) {
         this._shader = shader;
         this._polyListRenderer = polyListRenderer;
@@ -82,6 +82,7 @@ export default class RenderState {
         this._projectionMatrix = projectionMatrix;
         this._pipeline = pipeline;
         this._selectionState = selectionState;
+        this._submeshVisible = submeshVisible;
     }
 
     get valid(): boolean {
@@ -123,9 +124,12 @@ export default class RenderState {
 
     draw({ overrideShader = null, overrideViewMatrix = null, overrideProjectionMatrix = null}: DrawOptions = {}): void {
         const shader = overrideShader || this.shader;
-        if (!this.polyListRenderer?.polyList.visible || !shader || !this.materialRenderer) {
+        if (!this.polyListRenderer || !shader || !this.materialRenderer ||
+            !(this._submeshVisible ?? this.polyListRenderer.polyList.visible)) {
             return;
         }
+        const appearance = getMaterialAppearance(this.materialRenderer.material);
+        if (!appearance.visible) return;
         if ((this.renderer as any)?.debugMode) {
             console.log(`======= Begin render polyList "${this.polyListRenderer.polyList.name}"    ==============`);
         }
@@ -145,7 +149,7 @@ export default class RenderState {
             projectionMatrix,
             this.selectionState
         );
-        this.polyListRenderer.draw();
+        this.polyListRenderer.draw(appearance.cullFace);
         if ((this.renderer as any)?.debugMode) {
             console.log(`======= End render polyList "${this.polyListRenderer.polyList.name}"      ==============`);
         }

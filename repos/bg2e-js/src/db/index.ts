@@ -20,6 +20,7 @@ import WasmResources from "./WasmResources";
 
 
 import Bg2LoaderPlugin from "./Bg2LoaderPlugin";
+import DrawableCache from "./DrawableCache";
 import {
     PluginOperationType,
     createPluginDatabase,
@@ -46,6 +47,7 @@ export default {
     TextFontLoaderPlugin,
     WasmResources,
     Bg2LoaderPlugin,
+    DrawableCache,
     PluginOperationType,
     createPluginDatabase,
     registerPluginInDatabase,

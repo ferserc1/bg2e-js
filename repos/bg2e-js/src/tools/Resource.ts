@@ -58,35 +58,24 @@ export const getExtension = (url: string): string => {
 }
 
 export const getFileName = (url: string): string => {
-    const reResult = /(.+)\/(.+)$/.exec(url);
-    if (reResult) {
-        return reResult[2];
-    }
-    else {
-        return url;
-    }
+    const path = url.split(/[?#]/)[0];
+    return path.slice(path.lastIndexOf('/') + 1);
 }
 
 export const removeExtension = (url: string): string => {
-    const reResult = /(.+)\.(.+)$/.exec(url);
-    if (reResult) {
-        return reResult[1];
-    }
-    else {
-        return url;
-    }
+    const extensionStart = url.lastIndexOf('.');
+    return extensionStart > url.lastIndexOf('/') + 1 ? url.slice(0, extensionStart) : url;
 }
 
 export const removeFileName = (url: string): string => {
-    const i = url.lastIndexOf('/');
-    if (i != -1) {
-        return url.substring(0,i + 1);
-    }
-    return url;
+    const path = url.split(/[?#]/)[0];
+    return path.slice(0, path.lastIndexOf('/') + 1);
 }
 
+const urlScheme = /^[a-z][a-z\d+.-]*:/i;
+
 export const isAbsolute = (url: string): boolean => {
-    return /^http|^\//i.test(url);
+    return url.startsWith('/') || urlScheme.test(url);
 }
 
 export const jointUrl = (base: string, append: string): string => {
@@ -100,6 +89,12 @@ export const jointUrl = (base: string, append: string): string => {
     else {
         return `${base}${append.slice(1)}`;
     }
+}
+
+export const resolveResourceUrl = (base: string, path: string): string => {
+    if (!base || isAbsolute(path)) return path;
+    const joined = jointUrl(base, path);
+    return urlScheme.test(base) ? new URL(joined).href : joined;
 }
 
 export const isFormat = (url: string, formats: string[]): boolean => formats.some(fmt => (new RegExp(`\.${fmt}`,'i')).test(url));
@@ -146,11 +141,13 @@ export const getValidVideoFormats = (): string[] => g_validVideoFormats;
 
 const g_validBinaryFormats = [
     "ttf", "otf", "ttc", "otc",
-    "vwglb",
     "bg2"
 ];
 
-export const isValidBinary = (url: string): boolean => isFormat(url, g_validBinaryFormats);
+export const isValidBinary = (url: string): boolean => {
+    const extension = getExtension(url).toLowerCase();
+    return g_validBinaryFormats.some(format => format.toLowerCase() === extension);
+}
 
 export const addBinaryFormats = (fmts: string | string[]): void => {
     addFormats(fmts, g_validBinaryFormats);

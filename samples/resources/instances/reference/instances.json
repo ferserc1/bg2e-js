@@ -1,0 +1,1910 @@
+{
+  "fileType" : "bg2e::scene",
+  "scene" : [
+    {
+      "children" : [
+        {
+          "children" : [],
+          "components" : [
+            {
+              "path" : "../ae2589c9bc9a486f-2.bg2",
+              "priority" : 0,
+              "rayTracingEnabled" : true,
+              "submeshes" : [
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0,
+                      1,
+                      0.15189862,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-4.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : true,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0.4,
+                    "metalnessChannel" : 1,
+                    "metalnessInvert" : true,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : "channels.png",
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "Offset face",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0.13,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0,
+                      1,
+                      0.15189862,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-4.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : false
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0,
+                      1,
+                      0.15189862,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-4.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0,
+                      1,
+                      0.15189862,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-4.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0.25,
+                      0.55,
+                      0.8,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-4.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0,
+                      1,
+                      0.15189862,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-4.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                }
+              ],
+              "type" : "DrawableInstance"
+            },
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                1.4934512,
+                0.6,
+                0,
+                1
+              ],
+              "type" : "Transform"
+            }
+          ],
+          "enabled" : true,
+          "name" : "Green instance",
+          "steady" : false,
+          "type" : "Node"
+        },
+        {
+          "children" : [],
+          "components" : [
+            {
+              "path" : "../ae2589c9bc9a486f-2.bg2",
+              "priority" : 0,
+              "rayTracingEnabled" : false,
+              "submeshes" : [
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0.9493671,
+                      0.048069205,
+                      0.048069205,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-5.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0.9493671,
+                      0.048069205,
+                      0.048069205,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-5.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0.9493671,
+                      0.048069205,
+                      0.048069205,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-5.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0.9493671,
+                      0.048069205,
+                      0.048069205,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-5.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0.25,
+                      0.55,
+                      0.8,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-5.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                },
+                {
+                  "groupName" : "",
+                  "material" : {
+                    "albedo" : [
+                      0.9493671,
+                      0.048069205,
+                      0.048069205,
+                      1
+                    ],
+                    "albedoScale" : [
+                      1,
+                      1
+                    ],
+                    "albedoTexture" : null,
+                    "albedoUV" : 0,
+                    "alphaCutoff" : 0,
+                    "ambientOcclussion" : "../ae2589c9bc9a486f-5.png",
+                    "ambientOcclussionChannel" : 0,
+                    "ambientOcclussionScale" : [
+                      1,
+                      1
+                    ],
+                    "ambientOcclussionSettings" : {
+                      "bias" : 0,
+                      "color" : 2,
+                      "mag" : 0,
+                      "maxLod" : -1,
+                      "min" : 0,
+                      "minLod" : 0,
+                      "mipmaps" : false,
+                      "u" : 2,
+                      "v" : 2,
+                      "w" : 0
+                    },
+                    "ambientOcclussionUV" : 1,
+                    "class" : "PBRMaterial",
+                    "doubleSided" : false,
+                    "fresnelTint" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "groupName" : "",
+                    "indirectTextureMode" : "bakedGI",
+                    "isSolid" : true,
+                    "isTransparent" : false,
+                    "isUnlit" : false,
+                    "lightEmission" : 0,
+                    "lightEmissionChannel" : 0,
+                    "lightEmissionInvert" : false,
+                    "lightEmissionScale" : [
+                      1,
+                      1
+                    ],
+                    "lightEmissionTexture" : null,
+                    "lightEmissionUV" : 0,
+                    "metalness" : 0,
+                    "metalnessChannel" : 0,
+                    "metalnessInvert" : false,
+                    "metalnessScale" : [
+                      1,
+                      1
+                    ],
+                    "metalnessTexture" : null,
+                    "metalnessUV" : 0,
+                    "name" : "",
+                    "normalScale" : [
+                      1,
+                      1
+                    ],
+                    "normalTexture" : null,
+                    "normalUV" : 0,
+                    "refractionFactor" : 0.017,
+                    "roughness" : 0.45,
+                    "roughnessChannel" : 0,
+                    "roughnessInvert" : false,
+                    "roughnessScale" : [
+                      1,
+                      1
+                    ],
+                    "roughnessTexture" : null,
+                    "roughnessUV" : 0,
+                    "sheenColor" : [
+                      1,
+                      1,
+                      1,
+                      1
+                    ],
+                    "sheenIntensity" : 0,
+                    "type" : "pbr",
+                    "visible" : true
+                  },
+                  "name" : "",
+                  "transform" : [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "visible" : true
+                }
+              ],
+              "type" : "DrawableInstance"
+            },
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                -1.552121,
+                0.6,
+                0,
+                1
+              ],
+              "type" : "Transform"
+            }
+          ],
+          "enabled" : true,
+          "name" : "Red instance",
+          "steady" : false,
+          "type" : "Node"
+        },
+        {
+          "children" : [],
+          "components" : [
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                0.70710677,
+                0,
+                -0.70710677,
+                0,
+                0.61237246,
+                0.49999997,
+                0.61237246,
+                0,
+                0.35355335,
+                -0.86602545,
+                0.35355335,
+                0,
+                0,
+                5,
+                0,
+                1
+              ],
+              "type" : "Transform"
+            },
+            {
+              "lightData" : {
+                "affectsReflections" : true,
+                "castShadows" : true,
+                "color" : [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "intensity" : 1,
+                "shadowSamples" : 8,
+                "solarDistanceMillionKm" : 149.6,
+                "solarSize" : 1,
+                "sourceSize" : 0.5,
+                "spotAngle" : 22,
+                "spotCutoff" : 14,
+                "type" : "kTypeSun"
+              },
+              "priority" : 0,
+              "type" : "LightSource"
+            },
+            {
+              "groundColor" : [
+                0.04,
+                0.035,
+                0.025,
+                1
+              ],
+              "priority" : 0,
+              "skyHorizonColor" : [
+                0.55,
+                0.65,
+                0.8,
+                1
+              ],
+              "skyZenithColor" : [
+                0.06,
+                0.22,
+                0.6,
+                1
+              ],
+              "skyboxBlur" : 0,
+              "skyboxVisible" : true,
+              "type" : "Environment"
+            }
+          ],
+          "enabled" : true,
+          "name" : "Env and Light",
+          "steady" : false,
+          "type" : "Node"
+        },
+        {
+          "children" : [],
+          "components" : [
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "type" : "Transform"
+            },
+            {
+              "path" : "../ae2589c9bc9a486f-0.bg2",
+              "priority" : 0,
+              "type" : "DrawableInstance"
+            }
+          ],
+          "enabled" : true,
+          "name" : "Ownerless floor",
+          "steady" : false,
+          "type" : "Node"
+        },
+        {
+          "children" : [],
+          "components" : [
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0.6,
+                0,
+                1
+              ],
+              "type" : "Transform"
+            },
+            {
+              "path" : "../ae2589c9bc9a486f-2.bg2",
+              "priority" : 0,
+              "resourceName" : "Startup model",
+              "type" : "Drawable"
+            }
+          ],
+          "enabled" : true,
+          "name" : "Startup model",
+          "steady" : false,
+          "type" : "Node"
+        },
+        {
+          "children" : [],
+          "components" : [
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                0.7372774,
+                0,
+                -0.67559016,
+                0,
+                -0.32753265,
+                0.87461966,
+                -0.35743922,
+                0,
+                0.59088445,
+                0.48480967,
+                0.6448373,
+                0,
+                3.823127,
+                4.073341,
+                4.3151217,
+                1
+              ],
+              "type" : "Transform"
+            },
+            {
+              "cameraData" : {
+                "projection" : {
+                  "far" : 100,
+                  "fov" : 60,
+                  "near" : 0.1,
+                  "type" : "PerspectiveProjection"
+                }
+              },
+              "priority" : 0,
+              "type" : "Camera"
+            },
+            {
+              "center" : [
+                -0.23032634,
+                0.7475583,
+                -0.10844705
+              ],
+              "displacementSpeed" : 0.1,
+              "distance" : 6.8599763,
+              "enabled" : true,
+              "maxDistance" : 24,
+              "maxPitch" : 85,
+              "maxX" : 45,
+              "maxY" : 45,
+              "maxZ" : 45,
+              "minDistance" : 1.1754944e-38,
+              "minFocus" : 2,
+              "minPitch" : -85,
+              "minX" : -45,
+              "minY" : -45,
+              "minZ" : -45,
+              "mouseSmoothingTime" : 0.05,
+              "movementSpeedScale" : 1,
+              "panButtonsButtons" : {
+                "left" : false,
+                "middle" : false,
+                "right" : true
+              },
+              "priority" : 0,
+              "rotateButtons" : {
+                "left" : true,
+                "middle" : false,
+                "right" : false
+              },
+              "rotation" : [
+                29.000002,
+                42.499996
+              ],
+              "rotationSpeed" : 0.2,
+              "type" : "OrbitCameraController",
+              "wheelSpeed" : 0.4,
+              "zoomButtons" : {
+                "left" : false,
+                "middle" : true,
+                "right" : false
+              }
+            }
+          ],
+          "enabled" : true,
+          "name" : "Editor camera",
+          "steady" : false,
+          "type" : "Node"
+        },
+        {
+          "children" : [],
+          "components" : [
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0.6,
+                -1.9,
+                1
+              ],
+              "type" : "Transform"
+            },
+            {
+              "path" : "../ae2589c9bc9a486f-2.bg2",
+              "priority" : 0,
+              "resourceName" : "Startup model",
+              "type" : "Drawable"
+            }
+          ],
+          "enabled" : true,
+          "name" : "Second owner",
+          "steady" : false,
+          "type" : "Node"
+        },
+        {
+          "children" : [],
+          "components" : [
+            {
+              "material" : {
+                "albedo" : [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "albedoScale" : [
+                  1,
+                  1
+                ],
+                "albedoTextureSettings" : {
+                  "bias" : 0,
+                  "color" : 2,
+                  "mag" : 0,
+                  "maxLod" : -1,
+                  "min" : 0,
+                  "minLod" : 0,
+                  "mipmaps" : false,
+                  "u" : 2,
+                  "v" : 2,
+                  "w" : 2
+                },
+                "albedoUV" : 0,
+                "alphaCutoff" : 0.1,
+                "class" : "PBRMaterial",
+                "doubleSided" : true,
+                "fresnelTint" : [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "groupName" : "",
+                "indirectTextureMode" : "ao",
+                "isSolid" : true,
+                "isTransparent" : false,
+                "isUnlit" : true,
+                "lightEmission" : 0,
+                "lightEmissionChannel" : 0,
+                "lightEmissionInvert" : false,
+                "lightEmissionScale" : [
+                  1,
+                  1
+                ],
+                "lightEmissionUV" : 0,
+                "metalness" : 0,
+                "metalnessInvert" : false,
+                "name" : "",
+                "refractionFactor" : 0.017,
+                "roughness" : 0.9,
+                "roughnessInvert" : false,
+                "sheenColor" : [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "sheenIntensity" : 0,
+                "type" : "pbr",
+                "visible" : true
+              },
+              "pivot" : [
+                0.5,
+                0.5
+              ],
+              "preserveAspect" : true,
+              "priority" : 0,
+              "size" : [
+                3,
+                0.75
+              ],
+              "text" : {
+                "alignment" : "center",
+                "bitmapResolution" : {
+                  "height" : 512,
+                  "width" : 2048
+                },
+                "characterSpacing" : 0,
+                "content" : "Baked instances",
+                "fontIdentifier" : "default",
+                "fontSize" : 160,
+                "lineSpacing" : 1.2,
+                "margins" : {
+                  "bottom" : 24,
+                  "left" : 24,
+                  "right" : 24,
+                  "top" : 24
+                },
+                "overflowPolicy" : "clip",
+                "paragraphSize" : {
+                  "height" : 256,
+                  "width" : 1024
+                },
+                "verticalAlignment" : "center",
+                "wrapMode" : "word"
+              },
+              "type" : "Text"
+            },
+            {
+              "priority" : 0,
+              "transformMatrix" : [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                1.8,
+                0,
+                1
+              ],
+              "type" : "Transform"
+            }
+          ],
+          "enabled" : true,
+          "name" : "Baked instances label",
+          "steady" : false,
+          "type" : "Node"
+        }
+      ],
+      "components" : [
+        {
+          "priority" : 0,
+          "transformMatrix" : [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "type" : "Transform"
+        },
+        {
+          "fonts" : [
+            {
+              "faceIndex" : 0,
+              "identifier" : "default",
+              "notices" : [
+                "../ae2589c9bc9a486f-6.txt",
+                "../ae2589c9bc9a486f-7.md"
+              ],
+              "path" : "../ae2589c9bc9a486f-8.ttf"
+            }
+          ],
+          "priority" : 0,
+          "type" : "TextFonts"
+        }
+      ],
+      "enabled" : true,
+      "name" : "Scene",
+      "steady" : false,
+      "type" : "Node"
+    }
+  ],
+  "version" : {
+    "major" : 1,
+    "minor" : 0,
+    "rev" : 0
+  }
+}

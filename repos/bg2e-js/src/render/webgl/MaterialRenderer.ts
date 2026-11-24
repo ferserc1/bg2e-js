@@ -16,13 +16,14 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import Texture, { TextureChannel, TextureTargetName } from "../../base/Texture";
-import Material from "../../base/Material";
+import Texture, { TextureChannel } from "../../base/Texture";
+import Material, { getMaterialAppearance } from "../../base/Material";
 import MaterialRenderer from "../MaterialRenderer";
 import WebGLTextureRenderer from "./TextureRenderer";
 import TextureMerger from "../TextureMergerRenderer";
 import ShaderProgram from "./ShaderProgram";
 import Renderer from "../Renderer";
+import type WebGLRenderer from "./Renderer";
 import { whiteTexture, createWhiteTexture, blackTexture, createBlackTexture } from "../../tools/TextureResourceDatabase";
 
 export default class WebGLMaterialRenderer extends MaterialRenderer {
@@ -50,27 +51,35 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
     }
 
     mergeTextures() {
-        if (this.material.dirty) {
-            const getTexture = (att: keyof Material, fallbackTexture = this._whiteTexture) => {
-                if (this.material[att] instanceof Texture) {
-                    return this.material[att];
-                }
-                else {
-                    return fallbackTexture.texture;
-                }
-            }
+        const material = this.material;
+        const sources = [material.metalnessTexture, material.roughnessTexture, material.lightEmissionTexture, material.heightTexture];
+        if (!material.dirty && !sources.some(texture => texture?.dirty)) return;
 
-            this._textureMerger.setTexture(getTexture('metalnessTexture'), TextureChannel.R, TextureChannel.R + this.material.metalnessChannel);
-            this._textureMerger.setTexture(getTexture('roughnessTexture'), TextureChannel.G, TextureChannel.R + this.material.roughnessChannel);
-            this._textureMerger.setTexture(getTexture('lightEmissionTexture', this._blackTexture), TextureChannel.B, TextureChannel.R + this.material.lightEmissionChannel);
-            this._textureMerger.setTexture(getTexture('heightTexture', this._blackTexture), TextureChannel.A, TextureChannel.R + this.material.heightChannel);
-            const sources = ['metalnessTexture', 'roughnessTexture', 'lightEmissionTexture', 'heightTexture'] as const;
-            this._textureMerger.size = [
-                Math.max(...sources.map(key => (this.material[key] as Texture | null)?.size.width || 1)),
-                Math.max(...sources.map(key => (this.material[key] as Texture | null)?.size.height || 1))
-            ];
+        const appearance = getMaterialAppearance(material);
+        const white = this._whiteTexture.texture;
+        this._textureMerger.setTexture(material.metalnessTexture ?? white, TextureChannel.R,
+            TextureChannel.R + material.metalnessChannel, !!material.metalnessTexture && appearance.metalnessInvert);
+        this._textureMerger.setTexture(material.roughnessTexture ?? white, TextureChannel.G,
+            TextureChannel.R + material.roughnessChannel, !!material.roughnessTexture && appearance.roughnessInvert);
+        this._textureMerger.setTexture(material.lightEmissionTexture ?? white, TextureChannel.B,
+            TextureChannel.R + material.lightEmissionChannel, !!material.lightEmissionTexture && appearance.lightEmissionInvert);
+        this._textureMerger.setTexture(material.heightTexture ?? this._blackTexture.texture, TextureChannel.A,
+            TextureChannel.R + material.heightChannel);
+        this._textureMerger.size = [
+            Math.max(1, ...sources.map(texture => texture?.size.width ?? 1)),
+            Math.max(1, ...sources.map(texture => texture?.size.height ?? 1))
+        ];
+
+        // The packed alpha carries height. Blending would mix every channel with the framebuffer.
+        const { state } = this.renderer as WebGLRenderer;
+        const blendEnabled = state.blendEnabled;
+        state.blendEnabled = false;
+        try {
             this._textureMerger.update();
-            this.material.dirty = false;
+            material.dirty = false;
+        }
+        finally {
+            state.blendEnabled = blendEnabled;
         }
     }
 
@@ -79,7 +88,7 @@ export default class WebGLMaterialRenderer extends MaterialRenderer {
     }
 
     destroy() {
-        console.log("Destroy material renderer");
+        this._textureMerger.destroy();
         if (this.material) {
             // The use of 'as any' is to provide access to the internal property like a friend class in C++
             (this.material as any)._renderer = null;

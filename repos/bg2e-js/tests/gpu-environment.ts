@@ -61,6 +61,12 @@ try {
     check(environment.environmentMap === publishedMap, 'Failed environment generation preserves published maps');
     const hdr = renderer.factory.environment();
     await hdr.load({ textureUrl: './fixtures/linear.hdr', environmentMapSize: [32, 32], irradianceMapSize: [4, 4] });
+    const material = new Material(canvas);
+    const materialHdrRejected = await material.withOverrides({
+        albedoTexture: './fixtures/linear.hdr'
+    }, new URL('.', document.baseURI).href)
+        .then(() => false, () => true);
+    check(materialHdrRejected, 'Radiance HDR remains unsupported as a material image');
     const hdrFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, hdrFramebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,

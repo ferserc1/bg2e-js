@@ -21,12 +21,15 @@ import TextureMergerShader from "../shaders/TextureMergerShader";
 import Renderer from "./Renderer";
 import type RenderBuffer from "./RenderBuffer";
 
+type ChannelSource = { texture: Texture; channel: TextureChannel; invert: boolean };
+
 export default class TextureMergerRenderer {
     _renderer: Renderer;
     _shader: TextureMergerShader;
     _dirty: boolean;
     _mergedTexture: Texture;
     _renderBuffer: RenderBuffer;
+    private sources = new Map<TextureChannel, ChannelSource>();
 
     constructor(renderer: Renderer) {
         this._renderer = renderer;
@@ -42,8 +45,6 @@ export default class TextureMergerRenderer {
 
         this._renderBuffer = this.renderer.factory.renderBuffer();
         this._renderBuffer.attachTexture(this._mergedTexture);
-
-        this._shader.load();
     }
 
     set size(value: number[]) { this._renderBuffer.size = value; }
@@ -60,12 +61,15 @@ export default class TextureMergerRenderer {
         this._dirty = d;
     }
 
-    setTexture(tex: Texture | null, channel: TextureChannel, dstChannel: TextureChannel = TextureChannel.R): void {
+    setTexture(tex: Texture | null, channel: TextureChannel, dstChannel: TextureChannel = TextureChannel.R, invert = false): void {
         if (!tex) {
             throw new Error("TextureMergerRenderer: cannot set null texture");
         }
+        if (channel < TextureChannel.R || channel > TextureChannel.A) {
+            throw new Error(`TextureMergerRenderer: invalid texture channel ${channel}`);
+        }
 
-        this._shader.setTexture(tex, channel, dstChannel);
+        this.sources.set(channel, { texture: tex, channel: dstChannel, invert });
         this._dirty = true;
     }
 
@@ -74,17 +78,29 @@ export default class TextureMergerRenderer {
     }
 
     get isComplete(): boolean {
-        return this._shader.isComplete ?? false;
+        return [TextureChannel.R, TextureChannel.G, TextureChannel.B, TextureChannel.A].every(channel => this.sources.has(channel));
     }
 
     update(): void {
         if (this._dirty) {
-            this._renderBuffer.update(() => {
-                // DEBUG: check why it's neccesary to present texture twice
-                this.renderer.presentTexture(null, { clearBuffers: true, shader: this._shader });
-                this.renderer.presentTexture(null, { shader: this._shader });
-            });
+            try {
+                for (const [target, { texture, channel, invert }] of this.sources) {
+                    this._shader.setTexture(texture, target, channel, invert);
+                }
+                this._renderBuffer.update(() => {
+                    this.renderer.presentTexture(null, { clearBuffers: true, shader: this._shader });
+                });
+            }
+            finally {
+                this._shader.clearTextures();
+            }
             this._dirty = false;
         }
+    }
+
+    destroy(): void {
+        this.sources.clear();
+        this._renderBuffer.destroy();
+        this._mergedTexture.destroy();
     }
 }

@@ -55,6 +55,7 @@ const g_code = {
         uniform int uGChannel;
         uniform int uBChannel;
         uniform int uAChannel;
+        uniform vec4 uInvert;
         
         float getChannel(vec4 color, int channel) {
             if (channel == 1) {
@@ -79,7 +80,7 @@ const g_code = {
                 getChannel(texture2D(uTextureA, fragTexCoord), uAChannel)
             );
             
-            gl_FragColor = result;
+            gl_FragColor = mix(result, 1.0 - result, uInvert);
         }`
     }
 }
@@ -88,6 +89,7 @@ const g_renderers: { [key: string]: TextureMergerShader } = {};
 export default class TextureMergerShader extends Shader {
     protected _textures: { [key in TextureChannel]?: Texture | null };
     protected _textureChannels: { [key in TextureChannel]?: TextureChannel };
+    private _inversions: number[] = [0, 0, 0, 0];
     protected _program!: ShaderProgram;
 
     static GetUnique(renderer: Renderer) {
@@ -121,13 +123,19 @@ export default class TextureMergerShader extends Shader {
     setTexture(
         tex: Texture,
         channel: TextureChannel,
-        dstChannel = TextureChannel.R
+        dstChannel = TextureChannel.R,
+        invert = false
     ) {
         if (channel<TextureChannel.R || channel>TextureChannel.A) {
             throw new Error(`TextureMergerShader: invalid texture channel set ${ channel }`);
         }
         this._textures[channel] = tex;
         this._textureChannels[channel] = dstChannel;
+        this._inversions[channel - TextureChannel.R] = invert ? 1 : 0;
+    }
+
+    clearTextures(): void {
+        this._textures = {};
     }
 
     get isComplete() {
@@ -182,6 +190,7 @@ export default class TextureMergerShader extends Shader {
         this._program.uniform1i("uGChannel", this._textureChannels[TextureChannel.G] ?? 0);
         this._program.uniform1i("uBChannel", this._textureChannels[TextureChannel.B] ?? 0);
         this._program.uniform1i("uAChannel", this._textureChannels[TextureChannel.A] ?? 0);
+        this._program.uniform4fv("uInvert", this._inversions);
 
         this._program.positionAttribPointer((plistRenderer as WebGLPolyListRenderer).positionAttribParams("position"));
         this._program.texCoordAttribPointer((plistRenderer as WebGLPolyListRenderer).texCoord0AttribParams("texCoord"));

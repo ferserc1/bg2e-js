@@ -23,15 +23,16 @@ import BoundingBox from "../base/BoundingBox";
 import Drawable from "./Drawable";
 import Node from "./Node";
 import NodeVisitor from "./NodeVisitor";
+import Transform from "./Transform";
 
 class BoundingBoxVisitor extends NodeVisitor {
     private _matrixStack: Mat4[];
     private _localBox: BoundingBox;
     private _worldBox: BoundingBox;
 
-    constructor() {
+    constructor(parentMatrix = Mat4.MakeIdentity()) {
         super();
-        this._matrixStack = [Mat4.MakeIdentity()];
+        this._matrixStack = [parentMatrix];
         this._localBox = new BoundingBox();
         this._worldBox = new BoundingBox();
     }
@@ -60,11 +61,10 @@ class BoundingBoxVisitor extends NodeVisitor {
             this.expandByDrawable(drawable, currentMatrix);
         }
 
-        // An Instance component renders the drawable of another component in this node, so
-        // it contributes to the bounding box exactly like a Drawable of this node would do
-        const instance = node.instance;
-        if (instance?.sourceDrawable) {
-            this.expandByDrawable(instance.sourceDrawable, currentMatrix);
+        for (const { polyList, transform } of node.drawableInstance?.items ?? []) {
+            const localBox = BoundingBox.FromPolyList(polyList);
+            this._localBox.expandByBoundingBox(localBox.transform(transform));
+            this._worldBox.expandByBoundingBox(localBox.transform(Mat4.Mult(currentMatrix, transform)));
         }
     }
 
@@ -133,7 +133,7 @@ export default class AABoundingBox {
     update(): void {
         if (!this._node) return;
 
-        const visitor = new BoundingBoxVisitor();
+        const visitor = new BoundingBoxVisitor(this._node.parent ? Transform.GetWorldMatrix(this._node.parent) : undefined);
         this._node.accept(visitor);
         this._localBox = visitor.localBox;
         this._worldBox = visitor.worldBox;

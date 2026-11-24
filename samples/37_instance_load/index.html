@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>bg2e - Load native drawable instances</title>
+    <script type="module" src="./src/main.ts"></script>
+    <style>
+        body { margin: 0; font: 14px/1.4 system-ui, sans-serif; color: #f4f4f4; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        aside {
+            position: fixed; top: 12px; left: 12px; max-width: min(440px, calc(100vw - 48px));
+            padding: 12px; background: #18202aef; border-radius: 8px;
+        }
+        h1 { margin: 0 0 8px; font-size: 16px; }
+        a { color: #c2e6ff; }
+        nav, .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+        .controls { margin-top: 8px; }
+        pre { max-height: 32vh; overflow: auto; white-space: pre-wrap; margin: 8px 0; }
+        p { margin: 8px 0 0; }
+    </style>
+</head>
+<body>
+    <canvas id="scene"></canvas>
+    <aside>
+        <h1 id="mode">Load native drawable instances</h1>
+        <nav aria-label="Scene">
+            <a href="./">Complete export</a>
+            <a href="./?scene=reference">Reference save</a>
+        </nav>
+        <p id="scene-note" hidden>This C++ reference save is a test variant of the complete export. The green cube has an offset face and a hidden face to show per-submesh transforms and visibility. Use Retry floor to recover from the simulated load failure.</p>
+        <div class="controls">
+            <button type="button" id="lightmaps" disabled>Baked lightmaps on</button>
+            <button type="button" id="retry" hidden>Retry floor</button>
+        </div>
+        <p id="selection" role="status">Click a cube to inspect its selection.</p>
+        <pre id="result" role="log">Loading native scene…</pre>
+    </aside>
+</body>
+</html>

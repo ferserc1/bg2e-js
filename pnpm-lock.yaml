@@ -442,6 +442,19 @@ importers:
         specifier: ^7.1.2
         version: 7.3.3(@types/node@25.7.0)
 
+  samples/37_instance_load:
+    dependencies:
+      bg2e-js:
+        specifier: ^2.7.1
+        version: link:../../repos/bg2e-js
+    devDependencies:
+      vite:
+        specifier: ^7.1.2
+        version: 7.3.3(@types/node@25.7.0)
+      vite-plugin-static-copy:
+        specifier: ^3.1.2
+        version: 3.4.0(vite@7.3.3(@types/node@25.7.0))
+
 packages:
 
   '@babel/code-frame@7.29.0':

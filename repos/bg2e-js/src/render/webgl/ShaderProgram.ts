@@ -439,9 +439,8 @@ export default class ShaderProgram {
 
     bindTexture(uniformName: string, textureRenderer: TextureRenderer, textureUnit: number): void {
         const gl = this._gl;
-        const webglTexture = textureRenderer.getApiObject();
-        
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
+        const webglTexture = textureRenderer.getApiObject();
         switch (textureRenderer.texture.target) {
         case TextureTarget.TEXTURE_2D:
             gl.bindTexture(gl.TEXTURE_2D, webglTexture);

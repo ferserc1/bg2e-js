@@ -216,10 +216,10 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
         this._indexBuffer?.bind(BufferTarget.ELEMENT_ARRAY_BUFFER);        
     }
     
-    draw(): void {
+    draw(cullFaceEnabled = this.polyList.enableCullFace): void {
         const { gl, state } = this.renderer as WebGLRenderer;
 
-        state.cullFaceEnabled = this.polyList.enableCullFace;
+        state.cullFaceEnabled = cullFaceEnabled;
         
         switch (this.polyList.frontFace) {
         case PolyListFrontFace.CCW:
@@ -274,5 +274,8 @@ export default class WebGLPolyListRenderer extends PolyListRenderer {
     destroy(): void {
         if (this._vertexBuffer) VertexBuffer.Delete(this._vertexBuffer);
         if (this._indexBuffer) VertexBuffer.Delete(this._indexBuffer);
+        this._vertexBuffer = null;
+        this._indexBuffer = null;
+        this._indexArrayFormat = null;
     }
 }

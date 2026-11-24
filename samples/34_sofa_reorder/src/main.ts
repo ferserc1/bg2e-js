@@ -182,7 +182,7 @@ class MyAppController extends SceneAppController {
 
     setupDropZone() {
         const loader = new Loader();
-        loader.setupModelDropZone(document.body, ["bg2","vwglb"], drawable => {
+        loader.setupModelDropZone(document.body, drawable => {
             const modelNode = new Node("Dropped model");
             modelNode.addComponent(drawable);
             modelNode.addComponent(new Transform(Mat4.MakeTranslation(0, 0, 0).scale(10, 10, 10)));

@@ -26,6 +26,7 @@ import Bg2KeyboardEvent from "../app/Bg2KeyboardEvent";
 import Bg2MouseEvent from "../app/Bg2MouseEvent";
 import Bg2TouchEvent from "../app/Bg2TouchEvent";
 import Loader from "../db/Loader";
+import { isJsonObject } from "./SceneData";
 
 // Type definitions
 type ComponentConstructor<T extends Component = Component> = new () => T;
@@ -34,7 +35,7 @@ interface ComponentRegistry {
     [typeId: string]: ComponentConstructor;
 }
 
-const g_componentClasses: ComponentRegistry = {};
+const g_componentClasses: ComponentRegistry = Object.create(null);
 
 export const registerComponent = <T extends Component>(
     typeId: string,
@@ -63,20 +64,31 @@ export const createComponent = (typeId: string): Component | null => {
     return null;
 };
 
-export const deserializeComponent = async (sceneData: any, loader: Loader): Promise<Component | null> => {
+export const deserializeComponent = async (sceneData: any, loader: Loader, node?: Node): Promise<Component | null> => {
+    if (!isJsonObject(sceneData) || typeof sceneData.type !== "string" || !sceneData.type) {
+        throw new Error("Expected a component object with a nonempty type");
+    }
     const componentInstance = createComponent(sceneData.type);
     if (!componentInstance) {
         return null;
     }
     
-    await componentInstance.deserialize(sceneData, loader);
+    componentInstance.priority = readPriority(sceneData.priority);
+    await componentInstance.deserialize(sceneData, loader, node);
     return componentInstance;
 };
+
+function readPriority(value: unknown): number {
+    return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 0xffffffff
+        ? value || 0
+        : 0;
+}
 
 export default class Component {
     private _node: any = null;
     private _typeId: string;
     protected _renderer: Renderer | null = null;
+    priority = 0;
 
     constructor(typeId: string) {
         if (!typeId) {
@@ -111,8 +123,8 @@ export default class Component {
         // Override in subclasses if needed
     }
 
-    async deserialize(sceneData: any, loader: any): Promise<void> {
-        // Override in subclasses if needed
+    async deserialize(sceneData: any, loader: any, _node?: Node): Promise<void> {
+        this.priority = readPriority(sceneData.priority);
     }
 
     async serialize(sceneData: any, writer: any): Promise<void> {

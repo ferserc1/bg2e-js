@@ -57,7 +57,7 @@ const g_code = {
             [
                 new ShaderFunction('void','main','',`{
                     vec4 selectionColor = applyConvolution(uTexture, fragTexCoord, uTexSize, uConvMatrix, uBorderWidth);
-                    if (selectionColor.r!=0.0 && selectionColor.g!=0.0 && selectionColor.b!=0.0) {
+                    if (any(notEqual(selectionColor.rgb, vec3(0.0)))) {
                         gl_FragColor = uBorderColor;
                     }
                     else {

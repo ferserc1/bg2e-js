@@ -242,11 +242,9 @@ export default class GizmoManager {
         if (!selection.length) {
             return null;
         }
-        // If the element has been picked through an Instance component, the node of the
-        // instance is the one that has to be manipulated: the node of the drawable is the
-        // one that owns the mesh, and it may even not be part of the scene graph
         const selectedItem = selection[selection.length - 1];
-        const node = selectedItem.instance?.node ?? selectedItem.drawable?.node;
+        if (selectedItem.drawable.items[selectedItem.itemIndex]?.polyList !== selectedItem.polyList) return null;
+        const node = selectedItem.drawable.node;
         if (!node) {
             return null;
         }

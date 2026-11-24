@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bg2e - Instances</title>
+    <title>bg2e - Drawable instances</title>
     <script type="module" src="src/main.ts"></script>
     <style>
         html, body {
@@ -22,19 +22,22 @@
             position: absolute;
             bottom: 12px;
             left: 12px;
+            width: min(320px, calc(100vw - 56px));
             padding: 12px 16px;
             border-radius: 8px;
-            background-color: rgba(0, 0, 0, 0.55);
+            background-color: rgba(0, 0, 0, 0.78);
             color: white;
-            font-family: sans-serif;
-            font-size: 13px;
-            user-select: none;
+            font: 13px/1.4 system-ui, sans-serif;
         }
 
-        #albedo-panel h3 {
-            margin: 0px 0px 8px 0px;
-            font-size: 13px;
+        #albedo-panel h1 {
+            margin: 0;
+            font-size: 16px;
             font-weight: 600;
+        }
+
+        #selection-status {
+            margin: 6px 0 14px;
         }
 
         #albedo-panel label {
@@ -49,7 +52,8 @@
         }
 
         #albedo-panel input {
-            width: 180px;
+            min-width: 0;
+            flex: 1;
         }
 
         #albedo-panel .value {
@@ -57,27 +61,63 @@
             text-align: right;
             font-variant-numeric: tabular-nums;
         }
+
+        .material-preview {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .swatch {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            border: 1px solid #a9a9a9;
+            border-radius: 4px;
+        }
+
+        .reference-preview {
+            padding-top: 8px;
+            margin-bottom: 0;
+            border-top: 1px solid #666;
+        }
+
+        #reference-color {
+            margin-left: auto;
+            font-variant-numeric: tabular-nums;
+        }
     </style>
 </head>
 <body>
     <canvas id="gl-canvas" width="800" height="600"></canvas>
-    <div id="albedo-panel">
-        <h3>Source drawable albedo</h3>
+    <section id="albedo-panel">
+        <h1 id="model-summary">Shared chair model</h1>
+        <p id="selection-status" role="status">Click a chair to select it.</p>
+        <div class="material-preview">
+            <span id="selected-swatch" class="swatch" aria-hidden="true" hidden></span>
+            <span>Selected chair color</span>
+        </div>
         <label>
             <span>R</span>
-            <input id="albedo-r" type="range" min="0" max="255" step="1" value="255">
-            <span class="value" id="albedo-r-value">255</span>
+            <input id="albedo-r" aria-label="Red" type="range" min="0" max="255" step="1" value="255" disabled>
+            <span class="value" id="albedo-r-value">—</span>
         </label>
         <label>
             <span>G</span>
-            <input id="albedo-g" type="range" min="0" max="255" step="1" value="255">
-            <span class="value" id="albedo-g-value">255</span>
+            <input id="albedo-g" aria-label="Green" type="range" min="0" max="255" step="1" value="255" disabled>
+            <span class="value" id="albedo-g-value">—</span>
         </label>
         <label>
             <span>B</span>
-            <input id="albedo-b" type="range" min="0" max="255" step="1" value="255">
-            <span class="value" id="albedo-b-value">255</span>
+            <input id="albedo-b" aria-label="Blue" type="range" min="0" max="255" step="1" value="255" disabled>
+            <span class="value" id="albedo-b-value">—</span>
         </label>
-    </div>
+        <div class="material-preview reference-preview">
+            <span id="reference-swatch" class="swatch" aria-hidden="true" hidden></span>
+            <span id="reference-name">Reference chair</span>
+            <span id="reference-color">—</span>
+        </div>
+    </section>
 </body>
 </html>
